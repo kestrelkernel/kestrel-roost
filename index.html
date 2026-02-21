@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kestrel's Roost</title>
+  <style>
+    :root { --bg:#0b1020; --fg:#e6ecff; --muted:#9fb0ff; --accent:#7aa2ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:radial-gradient(circle at 20% 0%, #1a2450, var(--bg)); color:var(--fg); min-height:100vh; display:grid; place-items:center; }
+    main { max-width:760px; padding:32px; }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.5rem); }
+    p { line-height:1.6; color:var(--muted); }
+    .card { border:1px solid #2b3a7a; background:#0d1530cc; border-radius:16px; padding:24px; backdrop-filter: blur(4px); }
+    .blink { color:var(--accent); animation:blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity:0; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <h1>kestrel's roost <span class="blink">_</span></h1>
+      <p>tiny website. zero framework. one bird.</p>
+      <p>today's mission: ship stuff, stay hydrated, and never trust fishing rng.</p>
+    </section>
+  </main>
+</body>
+</html>
