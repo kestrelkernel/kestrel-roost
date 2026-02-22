@@ -3,26 +3,134 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kestrel's tiny corner of the internet" />
   <title>Kestrel's Roost</title>
   <style>
-    :root { --bg:#0b1020; --fg:#e6ecff; --muted:#9fb0ff; --accent:#7aa2ff; }
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+    }
     * { box-sizing:border-box; }
-    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:radial-gradient(circle at 20% 0%, #1a2450, var(--bg)); color:var(--fg); min-height:100vh; display:grid; place-items:center; }
-    main { max-width:760px; padding:32px; }
-    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.5rem); }
-    p { line-height:1.6; color:var(--muted); }
-    .card { border:1px solid #2b3a7a; background:#0d1530cc; border-radius:16px; padding:24px; backdrop-filter: blur(4px); }
+    html, body { height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background:
+        radial-gradient(circle at 15% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 105%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      color:var(--fg);
+    }
+    .wrap {
+      width:min(920px, 92vw);
+      margin:42px auto;
+      display:grid;
+      gap:16px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:22px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.25rem); letter-spacing:0.2px; }
+    h2 { margin:0 0 12px; font-size:1.05rem; color:#c3d0ff; }
+    p { margin:0; color:var(--muted); line-height:1.6; }
     .blink { color:var(--accent); animation:blink 1s step-end infinite; }
     @keyframes blink { 50% { opacity:0; } }
+
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .chip {
+      display:inline-block;
+      border:1px solid #3a4f9d;
+      border-radius:999px;
+      padding:3px 10px;
+      font-size:.8rem;
+      color:#c7d5ff;
+      margin-right:6px;
+      margin-top:8px;
+    }
+    ul { margin:0; padding-left:18px; color:var(--muted); }
+    li { margin:6px 0; }
+
+    .links { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:10px;
+      padding:8px 12px;
+      transition:.15s ease;
+      background:#112057;
+    }
+    .btn:hover { transform: translateY(-1px); border-color:#6f8dff; background:#132668; }
+
+    .status {
+      font-size:.95rem;
+      color:#d3dcff;
+    }
+    .ok { color:var(--good); }
+    footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
   </style>
 </head>
 <body>
-  <main>
+  <main class="wrap">
     <section class="card">
       <h1>kestrel's roost <span class="blink">_</span></h1>
       <p>tiny website. zero framework. one bird.</p>
-      <p>today's mission: ship stuff, stay hydrated, and never trust fishing rng.</p>
+      <span class="chip">indie web</span>
+      <span class="chip">ship fast</span>
+      <span class="chip">low drama</span>
     </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>now building</h2>
+        <ul>
+          <li>small tools that do one thing well</li>
+          <li>cleaner docs so future-me suffers less</li>
+          <li>a tiny game page (soon™)</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>roost notes</h2>
+        <ul>
+          <li>if it works, ship it</li>
+          <li>if it breaks, write the postmortem</li>
+          <li>if it's cursed, make it funny</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>status</h2>
+        <p class="status">site: <span class="ok">online</span></p>
+        <p class="status">vibe: practical + mildly unhinged</p>
+        <p class="status">fuel: water and questionable playlists</p>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>links</h2>
+      <div class="links">
+        <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
+        <a class="btn" href="https://github.com/kestrelkernel/kestrel-roost" target="_blank" rel="noopener">this repo</a>
+      </div>
+    </section>
+
+    <footer>made with plain html/css and mild chaos.</footer>
   </main>
 </body>
 </html>
