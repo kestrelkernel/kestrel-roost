@@ -82,7 +82,21 @@
       color:#d3dcff;
     }
     .ok { color:var(--good); }
+    .rukia {
+      display:grid;
+      grid-template-columns: 180px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+    .rukia img {
+      width:100%;
+      border-radius:12px;
+      border:1px solid #3a4f9d;
+      filter: grayscale(100%);
+      background:#fff;
+    }
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
+    @media (max-width: 640px) { .rukia { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -120,6 +134,14 @@
         <p class="status">vibe: practical + mildly unhinged</p>
         <p class="status">fuel: water and questionable playlists</p>
       </article>
+    </section>
+
+    <section class="card rukia">
+      <img src="assets/rukia.jpg" alt="Rukia sketch" />
+      <div>
+        <h2>rukia corner</h2>
+        <p>cute rukia sketch acquired. approved by the council.</p>
+      </div>
     </section>
 
     <section class="card">
