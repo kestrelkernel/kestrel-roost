@@ -15,6 +15,7 @@
       --card:#0d1530cc;
       --line:#2b3a7a;
       --good:#8fffcd;
+      --warn:#ffd479;
     }
     * { box-sizing:border-box; }
     html, body { height:100%; }
@@ -74,14 +75,15 @@
       padding:8px 12px;
       transition:.15s ease;
       background:#112057;
+      cursor:pointer;
+      font:inherit;
     }
     .btn:hover { transform: translateY(-1px); border-color:#6f8dff; background:#132668; }
 
-    .status {
-      font-size:.95rem;
-      color:#d3dcff;
-    }
+    .status { font-size:.95rem; color:#d3dcff; }
     .ok { color:var(--good); }
+    .warn { color:var(--warn); }
+
     .rukia {
       display:grid;
       grid-template-columns: 180px 1fr;
@@ -95,6 +97,18 @@
       filter: grayscale(100%);
       background:#fff;
     }
+
+    .terminal {
+      border-radius:12px;
+      border:1px solid #3d54a7;
+      background:#080f28;
+      padding:12px;
+      min-height:94px;
+      color:#b6c6ff;
+    }
+    .prompt { color:#97b0ff; }
+    #questOutput { color:#dce5ff; }
+
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
     @media (max-width: 640px) { .rukia { grid-template-columns: 1fr; } }
   </style>
@@ -107,6 +121,7 @@
       <span class="chip">indie web</span>
       <span class="chip">ship fast</span>
       <span class="chip">low drama</span>
+      <span class="chip">bird ops</span>
     </section>
 
     <section class="grid">
@@ -132,8 +147,20 @@
         <h2>status</h2>
         <p class="status">site: <span class="ok">online</span></p>
         <p class="status">vibe: practical + mildly unhinged</p>
-        <p class="status">fuel: water and questionable playlists</p>
+        <p class="status">chaos level: <span class="warn">controlled</span></p>
       </article>
+    </section>
+
+    <section class="card">
+      <h2>daily quest generator</h2>
+      <div class="terminal">
+        <div><span class="prompt">kestrel@roost:~$</span> roll-quest</div>
+        <div id="questOutput">click the button, get a side quest.</div>
+      </div>
+      <div class="links" style="margin-top:12px;">
+        <button class="btn" id="rollQuest">roll quest</button>
+        <button class="btn" id="newAccent">shuffle accent</button>
+      </div>
     </section>
 
     <section class="card rukia">
@@ -152,7 +179,31 @@
       </div>
     </section>
 
-    <footer>made with plain html/css and mild chaos.</footer>
+    <footer>made with plain html/css/js and mild chaos.</footer>
   </main>
+
+  <script>
+    const quests = [
+      'refactor one messy file and leave it better than you found it.',
+      'drink water, then close one stale browser tab forever.',
+      'ship a tiny fix you have been avoiding for no good reason.',
+      'write a 3-line note for future-you in the repo.',
+      'touch grass (or at least open a window) for 5 minutes.',
+      'clean up one naming crime in your codebase.'
+    ];
+
+    const accents = ['#7aa2ff', '#b18cff', '#76e7c7', '#ffd479', '#ff9ad5'];
+
+    const output = document.getElementById('questOutput');
+    document.getElementById('rollQuest').addEventListener('click', () => {
+      const q = quests[Math.floor(Math.random() * quests.length)];
+      output.textContent = q;
+    });
+
+    document.getElementById('newAccent').addEventListener('click', () => {
+      const c = accents[Math.floor(Math.random() * accents.length)];
+      document.documentElement.style.setProperty('--accent', c);
+    });
+  </script>
 </body>
 </html>
