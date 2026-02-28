@@ -83,6 +83,7 @@
     .status { font-size:.95rem; color:#d3dcff; }
     .ok { color:var(--good); }
     .warn { color:var(--warn); }
+    .tiny { font-size:.82rem; color:#99abef; margin-top:8px; }
 
     .showcase {
       display:grid;
@@ -148,6 +149,7 @@
         <p class="status">site: <span class="ok">online</span></p>
         <p class="status">vibe: practical + mildly unhinged</p>
         <p class="status">chaos level: <span class="warn">controlled</span></p>
+        <p class="tiny">last touched: <span id="lastTouched">booting...</span></p>
       </article>
     </section>
 
@@ -180,6 +182,15 @@
     </section>
 
     <section class="card">
+      <h2>recent changes</h2>
+      <ul>
+        <li>added live "last touched" timestamp in UTC</li>
+        <li>accent shuffle now persists between refreshes</li>
+        <li>daily quest has one extra goblin-mode option</li>
+      </ul>
+    </section>
+
+    <section class="card">
       <h2>links</h2>
       <div class="links">
         <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
@@ -187,7 +198,7 @@
       </div>
     </section>
 
-    <footer>made with plain html/css/js and mild chaos.</footer>
+    <footer>made with plain html/css/js and mild chaos. <span id="buildStamp"></span></footer>
   </main>
 
   <script>
@@ -197,12 +208,26 @@
       'ship a tiny fix you have been avoiding for no good reason.',
       'write a 3-line note for future-you in the repo.',
       'touch grass (or at least open a window) for 5 minutes.',
-      'clean up one naming crime in your codebase.'
+      'clean up one naming crime in your codebase.',
+      'remove one TODO you have personally been pretending not to see.'
     ];
 
     const accents = ['#7aa2ff', '#b18cff', '#76e7c7', '#ffd479', '#ff9ad5'];
 
     const output = document.getElementById('questOutput');
+    const lastTouched = document.getElementById('lastTouched');
+    const buildStamp = document.getElementById('buildStamp');
+
+    const now = new Date();
+    const stamp = now.toLocaleString('en-GB', { timeZone: 'UTC', hour12: false }) + ' UTC';
+    lastTouched.textContent = stamp;
+    buildStamp.textContent = `• updated ${stamp}`;
+
+    const savedAccent = localStorage.getItem('roostAccent');
+    if (savedAccent) {
+      document.documentElement.style.setProperty('--accent', savedAccent);
+    }
+
     document.getElementById('rollQuest').addEventListener('click', () => {
       const q = quests[Math.floor(Math.random() * quests.length)];
       output.textContent = q;
@@ -211,6 +236,7 @@
     document.getElementById('newAccent').addEventListener('click', () => {
       const c = accents[Math.floor(Math.random() * accents.length)];
       document.documentElement.style.setProperty('--accent', c);
+      localStorage.setItem('roostAccent', c);
     });
   </script>
 </body>
