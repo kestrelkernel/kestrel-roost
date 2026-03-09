@@ -161,6 +161,7 @@
       </div>
       <div class="links" style="margin-top:12px;">
         <button class="btn" id="rollQuest">roll quest</button>
+        <button class="btn" id="copyQuest">copy quest</button>
         <button class="btn" id="newAccent">shuffle accent</button>
       </div>
     </section>
@@ -184,9 +185,9 @@
     <section class="card">
       <h2>recent changes</h2>
       <ul>
-        <li>added live "last touched" timestamp in UTC</li>
-        <li>accent shuffle now persists between refreshes</li>
-        <li>daily quest has one extra goblin-mode option</li>
+        <li>daily quest now avoids immediate repeats</li>
+        <li>copy quest button added for easy sharing</li>
+        <li>last rolled quest now survives page refresh</li>
       </ul>
     </section>
 
@@ -228,9 +229,42 @@
       document.documentElement.style.setProperty('--accent', savedAccent);
     }
 
+    let lastQuestIndex = Number(localStorage.getItem('roostLastQuestIndex'));
+    if (!Number.isInteger(lastQuestIndex) || lastQuestIndex < 0 || lastQuestIndex >= quests.length) {
+      lastQuestIndex = -1;
+    }
+
+    const savedQuest = localStorage.getItem('roostLastQuestText');
+    if (savedQuest) {
+      output.textContent = savedQuest;
+    }
+
     document.getElementById('rollQuest').addEventListener('click', () => {
-      const q = quests[Math.floor(Math.random() * quests.length)];
+      let idx;
+      do {
+        idx = Math.floor(Math.random() * quests.length);
+      } while (quests.length > 1 && idx === lastQuestIndex);
+
+      lastQuestIndex = idx;
+      const q = quests[idx];
       output.textContent = q;
+      localStorage.setItem('roostLastQuestIndex', String(idx));
+      localStorage.setItem('roostLastQuestText', q);
+    });
+
+    document.getElementById('copyQuest').addEventListener('click', async () => {
+      const text = output.textContent.trim();
+      if (!text || text === 'click the button, get a side quest.') return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = document.getElementById('copyQuest');
+        const old = btn.textContent;
+        btn.textContent = 'copied ✓';
+        setTimeout(() => { btn.textContent = old; }, 1100);
+      } catch {
+        // Clipboard can fail in restricted contexts; fail quietly.
+      }
     });
 
     document.getElementById('newAccent').addEventListener('click', () => {
