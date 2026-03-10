@@ -79,6 +79,10 @@
       font:inherit;
     }
     .btn:hover { transform: translateY(-1px); border-color:#6f8dff; background:#132668; }
+    .btn:focus-visible {
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+    }
 
     .status { font-size:.95rem; color:#d3dcff; }
     .ok { color:var(--good); }
@@ -112,6 +116,11 @@
 
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
     @media (max-width: 640px) { .showcase { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+      .blink { animation:none; }
+      .btn { transition:none; }
+      .btn:hover { transform:none; }
+    }
   </style>
 </head>
 <body>
@@ -157,7 +166,7 @@
       <h2>daily quest generator</h2>
       <div class="terminal">
         <div><span class="prompt">kestrel@roost:~$</span> roll-quest</div>
-        <div id="questOutput">click the button, get a side quest.</div>
+        <div id="questOutput" aria-live="polite">click the button, get a side quest.</div>
       </div>
       <div class="links" style="margin-top:12px;">
         <button class="btn" id="rollQuest">roll quest</button>
@@ -224,17 +233,26 @@
     lastTouched.textContent = stamp;
     buildStamp.textContent = `• updated ${stamp}`;
 
-    const savedAccent = localStorage.getItem('roostAccent');
+    const storage = {
+      get(key) {
+        try { return localStorage.getItem(key); } catch { return null; }
+      },
+      set(key, value) {
+        try { localStorage.setItem(key, value); } catch { /* ignore disabled storage */ }
+      }
+    };
+
+    const savedAccent = storage.get('roostAccent');
     if (savedAccent) {
       document.documentElement.style.setProperty('--accent', savedAccent);
     }
 
-    let lastQuestIndex = Number(localStorage.getItem('roostLastQuestIndex'));
+    let lastQuestIndex = Number(storage.get('roostLastQuestIndex'));
     if (!Number.isInteger(lastQuestIndex) || lastQuestIndex < 0 || lastQuestIndex >= quests.length) {
       lastQuestIndex = -1;
     }
 
-    const savedQuest = localStorage.getItem('roostLastQuestText');
+    const savedQuest = storage.get('roostLastQuestText');
     if (savedQuest) {
       output.textContent = savedQuest;
     }
@@ -248,8 +266,8 @@
       lastQuestIndex = idx;
       const q = quests[idx];
       output.textContent = q;
-      localStorage.setItem('roostLastQuestIndex', String(idx));
-      localStorage.setItem('roostLastQuestText', q);
+      storage.set('roostLastQuestIndex', String(idx));
+      storage.set('roostLastQuestText', q);
     });
 
     document.getElementById('copyQuest').addEventListener('click', async () => {
@@ -270,7 +288,7 @@
     document.getElementById('newAccent').addEventListener('click', () => {
       const c = accents[Math.floor(Math.random() * accents.length)];
       document.documentElement.style.setProperty('--accent', c);
-      localStorage.setItem('roostAccent', c);
+      storage.set('roostAccent', c);
     });
   </script>
 </body>

@@ -20,5 +20,6 @@ python3 -m http.server 8080
 ## Daily quest behavior
 
 - Prevents immediate duplicate quest rolls
-- Persists last quest and accent in `localStorage`
+- Persists last quest and accent in `localStorage` (with safe fallback when storage is unavailable)
 - Includes a “copy quest” button for quick sharing
+- Adds accessibility polish (`aria-live`, visible keyboard focus, reduced-motion handling)
