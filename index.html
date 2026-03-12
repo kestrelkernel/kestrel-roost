@@ -88,6 +88,7 @@
     .ok { color:var(--good); }
     .warn { color:var(--warn); }
     .tiny { font-size:.82rem; color:#99abef; margin-top:8px; }
+    .action-status { min-height:1.2em; margin-top:10px; font-size:.82rem; color:#b9c8ff; }
 
     .showcase {
       display:grid;
@@ -173,7 +174,9 @@
         <button class="btn" id="rollQuest">roll quest</button>
         <button class="btn" id="copyQuest">copy quest</button>
         <button class="btn" id="newAccent">shuffle accent</button>
+        <button class="btn" id="resetStreak">reset streak</button>
       </div>
+      <p id="actionStatus" class="action-status" aria-live="polite"></p>
     </section>
 
     <section class="card showcase">
@@ -196,8 +199,8 @@
       <h2>recent changes</h2>
       <ul>
         <li>daily quest now avoids immediate repeats</li>
-        <li>copy quest button added for easy sharing</li>
-        <li>quest streak now tracks consecutive UTC days</li>
+        <li>copy quest button now shows clear success/failure feedback</li>
+        <li>quest streak now tracks consecutive UTC days and can be reset manually</li>
       </ul>
     </section>
 
@@ -229,6 +232,7 @@
     const lastTouched = document.getElementById('lastTouched');
     const buildStamp = document.getElementById('buildStamp');
     const questStreak = document.getElementById('questStreak');
+    const actionStatus = document.getElementById('actionStatus');
 
     const now = new Date();
     const stamp = now.toLocaleString('en-GB', { timeZone: 'UTC', hour12: false }) + ' UTC';
@@ -241,6 +245,9 @@
       },
       set(key, value) {
         try { localStorage.setItem(key, value); } catch { /* ignore disabled storage */ }
+      },
+      remove(key) {
+        try { localStorage.removeItem(key); } catch { /* ignore disabled storage */ }
       }
     };
 
@@ -266,6 +273,11 @@
 
     const renderStreak = () => {
       questStreak.textContent = `${streakCount} ${streakCount === 1 ? 'day' : 'days'}`;
+    };
+
+    const setActionStatus = (message, tone = 'info') => {
+      actionStatus.textContent = message;
+      actionStatus.style.color = tone === 'warn' ? 'var(--warn)' : 'var(--good)';
     };
 
     const markQuestRolledToday = () => {
@@ -307,11 +319,15 @@
       storage.set('roostLastQuestIndex', String(idx));
       storage.set('roostLastQuestText', q);
       markQuestRolledToday();
+      setActionStatus('new quest rolled ✓');
     });
 
     document.getElementById('copyQuest').addEventListener('click', async () => {
       const text = output.textContent.trim();
-      if (!text || text === 'click the button, get a side quest.') return;
+      if (!text || text === 'click the button, get a side quest.') {
+        setActionStatus('roll a quest first before copying.', 'warn');
+        return;
+      }
 
       try {
         await navigator.clipboard.writeText(text);
@@ -319,8 +335,9 @@
         const old = btn.textContent;
         btn.textContent = 'copied ✓';
         setTimeout(() => { btn.textContent = old; }, 1100);
+        setActionStatus('quest copied to clipboard ✓');
       } catch {
-        // Clipboard can fail in restricted contexts; fail quietly.
+        setActionStatus('clipboard blocked in this context.', 'warn');
       }
     });
 
@@ -328,6 +345,16 @@
       const c = accents[Math.floor(Math.random() * accents.length)];
       document.documentElement.style.setProperty('--accent', c);
       storage.set('roostAccent', c);
+      setActionStatus('accent shuffled ✓');
+    });
+
+    document.getElementById('resetStreak').addEventListener('click', () => {
+      streakCount = 0;
+      streakLastDay = NaN;
+      storage.set('roostQuestStreakCount', '0');
+      storage.remove('roostQuestStreakLastDay');
+      renderStreak();
+      setActionStatus('streak reset. fresh run starts now.');
     });
   </script>
 </body>

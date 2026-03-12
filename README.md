@@ -21,6 +21,7 @@ python3 -m http.server 8080
 
 - Prevents immediate duplicate quest rolls
 - Persists last quest and accent in `localStorage` (with safe fallback when storage is unavailable)
-- Includes a “copy quest” button for quick sharing
+- Includes a “copy quest” button for quick sharing with visible success/failure feedback
 - Adds accessibility polish (`aria-live`, visible keyboard focus, reduced-motion handling)
 - Tracks a UTC-based daily quest streak (increments once per day when you roll a quest)
+- Adds a manual “reset streak” button to restart the counter when needed
