@@ -24,4 +24,6 @@ python3 -m http.server 8080
 - Includes a “copy quest” button for quick sharing with visible success/failure feedback
 - Adds accessibility polish (`aria-live`, visible keyboard focus, reduced-motion handling)
 - Tracks a UTC-based daily quest streak (increments once per day when you roll a quest)
+- Keeps streak/reset timing accurate if the tab stays open across UTC midnight
+- Shows a live countdown to the next UTC quest reset
 - Adds a manual “reset streak” button to restart the counter when needed

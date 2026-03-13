@@ -160,6 +160,7 @@
         <p class="status">vibe: practical + mildly unhinged</p>
         <p class="status">chaos level: <span class="warn">controlled</span></p>
         <p class="status">quest streak: <span id="questStreak">0 days</span></p>
+        <p class="status">next UTC reset in: <span id="questResetIn">--</span></p>
         <p class="tiny">last touched: <span id="lastTouched">booting...</span></p>
       </article>
     </section>
@@ -201,6 +202,7 @@
         <li>daily quest now avoids immediate repeats</li>
         <li>copy quest button now shows clear success/failure feedback</li>
         <li>quest streak now tracks consecutive UTC days and can be reset manually</li>
+        <li>UTC reset countdown now updates live, even if the tab stays open overnight</li>
       </ul>
     </section>
 
@@ -232,6 +234,7 @@
     const lastTouched = document.getElementById('lastTouched');
     const buildStamp = document.getElementById('buildStamp');
     const questStreak = document.getElementById('questStreak');
+    const questResetIn = document.getElementById('questResetIn');
     const actionStatus = document.getElementById('actionStatus');
 
     const now = new Date();
@@ -258,7 +261,7 @@
 
     const dayMs = 24 * 60 * 60 * 1000;
     const toUtcDay = (date) => Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-    const todayUtcDay = toUtcDay(new Date());
+    const getTodayUtcDay = () => toUtcDay(new Date());
 
     let streakCount = Number.parseInt(storage.get('roostQuestStreakCount') ?? '0', 10);
     if (!Number.isInteger(streakCount) || streakCount < 0) streakCount = 0;
@@ -266,13 +269,38 @@
     let streakLastDay = Number.parseInt(storage.get('roostQuestStreakLastDay') ?? '', 10);
     if (!Number.isFinite(streakLastDay)) streakLastDay = NaN;
 
-    if (Number.isFinite(streakLastDay) && todayUtcDay - streakLastDay > dayMs) {
-      streakCount = 0;
-      storage.set('roostQuestStreakCount', '0');
-    }
+    const refreshStreakForCurrentDay = () => {
+      const todayUtcDay = getTodayUtcDay();
+      if (Number.isFinite(streakLastDay) && todayUtcDay - streakLastDay > dayMs) {
+        streakCount = 0;
+        storage.set('roostQuestStreakCount', '0');
+      }
+    };
+
+    refreshStreakForCurrentDay();
 
     const renderStreak = () => {
       questStreak.textContent = `${streakCount} ${streakCount === 1 ? 'day' : 'days'}`;
+    };
+
+    const renderResetCountdown = () => {
+      const now = new Date();
+      const nextUtcMidnight = Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 1,
+        0,
+        0,
+        0,
+        0
+      );
+
+      const msLeft = Math.max(0, nextUtcMidnight - now.getTime());
+      const totalMinutes = Math.ceil(msLeft / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+
+      questResetIn.textContent = `${hours}h ${minutes}m`;
     };
 
     const setActionStatus = (message, tone = 'info') => {
@@ -281,6 +309,7 @@
     };
 
     const markQuestRolledToday = () => {
+      const todayUtcDay = getTodayUtcDay();
       if (streakLastDay === todayUtcDay) return;
 
       if (Number.isFinite(streakLastDay) && todayUtcDay - streakLastDay === dayMs) {
@@ -296,6 +325,12 @@
     };
 
     renderStreak();
+    renderResetCountdown();
+    setInterval(() => {
+      refreshStreakForCurrentDay();
+      renderStreak();
+      renderResetCountdown();
+    }, 60000);
 
     let lastQuestIndex = Number(storage.get('roostLastQuestIndex'));
     if (!Number.isInteger(lastQuestIndex) || lastQuestIndex < 0 || lastQuestIndex >= quests.length) {
