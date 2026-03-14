@@ -16,6 +16,7 @@
       --line:#2b3a7a;
       --good:#8fffcd;
       --warn:#ffd479;
+      --info:#b9c8ff;
     }
     * { box-sizing:border-box; }
     html, body { height:100%; }
@@ -200,7 +201,7 @@
       <h2>recent changes</h2>
       <ul>
         <li>daily quest now avoids immediate repeats</li>
-        <li>copy quest button now shows clear success/failure feedback</li>
+        <li>copy quest now supports secure clipboard + legacy fallback for wider compatibility</li>
         <li>quest streak now tracks consecutive UTC days and can be reset manually</li>
         <li>UTC reset countdown now updates live, even if the tab stays open overnight</li>
       </ul>
@@ -305,7 +306,44 @@
 
     const setActionStatus = (message, tone = 'info') => {
       actionStatus.textContent = message;
-      actionStatus.style.color = tone === 'warn' ? 'var(--warn)' : 'var(--good)';
+      if (tone === 'warn') {
+        actionStatus.style.color = 'var(--warn)';
+      } else if (tone === 'ok') {
+        actionStatus.style.color = 'var(--good)';
+      } else {
+        actionStatus.style.color = 'var(--info)';
+      }
+    };
+
+    const fallbackCopyToClipboard = (text) => {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+
+      const selection = document.getSelection();
+      const selectedRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+      textarea.select();
+      textarea.setSelectionRange(0, textarea.value.length);
+
+      let copied = false;
+      try {
+        copied = document.execCommand('copy');
+      } catch {
+        copied = false;
+      }
+
+      document.body.removeChild(textarea);
+
+      if (selectedRange && selection) {
+        selection.removeAllRanges();
+        selection.addRange(selectedRange);
+      }
+
+      return copied;
     };
 
     const markQuestRolledToday = () => {
@@ -354,7 +392,7 @@
       storage.set('roostLastQuestIndex', String(idx));
       storage.set('roostLastQuestText', q);
       markQuestRolledToday();
-      setActionStatus('new quest rolled ✓');
+      setActionStatus('new quest rolled ✓', 'ok');
     });
 
     document.getElementById('copyQuest').addEventListener('click', async () => {
@@ -364,14 +402,28 @@
         return;
       }
 
-      try {
-        await navigator.clipboard.writeText(text);
-        const btn = document.getElementById('copyQuest');
-        const old = btn.textContent;
+      const btn = document.getElementById('copyQuest');
+      const old = btn.textContent;
+      const indicateCopied = () => {
         btn.textContent = 'copied ✓';
         setTimeout(() => { btn.textContent = old; }, 1100);
-        setActionStatus('quest copied to clipboard ✓');
+      };
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          indicateCopied();
+          setActionStatus('quest copied to clipboard ✓', 'ok');
+          return;
+        }
       } catch {
+        // fall through to legacy copy path below
+      }
+
+      if (fallbackCopyToClipboard(text)) {
+        indicateCopied();
+        setActionStatus('quest copied via fallback ✓', 'ok');
+      } else {
         setActionStatus('clipboard blocked in this context.', 'warn');
       }
     });
@@ -380,7 +432,7 @@
       const c = accents[Math.floor(Math.random() * accents.length)];
       document.documentElement.style.setProperty('--accent', c);
       storage.set('roostAccent', c);
-      setActionStatus('accent shuffled ✓');
+      setActionStatus('accent shuffled ✓', 'ok');
     });
 
     document.getElementById('resetStreak').addEventListener('click', () => {
@@ -389,7 +441,7 @@
       storage.set('roostQuestStreakCount', '0');
       storage.remove('roostQuestStreakLastDay');
       renderStreak();
-      setActionStatus('streak reset. fresh run starts now.');
+      setActionStatus('streak reset. fresh run starts now.', 'ok');
     });
   </script>
 </body>
