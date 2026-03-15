@@ -200,7 +200,7 @@
     <section class="card">
       <h2>recent changes</h2>
       <ul>
-        <li>daily quest now avoids immediate repeats</li>
+        <li>daily quest now avoids repeating any of the last 3 rolls when possible</li>
         <li>copy quest now supports secure clipboard + legacy fallback for wider compatibility</li>
         <li>quest streak now tracks consecutive UTC days and can be reset manually</li>
         <li>UTC reset countdown now updates live, even if the tab stays open overnight</li>
@@ -375,22 +375,45 @@
       lastQuestIndex = -1;
     }
 
+    const historyWindow = 3;
+    let recentQuestIndexes;
+    try {
+      recentQuestIndexes = JSON.parse(storage.get('roostRecentQuestIndexes') ?? '[]');
+    } catch {
+      recentQuestIndexes = [];
+    }
+    if (!Array.isArray(recentQuestIndexes)) {
+      recentQuestIndexes = [];
+    }
+    recentQuestIndexes = recentQuestIndexes
+      .filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < quests.length)
+      .slice(-historyWindow);
+
+    if (recentQuestIndexes.length === 0 && lastQuestIndex >= 0) {
+      recentQuestIndexes = [lastQuestIndex];
+    }
+
     const savedQuest = storage.get('roostLastQuestText');
     if (savedQuest) {
       output.textContent = savedQuest;
     }
 
     document.getElementById('rollQuest').addEventListener('click', () => {
-      let idx;
-      do {
-        idx = Math.floor(Math.random() * quests.length);
-      } while (quests.length > 1 && idx === lastQuestIndex);
+      const blocked = new Set(recentQuestIndexes);
+      const candidates = quests
+        .map((_, idx) => idx)
+        .filter((idx) => !blocked.has(idx));
+      const pool = candidates.length > 0 ? candidates : quests.map((_, idx) => idx);
 
+      const idx = pool[Math.floor(Math.random() * pool.length)];
       lastQuestIndex = idx;
+      recentQuestIndexes = [...recentQuestIndexes, idx].slice(-historyWindow);
+
       const q = quests[idx];
       output.textContent = q;
       storage.set('roostLastQuestIndex', String(idx));
       storage.set('roostLastQuestText', q);
+      storage.set('roostRecentQuestIndexes', JSON.stringify(recentQuestIndexes));
       markQuestRolledToday();
       setActionStatus('new quest rolled ✓', 'ok');
     });
