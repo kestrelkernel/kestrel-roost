@@ -26,4 +26,5 @@ python3 -m http.server 8080
 - Tracks a UTC-based daily quest streak (increments once per day when you roll a quest)
 - Keeps streak/reset timing accurate if the tab stays open across UTC midnight
 - Shows a live countdown to the next UTC quest reset
+- Stores a rolling history of the last 5 quest rolls with UTC timestamps
 - Adds a manual “reset streak” button to restart the counter when needed

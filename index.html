@@ -90,6 +90,8 @@
     .warn { color:var(--warn); }
     .tiny { font-size:.82rem; color:#99abef; margin-top:8px; }
     .action-status { min-height:1.2em; margin-top:10px; font-size:.82rem; color:#b9c8ff; }
+    #questHistory { margin:6px 0 0; padding-left:18px; }
+    #questHistory li { margin:4px 0; font-size:.82rem; color:#b9c8ff; }
 
     .showcase {
       display:grid;
@@ -179,6 +181,8 @@
         <button class="btn" id="resetStreak">reset streak</button>
       </div>
       <p id="actionStatus" class="action-status" aria-live="polite"></p>
+      <p class="tiny">recent quest rolls</p>
+      <ul id="questHistory" aria-live="polite"></ul>
     </section>
 
     <section class="card showcase">
@@ -200,6 +204,7 @@
     <section class="card">
       <h2>recent changes</h2>
       <ul>
+        <li>daily quest now shows a rolling history of your last 5 rolls (with UTC timestamps)</li>
         <li>daily quest now avoids repeating any of the last 3 rolls when possible</li>
         <li>copy quest now supports secure clipboard + legacy fallback for wider compatibility</li>
         <li>quest streak now tracks consecutive UTC days and can be reset manually</li>
@@ -237,6 +242,7 @@
     const questStreak = document.getElementById('questStreak');
     const questResetIn = document.getElementById('questResetIn');
     const actionStatus = document.getElementById('actionStatus');
+    const questHistoryList = document.getElementById('questHistory');
 
     const now = new Date();
     const stamp = now.toLocaleString('en-GB', { timeZone: 'UTC', hour12: false }) + ' UTC';
@@ -253,6 +259,52 @@
       remove(key) {
         try { localStorage.removeItem(key); } catch { /* ignore disabled storage */ }
       }
+    };
+
+    const questHistoryMax = 5;
+    const formatUtcTimestamp = (value) => {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return null;
+      return `${date.toLocaleString('en-GB', { timeZone: 'UTC', hour12: false })} UTC`;
+    };
+
+    let questHistory;
+    try {
+      questHistory = JSON.parse(storage.get('roostQuestHistory') ?? '[]');
+    } catch {
+      questHistory = [];
+    }
+    if (!Array.isArray(questHistory)) {
+      questHistory = [];
+    }
+    questHistory = questHistory
+      .filter((entry) => entry && typeof entry.text === 'string' && typeof entry.rolledAt === 'string')
+      .slice(0, questHistoryMax);
+
+    const renderQuestHistory = () => {
+      questHistoryList.innerHTML = '';
+
+      if (questHistory.length === 0) {
+        const empty = document.createElement('li');
+        empty.textContent = 'no quests rolled yet.';
+        empty.style.color = 'var(--muted)';
+        questHistoryList.appendChild(empty);
+        return;
+      }
+
+      for (const entry of questHistory) {
+        const item = document.createElement('li');
+        const when = formatUtcTimestamp(entry.rolledAt);
+        item.textContent = when ? `${entry.text} (${when})` : entry.text;
+        questHistoryList.appendChild(item);
+      }
+    };
+
+    const pushQuestHistory = (text) => {
+      const entry = { text, rolledAt: new Date().toISOString() };
+      questHistory = [entry, ...questHistory].slice(0, questHistoryMax);
+      storage.set('roostQuestHistory', JSON.stringify(questHistory));
+      renderQuestHistory();
     };
 
     const savedAccent = storage.get('roostAccent');
@@ -364,6 +416,7 @@
 
     renderStreak();
     renderResetCountdown();
+    renderQuestHistory();
     setInterval(() => {
       refreshStreakForCurrentDay();
       renderStreak();
@@ -414,6 +467,7 @@
       storage.set('roostLastQuestIndex', String(idx));
       storage.set('roostLastQuestText', q);
       storage.set('roostRecentQuestIndexes', JSON.stringify(recentQuestIndexes));
+      pushQuestHistory(q);
       markQuestRolledToday();
       setActionStatus('new quest rolled ✓', 'ok');
     });
