@@ -89,6 +89,16 @@
     .ok { color:var(--good); }
     .warn { color:var(--warn); }
     .tiny { font-size:.82rem; color:#99abef; margin-top:8px; }
+    kbd {
+      font:inherit;
+      font-size:.76rem;
+      color:#dbe4ff;
+      border:1px solid #3a4f9d;
+      border-bottom-width:2px;
+      border-radius:6px;
+      padding:1px 6px;
+      background:#0f1c49;
+    }
     .action-status { min-height:1.2em; margin-top:10px; font-size:.82rem; color:#b9c8ff; }
     #questHistory { margin:6px 0 0; padding-left:18px; }
     #questHistory li { margin:4px 0; font-size:.82rem; color:#b9c8ff; }
@@ -181,6 +191,7 @@
         <button class="btn" id="resetStreak">reset streak</button>
       </div>
       <p id="actionStatus" class="action-status" aria-live="polite"></p>
+      <p class="tiny">shortcuts: <kbd>R</kbd> roll · <kbd>C</kbd> copy · <kbd>A</kbd> accent · <kbd>S</kbd> reset streak</p>
       <p class="tiny">recent quest rolls</p>
       <ul id="questHistory" aria-live="polite"></ul>
     </section>
@@ -451,7 +462,38 @@
       output.textContent = savedQuest;
     }
 
-    document.getElementById('rollQuest').addEventListener('click', () => {
+    const rollQuestBtn = document.getElementById('rollQuest');
+    const copyQuestBtn = document.getElementById('copyQuest');
+    const newAccentBtn = document.getElementById('newAccent');
+    const resetStreakBtn = document.getElementById('resetStreak');
+
+    const targetIsTypingField = (target) => {
+      if (!(target instanceof HTMLElement)) return false;
+      return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+    };
+
+    document.addEventListener('keydown', (event) => {
+      if (event.defaultPrevented || event.repeat) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (targetIsTypingField(event.target)) return;
+
+      const key = event.key.toLowerCase();
+      if (key === 'r') {
+        event.preventDefault();
+        rollQuestBtn.click();
+      } else if (key === 'c') {
+        event.preventDefault();
+        copyQuestBtn.click();
+      } else if (key === 'a') {
+        event.preventDefault();
+        newAccentBtn.click();
+      } else if (key === 's') {
+        event.preventDefault();
+        resetStreakBtn.click();
+      }
+    });
+
+    rollQuestBtn.addEventListener('click', () => {
       const blocked = new Set(recentQuestIndexes);
       const candidates = quests
         .map((_, idx) => idx)
@@ -472,14 +514,14 @@
       setActionStatus('new quest rolled ✓', 'ok');
     });
 
-    document.getElementById('copyQuest').addEventListener('click', async () => {
+    copyQuestBtn.addEventListener('click', async () => {
       const text = output.textContent.trim();
       if (!text || text === 'click the button, get a side quest.') {
         setActionStatus('roll a quest first before copying.', 'warn');
         return;
       }
 
-      const btn = document.getElementById('copyQuest');
+      const btn = copyQuestBtn;
       const old = btn.textContent;
       const indicateCopied = () => {
         btn.textContent = 'copied ✓';
@@ -505,14 +547,14 @@
       }
     });
 
-    document.getElementById('newAccent').addEventListener('click', () => {
+    newAccentBtn.addEventListener('click', () => {
       const c = accents[Math.floor(Math.random() * accents.length)];
       document.documentElement.style.setProperty('--accent', c);
       storage.set('roostAccent', c);
       setActionStatus('accent shuffled ✓', 'ok');
     });
 
-    document.getElementById('resetStreak').addEventListener('click', () => {
+    resetStreakBtn.addEventListener('click', () => {
       streakCount = 0;
       streakLastDay = NaN;
       storage.set('roostQuestStreakCount', '0');
