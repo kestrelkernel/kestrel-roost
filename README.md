@@ -28,4 +28,5 @@ python3 -m http.server 8080
 - Keeps streak/reset timing accurate if the tab stays open across UTC midnight
 - Shows a live countdown to the next UTC quest reset
 - Stores a rolling history of the last 5 quest rolls with UTC timestamps
+- Adds a manual “clear history” action to wipe quest history without touching streak progress
 - Adds a manual “reset streak” button to restart the counter when needed

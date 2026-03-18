@@ -189,9 +189,10 @@
         <button class="btn" id="copyQuest">copy quest</button>
         <button class="btn" id="newAccent">shuffle accent</button>
         <button class="btn" id="resetStreak">reset streak</button>
+        <button class="btn" id="clearHistory">clear history</button>
       </div>
       <p id="actionStatus" class="action-status" aria-live="polite"></p>
-      <p class="tiny">shortcuts: <kbd>R</kbd> roll · <kbd>C</kbd> copy · <kbd>A</kbd> accent · <kbd>S</kbd> reset streak</p>
+      <p class="tiny">shortcuts: <kbd>R</kbd> roll · <kbd>C</kbd> copy · <kbd>A</kbd> accent · <kbd>S</kbd> reset streak · <kbd>H</kbd> clear history</p>
       <p class="tiny">recent quest rolls</p>
       <ul id="questHistory" aria-live="polite"></ul>
     </section>
@@ -219,6 +220,7 @@
         <li>daily quest now avoids repeating any of the last 3 rolls when possible</li>
         <li>copy quest now supports secure clipboard + legacy fallback for wider compatibility</li>
         <li>quest streak now tracks consecutive UTC days and can be reset manually</li>
+        <li>quest history can now be cleared with a dedicated button (and keyboard shortcut)</li>
         <li>UTC reset countdown now updates live, even if the tab stays open overnight</li>
       </ul>
     </section>
@@ -466,6 +468,7 @@
     const copyQuestBtn = document.getElementById('copyQuest');
     const newAccentBtn = document.getElementById('newAccent');
     const resetStreakBtn = document.getElementById('resetStreak');
+    const clearHistoryBtn = document.getElementById('clearHistory');
 
     const targetIsTypingField = (target) => {
       if (!(target instanceof HTMLElement)) return false;
@@ -490,6 +493,9 @@
       } else if (key === 's') {
         event.preventDefault();
         resetStreakBtn.click();
+      } else if (key === 'h') {
+        event.preventDefault();
+        clearHistoryBtn.click();
       }
     });
 
@@ -561,6 +567,18 @@
       storage.remove('roostQuestStreakLastDay');
       renderStreak();
       setActionStatus('streak reset. fresh run starts now.', 'ok');
+    });
+
+    clearHistoryBtn.addEventListener('click', () => {
+      if (questHistory.length === 0) {
+        setActionStatus('history is already empty.', 'info');
+        return;
+      }
+
+      questHistory = [];
+      storage.remove('roostQuestHistory');
+      renderQuestHistory();
+      setActionStatus('quest history cleared.', 'ok');
     });
   </script>
 </body>
