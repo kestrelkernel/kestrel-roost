@@ -102,6 +102,25 @@
     .action-status { min-height:1.2em; margin-top:10px; font-size:.82rem; color:#b9c8ff; }
     #questHistory { margin:6px 0 0; padding-left:18px; }
     #questHistory li { margin:4px 0; font-size:.82rem; color:#b9c8ff; }
+    .history-btn {
+      width:100%;
+      text-align:left;
+      font:inherit;
+      color:inherit;
+      background:transparent;
+      border:1px solid transparent;
+      border-radius:8px;
+      padding:4px 6px;
+      cursor:pointer;
+    }
+    .history-btn:hover {
+      border-color:#3a4f9d;
+      background:#0f1c49;
+    }
+    .history-btn:focus-visible {
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+    }
 
     .showcase {
       display:grid;
@@ -193,7 +212,7 @@
       </div>
       <p id="actionStatus" class="action-status" aria-live="polite"></p>
       <p class="tiny">shortcuts: <kbd>R</kbd> roll · <kbd>C</kbd> copy · <kbd>A</kbd> accent · <kbd>S</kbd> reset streak · <kbd>H</kbd> clear history</p>
-      <p class="tiny">recent quest rolls</p>
+      <p class="tiny">recent quest rolls (click one to reload it)</p>
       <ul id="questHistory" aria-live="polite"></ul>
     </section>
 
@@ -222,6 +241,7 @@
         <li>quest streak now tracks consecutive UTC days and can be reset manually</li>
         <li>quest history can now be cleared with a dedicated button (and keyboard shortcut)</li>
         <li>UTC reset countdown now updates live, even if the tab stays open overnight</li>
+        <li>recent quest history entries are now clickable to quickly restore a previous quest</li>
       </ul>
     </section>
 
@@ -308,7 +328,20 @@
       for (const entry of questHistory) {
         const item = document.createElement('li');
         const when = formatUtcTimestamp(entry.rolledAt);
-        item.textContent = when ? `${entry.text} (${when})` : entry.text;
+        const label = when ? `${entry.text} (${when})` : entry.text;
+
+        const restoreBtn = document.createElement('button');
+        restoreBtn.type = 'button';
+        restoreBtn.className = 'history-btn';
+        restoreBtn.textContent = label;
+        restoreBtn.title = 'Reload this quest into the output';
+        restoreBtn.addEventListener('click', () => {
+          output.textContent = entry.text;
+          storage.set('roostLastQuestText', entry.text);
+          setActionStatus('restored quest from history.', 'ok');
+        });
+
+        item.appendChild(restoreBtn);
         questHistoryList.appendChild(item);
       }
     };
