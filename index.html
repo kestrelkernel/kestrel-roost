@@ -193,6 +193,7 @@
         <p class="status">chaos level: <span class="warn">controlled</span></p>
         <p class="status">quest streak: <span id="questStreak">0 days</span></p>
         <p class="status">next UTC reset in: <span id="questResetIn">--</span></p>
+        <p class="status">persistence: <span id="storageStatus" class="ok">on</span></p>
         <p class="tiny">last touched: <span id="lastTouched">booting...</span></p>
       </article>
     </section>
@@ -242,6 +243,7 @@
         <li>quest history can now be cleared with a dedicated button (and keyboard shortcut)</li>
         <li>UTC reset countdown now updates live, even if the tab stays open overnight</li>
         <li>recent quest history entries are now clickable to quickly restore a previous quest</li>
+        <li>status now shows whether browser storage is available, with a warning when persistence is blocked</li>
       </ul>
     </section>
 
@@ -276,23 +278,37 @@
     const questResetIn = document.getElementById('questResetIn');
     const actionStatus = document.getElementById('actionStatus');
     const questHistoryList = document.getElementById('questHistory');
+    const storageStatus = document.getElementById('storageStatus');
 
     const now = new Date();
     const stamp = now.toLocaleString('en-GB', { timeZone: 'UTC', hour12: false }) + ' UTC';
     lastTouched.textContent = stamp;
     buildStamp.textContent = `• updated ${stamp}`;
 
-    const storage = {
-      get(key) {
-        try { return localStorage.getItem(key); } catch { return null; }
-      },
-      set(key, value) {
-        try { localStorage.setItem(key, value); } catch { /* ignore disabled storage */ }
-      },
-      remove(key) {
-        try { localStorage.removeItem(key); } catch { /* ignore disabled storage */ }
+    const storage = (() => {
+      const probeKey = '__roost_storage_probe__';
+      let enabled = true;
+
+      try {
+        localStorage.setItem(probeKey, '1');
+        localStorage.removeItem(probeKey);
+      } catch {
+        enabled = false;
       }
-    };
+
+      return {
+        available: enabled,
+        get(key) {
+          try { return localStorage.getItem(key); } catch { return null; }
+        },
+        set(key, value) {
+          try { localStorage.setItem(key, value); } catch { /* ignore disabled storage */ }
+        },
+        remove(key) {
+          try { localStorage.removeItem(key); } catch { /* ignore disabled storage */ }
+        }
+      };
+    })();
 
     const questHistoryMax = 5;
     const formatUtcTimestamp = (value) => {
@@ -412,6 +428,12 @@
         actionStatus.style.color = 'var(--info)';
       }
     };
+
+    if (!storage.available) {
+      storageStatus.textContent = 'off (browser storage blocked)';
+      storageStatus.className = 'warn';
+      setActionStatus('heads up: settings and streak will reset when this tab closes.', 'warn');
+    }
 
     const fallbackCopyToClipboard = (text) => {
       const textarea = document.createElement('textarea');

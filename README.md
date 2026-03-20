@@ -21,6 +21,7 @@ python3 -m http.server 8080
 
 - Avoids repeating any of the last 3 rolled quests (when enough unique quests are available)
 - Persists last quest, recent quest history, and accent in `localStorage` (with safe fallback when storage is unavailable)
+- Shows live persistence status on the page (so users can tell when browser storage is blocked)
 - Includes a “copy quest” button with secure-clipboard + legacy fallback support for wider browser compatibility
 - Adds accessibility polish (`aria-live`, visible keyboard focus, reduced-motion handling)
 - Supports keyboard shortcuts for quest actions (`R` roll, `C` copy, `A` accent, `S` reset streak)
