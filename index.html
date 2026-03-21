@@ -626,14 +626,18 @@
 
     clearHistoryBtn.addEventListener('click', () => {
       if (questHistory.length === 0) {
+        recentQuestIndexes = [];
+        storage.remove('roostRecentQuestIndexes');
         setActionStatus('history is already empty.', 'info');
         return;
       }
 
       questHistory = [];
+      recentQuestIndexes = [];
       storage.remove('roostQuestHistory');
+      storage.remove('roostRecentQuestIndexes');
       renderQuestHistory();
-      setActionStatus('quest history cleared.', 'ok');
+      setActionStatus('quest history cleared (repeat-avoid cache reset too).', 'ok');
     });
   </script>
 </body>

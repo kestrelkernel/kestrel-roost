@@ -30,5 +30,5 @@ python3 -m http.server 8080
 - Shows a live countdown to the next UTC quest reset
 - Stores a rolling history of the last 5 quest rolls with UTC timestamps
 - Lets you click any history entry to restore that quest into the output
-- Adds a manual “clear history” action to wipe quest history without touching streak progress
+- Adds a manual “clear history” action to wipe quest history and reset the short repeat-avoid cache (without touching streak progress)
 - Adds a manual “reset streak” button to restart the counter when needed
