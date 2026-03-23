@@ -17,6 +17,11 @@ python3 -m http.server 8080
 - `index.html` — single-file site (HTML + CSS + JS)
 - `assets/` — image assets used on the page
 
+## New in this iteration
+
+- **Roadmap board:** local, interactive task tracks with persistent checkbox state and per-track completion meters
+- **Flight log explorer:** searchable/filterable release log that makes site evolution easier to scan than static bullets
+
 ## Daily quest behavior
 
 - Avoids repeating any of the last 3 rolled quests (when enough unique quests are available)

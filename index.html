@@ -122,6 +122,134 @@
       outline-offset:2px;
     }
 
+    .roadmap-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    .roadmap-track {
+      border:1px solid #33468f;
+      border-radius:12px;
+      padding:12px;
+      background:#0a1333;
+    }
+    .roadmap-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:10px;
+      font-size:.86rem;
+      color:#bfd0ff;
+    }
+    .meter {
+      height:8px;
+      width:100%;
+      border-radius:999px;
+      background:#1a2758;
+      overflow:hidden;
+      margin-top:8px;
+    }
+    .meter > span {
+      display:block;
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, #6e93ff, #7fe6c8);
+      transition:width .18s ease;
+    }
+    .task-list {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:8px;
+    }
+    .task-item {
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      color:#c7d5ff;
+      font-size:.88rem;
+      line-height:1.45;
+    }
+    .task-item input { margin-top:2px; }
+
+    .flight-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin:12px 0;
+      align-items:center;
+    }
+    .flight-filter {
+      border:1px solid #4259b5;
+      border-radius:999px;
+      padding:6px 10px;
+      font:inherit;
+      color:#d8e2ff;
+      background:#0d1b49;
+      cursor:pointer;
+    }
+    .flight-filter.active {
+      background:#1b327c;
+      border-color:#84a0ff;
+      color:#fff;
+    }
+    .flight-search {
+      flex:1;
+      min-width:210px;
+      border:1px solid #4259b5;
+      border-radius:10px;
+      padding:7px 10px;
+      font:inherit;
+      color:#e6ecff;
+      background:#091432;
+    }
+    .flight-search::placeholder { color:#9fb0ff; }
+    .flight-list {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:10px;
+    }
+    .flight-item {
+      border:1px solid #304285;
+      border-radius:12px;
+      padding:11px 12px;
+      background:#0a1333;
+    }
+    .flight-item h3 {
+      margin:0;
+      font-size:.96rem;
+      color:#e3eaff;
+    }
+    .flight-meta {
+      margin-top:5px;
+      font-size:.78rem;
+      color:#9fb0ff;
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .flight-tag {
+      border:1px solid #4259b5;
+      border-radius:999px;
+      padding:2px 8px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      font-size:.7rem;
+      color:#cdddff;
+      background:#101d4b;
+    }
+    .flight-count {
+      color:#a9bbff;
+      font-size:.82rem;
+      margin-bottom:8px;
+    }
+
     .showcase {
       display:grid;
       grid-template-columns: 180px 1fr;
@@ -153,6 +281,7 @@
       .blink { animation:none; }
       .btn { transition:none; }
       .btn:hover { transform:none; }
+      .meter > span { transition:none; }
     }
   </style>
 </head>
@@ -217,6 +346,27 @@
       <ul id="questHistory" aria-live="polite"></ul>
     </section>
 
+    <section class="card">
+      <h2>roost roadmap board</h2>
+      <p>pick off tasks directly in the browser. progress is saved locally, so this tab behaves like a tiny product board.</p>
+      <div class="roadmap-grid" id="roadmapBoard" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2>flight log explorer</h2>
+      <p>quickly scan what has shipped, filtered by type or keyword.</p>
+      <div class="flight-controls">
+        <button class="flight-filter active" type="button" data-filter="all">all</button>
+        <button class="flight-filter" type="button" data-filter="feature">feature</button>
+        <button class="flight-filter" type="button" data-filter="design">design</button>
+        <button class="flight-filter" type="button" data-filter="content">content</button>
+        <button class="flight-filter" type="button" data-filter="stability">stability</button>
+        <input class="flight-search" id="flightSearch" type="search" placeholder="search title, impact, or details" aria-label="Search flight log" />
+      </div>
+      <p class="flight-count" id="flightCount">loading log…</p>
+      <ul class="flight-list" id="flightList" aria-live="polite"></ul>
+    </section>
+
     <section class="card showcase">
       <img src="assets/real-kestrel.jpg" alt="Real-life common kestrel" />
       <div>
@@ -236,6 +386,8 @@
     <section class="card">
       <h2>recent changes</h2>
       <ul>
+        <li>added a roadmap board with persistent checkbox tasks and live completion meters per track</li>
+        <li>added a searchable, filterable flight log explorer for quickly scanning shipped work by category</li>
         <li>daily quest now shows a rolling history of your last 5 rolls (with UTC timestamps)</li>
         <li>daily quest now avoids repeating any of the last 3 rolls when possible</li>
         <li>copy quest now supports secure clipboard + legacy fallback for wider compatibility</li>
@@ -271,6 +423,81 @@
 
     const accents = ['#7aa2ff', '#b18cff', '#76e7c7', '#ffd479', '#ff9ad5'];
 
+    const roadmapTracks = [
+      {
+        id: 'site-core',
+        title: 'site core',
+        tasks: [
+          { id: 'theme-modes', label: 'add a proper light/dark theme toggle (not just accent shuffle)' },
+          { id: 'page-speed-pass', label: 'run a page-speed pass and trim obvious payload bloat' },
+          { id: 'rss-feed', label: 'ship a tiny rss/json feed for updates' }
+        ]
+      },
+      {
+        id: 'playground',
+        title: 'playground',
+        tasks: [
+          { id: 'tiny-game', label: 'launch the first playable mini-game page' },
+          { id: 'quest-packs', label: 'support multiple quest packs (focus, cleanup, creative)' },
+          { id: 'seeded-rolls', label: 'let users share seeded quest rolls by URL' }
+        ]
+      },
+      {
+        id: 'storytelling',
+        title: 'storytelling',
+        tasks: [
+          { id: 'weekly-note', label: 'publish a weekly “what shipped” note section' },
+          { id: 'asset-gallery', label: 'organize character art into an actual gallery view' },
+          { id: 'changelog-archives', label: 'add month archive navigation for old changes' }
+        ]
+      }
+    ];
+
+    const flightLogEntries = [
+      {
+        date: '2026-03-23',
+        type: 'feature',
+        title: 'Roadmap board shipped',
+        impact: 'Turns vague plans into visible progress with local persistence + completion meters.',
+        details: 'Added three tracks (site core, playground, storytelling) with checkboxes that save in browser storage.'
+      },
+      {
+        date: '2026-03-23',
+        type: 'design',
+        title: 'Flight log explorer launched',
+        impact: 'Makes release history easier to scan than a long static bullet list.',
+        details: 'Users can filter by category and search by keyword in title/impact/details.'
+      },
+      {
+        date: '2026-03-21',
+        type: 'feature',
+        title: 'Quest history got replay support',
+        impact: 'Past quest rolls are now actionable, not just visual history.',
+        details: 'Recent entries became buttons that restore quest text into the terminal panel.'
+      },
+      {
+        date: '2026-03-20',
+        type: 'stability',
+        title: 'Storage capability status added',
+        impact: 'People immediately see whether streak/history persistence is actually available.',
+        details: 'A warning is shown when browser storage is blocked.'
+      },
+      {
+        date: '2026-03-19',
+        type: 'content',
+        title: 'Rukia corner added',
+        impact: 'Site personality improved with a dedicated character art block.',
+        details: 'Integrated grayscale styling and copy to keep the section cohesive with roost tone.'
+      },
+      {
+        date: '2026-03-18',
+        type: 'feature',
+        title: 'UTC streak logic introduced',
+        impact: 'Daily quest cadence now feels game-like and consistent across timezones.',
+        details: 'Streak increments once per UTC day and resets automatically when broken.'
+      }
+    ];
+
     const output = document.getElementById('questOutput');
     const lastTouched = document.getElementById('lastTouched');
     const buildStamp = document.getElementById('buildStamp');
@@ -279,6 +506,11 @@
     const actionStatus = document.getElementById('actionStatus');
     const questHistoryList = document.getElementById('questHistory');
     const storageStatus = document.getElementById('storageStatus');
+    const roadmapBoard = document.getElementById('roadmapBoard');
+    const flightList = document.getElementById('flightList');
+    const flightCount = document.getElementById('flightCount');
+    const flightSearch = document.getElementById('flightSearch');
+    const flightFilterButtons = Array.from(document.querySelectorAll('.flight-filter'));
 
     const now = new Date();
     const stamp = now.toLocaleString('en-GB', { timeZone: 'UTC', hour12: false }) + ' UTC';
@@ -309,6 +541,131 @@
         }
       };
     })();
+
+    const roadmapStateKey = 'roostRoadmapState';
+    let roadmapState;
+    try {
+      roadmapState = JSON.parse(storage.get(roadmapStateKey) ?? '{}');
+    } catch {
+      roadmapState = {};
+    }
+    if (!roadmapState || typeof roadmapState !== 'object' || Array.isArray(roadmapState)) {
+      roadmapState = {};
+    }
+
+    const saveRoadmapState = () => {
+      storage.set(roadmapStateKey, JSON.stringify(roadmapState));
+    };
+
+    const renderRoadmap = () => {
+      roadmapBoard.innerHTML = '';
+
+      for (const track of roadmapTracks) {
+        const doneForTrack = (roadmapState[track.id] ?? []).filter(Boolean).length;
+        const totalForTrack = track.tasks.length;
+        const pct = totalForTrack === 0 ? 0 : Math.round((doneForTrack / totalForTrack) * 100);
+
+        const card = document.createElement('article');
+        card.className = 'roadmap-track';
+
+        const head = document.createElement('div');
+        head.className = 'roadmap-head';
+        head.innerHTML = `<strong>${track.title}</strong><span>${doneForTrack}/${totalForTrack} done</span>`;
+
+        const taskList = document.createElement('ul');
+        taskList.className = 'task-list';
+
+        track.tasks.forEach((task, idx) => {
+          const item = document.createElement('li');
+          item.className = 'task-item';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.id = `${track.id}-${task.id}`;
+          checkbox.checked = Boolean(roadmapState[track.id]?.[idx]);
+          checkbox.addEventListener('change', () => {
+            const existing = Array.isArray(roadmapState[track.id]) ? [...roadmapState[track.id]] : new Array(track.tasks.length).fill(false);
+            existing[idx] = checkbox.checked;
+            roadmapState[track.id] = existing;
+            saveRoadmapState();
+            renderRoadmap();
+            setActionStatus(`${track.title}: ${task.label} ${checkbox.checked ? 'marked done' : 'marked pending'}.`, 'ok');
+          });
+
+          const label = document.createElement('label');
+          label.setAttribute('for', checkbox.id);
+          label.textContent = task.label;
+
+          item.appendChild(checkbox);
+          item.appendChild(label);
+          taskList.appendChild(item);
+        });
+
+        const meter = document.createElement('div');
+        meter.className = 'meter';
+        const meterFill = document.createElement('span');
+        meterFill.style.width = `${pct}%`;
+        meter.appendChild(meterFill);
+
+        card.appendChild(head);
+        card.appendChild(taskList);
+        card.appendChild(meter);
+        roadmapBoard.appendChild(card);
+      }
+    };
+
+    let activeFlightFilter = 'all';
+    const normalizeText = (value) => value.toLowerCase();
+
+    const renderFlightLog = () => {
+      const query = normalizeText(flightSearch.value.trim());
+      const rows = flightLogEntries
+        .filter((entry) => activeFlightFilter === 'all' || entry.type === activeFlightFilter)
+        .filter((entry) => {
+          if (!query) return true;
+          const haystack = normalizeText(`${entry.title} ${entry.impact} ${entry.details} ${entry.type}`);
+          return haystack.includes(query);
+        })
+        .sort((a, b) => b.date.localeCompare(a.date));
+
+      flightList.innerHTML = '';
+      flightCount.textContent = `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'} shown`;
+
+      if (rows.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'flight-item';
+        empty.innerHTML = '<h3>no matches</h3><p class="tiny">try a broader search or switch filter categories.</p>';
+        flightList.appendChild(empty);
+        return;
+      }
+
+      for (const entry of rows) {
+        const item = document.createElement('li');
+        item.className = 'flight-item';
+
+        const title = document.createElement('h3');
+        title.textContent = entry.title;
+
+        const meta = document.createElement('p');
+        meta.className = 'flight-meta';
+        const typeTag = `<span class="flight-tag">${entry.type}</span>`;
+        meta.innerHTML = `${typeTag}<span>${entry.date}</span>`;
+
+        const impact = document.createElement('p');
+        impact.className = 'tiny';
+        impact.textContent = `Impact: ${entry.impact}`;
+
+        const details = document.createElement('p');
+        details.className = 'tiny';
+        details.textContent = entry.details;
+
+        item.appendChild(title);
+        item.appendChild(meta);
+        item.appendChild(impact);
+        item.appendChild(details);
+        flightList.appendChild(item);
+      }
+    };
 
     const questHistoryMax = 5;
     const formatUtcTimestamp = (value) => {
@@ -435,6 +792,18 @@
       setActionStatus('heads up: settings and streak will reset when this tab closes.', 'warn');
     }
 
+    flightFilterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        activeFlightFilter = button.dataset.filter || 'all';
+        flightFilterButtons.forEach((btn) => btn.classList.toggle('active', btn === button));
+        renderFlightLog();
+      });
+    });
+
+    flightSearch.addEventListener('input', () => {
+      renderFlightLog();
+    });
+
     const fallbackCopyToClipboard = (text) => {
       const textarea = document.createElement('textarea');
       textarea.value = text;
@@ -482,6 +851,8 @@
       renderStreak();
     };
 
+    renderRoadmap();
+    renderFlightLog();
     renderStreak();
     renderResetCountdown();
     renderQuestHistory();
