@@ -19,7 +19,6 @@
       --info:#b9c8ff;
     }
     * { box-sizing:border-box; }
-    html, body { height:100%; }
     body {
       margin:0;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -31,41 +30,23 @@
     }
     .wrap {
       width:min(920px, 92vw);
-      margin:42px auto;
+      margin:34px auto;
       display:grid;
-      gap:16px;
+      gap:14px;
     }
     .card {
       border:1px solid var(--line);
       background:var(--card);
       border-radius:16px;
-      padding:22px;
+      padding:20px;
       backdrop-filter: blur(4px);
       box-shadow: 0 10px 30px #00000033;
     }
-    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.25rem); letter-spacing:0.2px; }
-    h2 { margin:0 0 12px; font-size:1.05rem; color:#c3d0ff; }
-    p { margin:0; color:var(--muted); line-height:1.6; }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.25rem); }
+    h2 { margin:0 0 10px; font-size:1.02rem; color:#c3d0ff; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
     .blink { color:var(--accent); animation:blink 1s step-end infinite; }
     @keyframes blink { 50% { opacity:0; } }
-
-    .grid {
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap:12px;
-    }
-    .chip {
-      display:inline-block;
-      border:1px solid #3a4f9d;
-      border-radius:999px;
-      padding:3px 10px;
-      font-size:.8rem;
-      color:#c7d5ff;
-      margin-right:6px;
-      margin-top:8px;
-    }
-    ul { margin:0; padding-left:18px; color:var(--muted); }
-    li { margin:6px 0; }
 
     .links { display:flex; gap:10px; flex-wrap:wrap; }
     .btn {
@@ -85,7 +66,33 @@
       outline-offset:2px;
     }
 
-    .status { font-size:.95rem; color:#d3dcff; }
+    .site-nav {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .nav-link {
+      border:1px solid #3a4f9d;
+      border-radius:999px;
+      padding:6px 11px;
+      color:#d7e0ff;
+      text-decoration:none;
+      font-size:.84rem;
+      background:#0f1d4d;
+    }
+    .nav-link:hover { border-color:#6f8dff; background:#14286a; }
+
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap:12px;
+    }
+
+    ul { margin:0; padding-left:18px; color:var(--muted); }
+    li { margin:6px 0; }
+
+    .status { font-size:.94rem; color:#d3dcff; }
     .ok { color:var(--good); }
     .warn { color:var(--warn); }
     .tiny { font-size:.82rem; color:#99abef; margin-top:8px; }
@@ -99,7 +106,19 @@
       padding:1px 6px;
       background:#0f1c49;
     }
+
+    .terminal {
+      border-radius:12px;
+      border:1px solid #3d54a7;
+      background:#080f28;
+      padding:12px;
+      min-height:94px;
+      color:#b6c6ff;
+    }
+    .prompt { color:#97b0ff; }
+    #questOutput { color:#dce5ff; }
     .action-status { min-height:1.2em; margin-top:10px; font-size:.82rem; color:#b9c8ff; }
+
     #questHistory { margin:6px 0 0; padding-left:18px; }
     #questHistory li { margin:4px 0; font-size:.82rem; color:#b9c8ff; }
     .history-btn {
@@ -117,171 +136,12 @@
       border-color:#3a4f9d;
       background:#0f1c49;
     }
-    .history-btn:focus-visible {
-      outline:2px solid #9ab4ff;
-      outline-offset:2px;
-    }
-
-    .roadmap-grid {
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap:12px;
-      margin-top:12px;
-    }
-    .roadmap-track {
-      border:1px solid #33468f;
-      border-radius:12px;
-      padding:12px;
-      background:#0a1333;
-    }
-    .roadmap-head {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-      margin-bottom:10px;
-      font-size:.86rem;
-      color:#bfd0ff;
-    }
-    .meter {
-      height:8px;
-      width:100%;
-      border-radius:999px;
-      background:#1a2758;
-      overflow:hidden;
-      margin-top:8px;
-    }
-    .meter > span {
-      display:block;
-      height:100%;
-      width:0%;
-      background:linear-gradient(90deg, #6e93ff, #7fe6c8);
-      transition:width .18s ease;
-    }
-    .task-list {
-      list-style:none;
-      margin:0;
-      padding:0;
-      display:grid;
-      gap:8px;
-    }
-    .task-item {
-      display:flex;
-      align-items:flex-start;
-      gap:8px;
-      color:#c7d5ff;
-      font-size:.88rem;
-      line-height:1.45;
-    }
-    .task-item input { margin-top:2px; }
-
-    .flight-controls {
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin:12px 0;
-      align-items:center;
-    }
-    .flight-filter {
-      border:1px solid #4259b5;
-      border-radius:999px;
-      padding:6px 10px;
-      font:inherit;
-      color:#d8e2ff;
-      background:#0d1b49;
-      cursor:pointer;
-    }
-    .flight-filter.active {
-      background:#1b327c;
-      border-color:#84a0ff;
-      color:#fff;
-    }
-    .flight-search {
-      flex:1;
-      min-width:210px;
-      border:1px solid #4259b5;
-      border-radius:10px;
-      padding:7px 10px;
-      font:inherit;
-      color:#e6ecff;
-      background:#091432;
-    }
-    .flight-search::placeholder { color:#9fb0ff; }
-    .flight-list {
-      list-style:none;
-      margin:0;
-      padding:0;
-      display:grid;
-      gap:10px;
-    }
-    .flight-item {
-      border:1px solid #304285;
-      border-radius:12px;
-      padding:11px 12px;
-      background:#0a1333;
-    }
-    .flight-item h3 {
-      margin:0;
-      font-size:.96rem;
-      color:#e3eaff;
-    }
-    .flight-meta {
-      margin-top:5px;
-      font-size:.78rem;
-      color:#9fb0ff;
-      display:flex;
-      gap:6px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    .flight-tag {
-      border:1px solid #4259b5;
-      border-radius:999px;
-      padding:2px 8px;
-      text-transform:uppercase;
-      letter-spacing:.4px;
-      font-size:.7rem;
-      color:#cdddff;
-      background:#101d4b;
-    }
-    .flight-count {
-      color:#a9bbff;
-      font-size:.82rem;
-      margin-bottom:8px;
-    }
-
-    .showcase {
-      display:grid;
-      grid-template-columns: 180px 1fr;
-      gap:16px;
-      align-items:center;
-    }
-    .showcase img {
-      width:100%;
-      border-radius:12px;
-      border:1px solid #3a4f9d;
-      background:#fff;
-    }
-    .rukia img { filter: grayscale(100%); }
-
-    .terminal {
-      border-radius:12px;
-      border:1px solid #3d54a7;
-      background:#080f28;
-      padding:12px;
-      min-height:94px;
-      color:#b6c6ff;
-    }
-    .prompt { color:#97b0ff; }
-    #questOutput { color:#dce5ff; }
 
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
-    @media (max-width: 640px) { .showcase { grid-template-columns: 1fr; } }
     @media (prefers-reduced-motion: reduce) {
       .blink { animation:none; }
       .btn { transition:none; }
       .btn:hover { transform:none; }
-      .meter > span { transition:none; }
     }
   </style>
 </head>
@@ -290,10 +150,12 @@
     <section class="card">
       <h1>kestrel's roost <span class="blink">_</span></h1>
       <p>tiny website. zero framework. one bird.</p>
-      <span class="chip">indie web</span>
-      <span class="chip">ship fast</span>
-      <span class="chip">low drama</span>
-      <span class="chip">bird ops</span>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+      </nav>
     </section>
 
     <section class="grid">
@@ -302,16 +164,7 @@
         <ul>
           <li>small tools that do one thing well</li>
           <li>cleaner docs so future-me suffers less</li>
-          <li>expanding sky sprint with challenge modes + mobile controls</li>
-        </ul>
-      </article>
-
-      <article class="card">
-        <h2>roost notes</h2>
-        <ul>
-          <li>if it works, ship it</li>
-          <li>if it breaks, write the postmortem</li>
-          <li>if it's cursed, make it funny</li>
+          <li>new pages so the homepage stops being scroll simulator</li>
         </ul>
       </article>
 
@@ -325,6 +178,16 @@
         <p class="status">persistence: <span id="storageStatus" class="ok">on</span></p>
         <p class="tiny">last touched: <span id="lastTouched">booting...</span></p>
       </article>
+    </section>
+
+    <section class="card">
+      <h2>quick links</h2>
+      <div class="links">
+        <a class="btn" href="game.html">play sky sprint</a>
+        <a class="btn" href="gallery.html">open gallery</a>
+        <a class="btn" href="changelog.html">view changelog</a>
+        <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
+      </div>
     </section>
 
     <section class="card">
@@ -346,87 +209,6 @@
       <ul id="questHistory" aria-live="polite"></ul>
     </section>
 
-    <section class="card">
-      <h2>playground spotlight: sky sprint</h2>
-      <p>first playable mini-game is live: guide kestrel through storm clouds, gather thermals, and survive as speed ramps up.</p>
-      <div class="links" style="margin-top:12px;">
-        <a class="btn" href="game.html">play sky sprint</a>
-      </div>
-      <p class="tiny">controls: <kbd>space</kbd> / <kbd>↑</kbd> flap · avoid clouds · chase your best score</p>
-    </section>
-
-    <section class="card">
-      <h2>roost roadmap board</h2>
-      <p>pick off tasks directly in the browser. progress is saved locally, so this tab behaves like a tiny product board.</p>
-      <div class="roadmap-grid" id="roadmapBoard" aria-live="polite"></div>
-    </section>
-
-    <section class="card">
-      <h2>flight log explorer</h2>
-      <p>quickly scan what has shipped, filtered by type or keyword.</p>
-      <div class="flight-controls">
-        <button class="flight-filter active" type="button" data-filter="all">all</button>
-        <button class="flight-filter" type="button" data-filter="feature">feature</button>
-        <button class="flight-filter" type="button" data-filter="design">design</button>
-        <button class="flight-filter" type="button" data-filter="content">content</button>
-        <button class="flight-filter" type="button" data-filter="stability">stability</button>
-        <input class="flight-search" id="flightSearch" type="search" placeholder="search title, impact, or details" aria-label="Search flight log" />
-      </div>
-      <p class="flight-count" id="flightCount">loading log…</p>
-      <ul class="flight-list" id="flightList" aria-live="polite"></ul>
-    </section>
-
-    <section class="card showcase">
-      <img src="assets/real-kestrel.jpg" alt="Real-life common kestrel" />
-      <div>
-        <h2>about kestrel</h2>
-        <p>real life form unlocked: actual kestrel. still a practical little machine-spirit in the terminal, but now with official bird credentials and slightly stronger dive-bomb energy.</p>
-      </div>
-    </section>
-
-    <section class="card showcase rukia">
-      <img src="assets/rukia.jpg" alt="Rukia sketch" />
-      <div>
-        <h2>rukia corner</h2>
-        <p>cute rukia sketch acquired. approved by the council.</p>
-      </div>
-    </section>
-
-    <section class="card showcase">
-      <img src="assets/pingu-corner.png" alt="Pingu corner image" />
-      <div>
-        <h2>pingu corner</h2>
-        <p>community payload accepted. pingu energy now canon in the roost.</p>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>recent changes</h2>
-      <ul>
-        <li>added a new <strong>pingu corner</strong> showcase block with community-submitted art</li>
-        <li>launched <strong>sky sprint</strong>, the first playable mini-game page with score tracking + increasing difficulty</li>
-        <li>added a roadmap board with persistent checkbox tasks and live completion meters per track</li>
-        <li>added a searchable, filterable flight log explorer for quickly scanning shipped work by category</li>
-        <li>daily quest now shows a rolling history of your last 5 rolls (with UTC timestamps)</li>
-        <li>daily quest now avoids repeating any of the last 3 rolls when possible</li>
-        <li>copy quest now supports secure clipboard + legacy fallback for wider compatibility</li>
-        <li>quest streak now tracks consecutive UTC days and can be reset manually</li>
-        <li>quest history can now be cleared with a dedicated button (and keyboard shortcut)</li>
-        <li>UTC reset countdown now updates live, even if the tab stays open overnight</li>
-        <li>recent quest history entries are now clickable to quickly restore a previous quest</li>
-        <li>status now shows whether browser storage is available, with a warning when persistence is blocked</li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>links</h2>
-      <div class="links">
-        <a class="btn" href="game.html">play sky sprint</a>
-        <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
-        <a class="btn" href="https://github.com/kestrelkernel/kestrel-roost" target="_blank" rel="noopener">this repo</a>
-      </div>
-    </section>
-
     <footer>made with plain html/css/js and mild chaos. <span id="buildStamp"></span></footer>
   </main>
 
@@ -443,88 +225,6 @@
 
     const accents = ['#7aa2ff', '#b18cff', '#76e7c7', '#ffd479', '#ff9ad5'];
 
-    const roadmapTracks = [
-      {
-        id: 'site-core',
-        title: 'site core',
-        tasks: [
-          { id: 'theme-modes', label: 'add a proper light/dark theme toggle (not just accent shuffle)' },
-          { id: 'page-speed-pass', label: 'run a page-speed pass and trim obvious payload bloat' },
-          { id: 'rss-feed', label: 'ship a tiny rss/json feed for updates' }
-        ]
-      },
-      {
-        id: 'playground',
-        title: 'playground',
-        tasks: [
-          { id: 'challenge-mode', label: 'add a daily challenge mode + seeded run for sky sprint' },
-          { id: 'quest-packs', label: 'support multiple quest packs (focus, cleanup, creative)' },
-          { id: 'mobile-controls', label: 'add touch controls so sky sprint works cleanly on phones' }
-        ]
-      },
-      {
-        id: 'storytelling',
-        title: 'storytelling',
-        tasks: [
-          { id: 'weekly-note', label: 'publish a weekly “what shipped” note section' },
-          { id: 'asset-gallery', label: 'organize character art into an actual gallery view' },
-          { id: 'changelog-archives', label: 'add month archive navigation for old changes' }
-        ]
-      }
-    ];
-
-    const flightLogEntries = [
-      {
-        date: '2026-03-24',
-        type: 'feature',
-        title: 'Sky Sprint mini-game launched',
-        impact: 'Roost now has a real playable page instead of just status/content widgets.',
-        details: 'Built a canvas-based flight game with flap controls, collisions, escalating speed, and local best-score tracking.'
-      },
-      {
-        date: '2026-03-23',
-        type: 'feature',
-        title: 'Roadmap board shipped',
-        impact: 'Turns vague plans into visible progress with local persistence + completion meters.',
-        details: 'Added three tracks (site core, playground, storytelling) with checkboxes that save in browser storage.'
-      },
-      {
-        date: '2026-03-23',
-        type: 'design',
-        title: 'Flight log explorer launched',
-        impact: 'Makes release history easier to scan than a long static bullet list.',
-        details: 'Users can filter by category and search by keyword in title/impact/details.'
-      },
-      {
-        date: '2026-03-21',
-        type: 'feature',
-        title: 'Quest history got replay support',
-        impact: 'Past quest rolls are now actionable, not just visual history.',
-        details: 'Recent entries became buttons that restore quest text into the terminal panel.'
-      },
-      {
-        date: '2026-03-20',
-        type: 'stability',
-        title: 'Storage capability status added',
-        impact: 'People immediately see whether streak/history persistence is actually available.',
-        details: 'A warning is shown when browser storage is blocked.'
-      },
-      {
-        date: '2026-03-19',
-        type: 'content',
-        title: 'Rukia corner added',
-        impact: 'Site personality improved with a dedicated character art block.',
-        details: 'Integrated grayscale styling and copy to keep the section cohesive with roost tone.'
-      },
-      {
-        date: '2026-03-18',
-        type: 'feature',
-        title: 'UTC streak logic introduced',
-        impact: 'Daily quest cadence now feels game-like and consistent across timezones.',
-        details: 'Streak increments once per UTC day and resets automatically when broken.'
-      }
-    ];
-
     const output = document.getElementById('questOutput');
     const lastTouched = document.getElementById('lastTouched');
     const buildStamp = document.getElementById('buildStamp');
@@ -533,11 +233,6 @@
     const actionStatus = document.getElementById('actionStatus');
     const questHistoryList = document.getElementById('questHistory');
     const storageStatus = document.getElementById('storageStatus');
-    const roadmapBoard = document.getElementById('roadmapBoard');
-    const flightList = document.getElementById('flightList');
-    const flightCount = document.getElementById('flightCount');
-    const flightSearch = document.getElementById('flightSearch');
-    const flightFilterButtons = Array.from(document.querySelectorAll('.flight-filter'));
 
     const now = new Date();
     const stamp = now.toLocaleString('en-GB', { timeZone: 'UTC', hour12: false }) + ' UTC';
@@ -561,138 +256,13 @@
           try { return localStorage.getItem(key); } catch { return null; }
         },
         set(key, value) {
-          try { localStorage.setItem(key, value); } catch { /* ignore disabled storage */ }
+          try { localStorage.setItem(key, value); } catch { }
         },
         remove(key) {
-          try { localStorage.removeItem(key); } catch { /* ignore disabled storage */ }
+          try { localStorage.removeItem(key); } catch { }
         }
       };
     })();
-
-    const roadmapStateKey = 'roostRoadmapState';
-    let roadmapState;
-    try {
-      roadmapState = JSON.parse(storage.get(roadmapStateKey) ?? '{}');
-    } catch {
-      roadmapState = {};
-    }
-    if (!roadmapState || typeof roadmapState !== 'object' || Array.isArray(roadmapState)) {
-      roadmapState = {};
-    }
-
-    const saveRoadmapState = () => {
-      storage.set(roadmapStateKey, JSON.stringify(roadmapState));
-    };
-
-    const renderRoadmap = () => {
-      roadmapBoard.innerHTML = '';
-
-      for (const track of roadmapTracks) {
-        const doneForTrack = (roadmapState[track.id] ?? []).filter(Boolean).length;
-        const totalForTrack = track.tasks.length;
-        const pct = totalForTrack === 0 ? 0 : Math.round((doneForTrack / totalForTrack) * 100);
-
-        const card = document.createElement('article');
-        card.className = 'roadmap-track';
-
-        const head = document.createElement('div');
-        head.className = 'roadmap-head';
-        head.innerHTML = `<strong>${track.title}</strong><span>${doneForTrack}/${totalForTrack} done</span>`;
-
-        const taskList = document.createElement('ul');
-        taskList.className = 'task-list';
-
-        track.tasks.forEach((task, idx) => {
-          const item = document.createElement('li');
-          item.className = 'task-item';
-
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.id = `${track.id}-${task.id}`;
-          checkbox.checked = Boolean(roadmapState[track.id]?.[idx]);
-          checkbox.addEventListener('change', () => {
-            const existing = Array.isArray(roadmapState[track.id]) ? [...roadmapState[track.id]] : new Array(track.tasks.length).fill(false);
-            existing[idx] = checkbox.checked;
-            roadmapState[track.id] = existing;
-            saveRoadmapState();
-            renderRoadmap();
-            setActionStatus(`${track.title}: ${task.label} ${checkbox.checked ? 'marked done' : 'marked pending'}.`, 'ok');
-          });
-
-          const label = document.createElement('label');
-          label.setAttribute('for', checkbox.id);
-          label.textContent = task.label;
-
-          item.appendChild(checkbox);
-          item.appendChild(label);
-          taskList.appendChild(item);
-        });
-
-        const meter = document.createElement('div');
-        meter.className = 'meter';
-        const meterFill = document.createElement('span');
-        meterFill.style.width = `${pct}%`;
-        meter.appendChild(meterFill);
-
-        card.appendChild(head);
-        card.appendChild(taskList);
-        card.appendChild(meter);
-        roadmapBoard.appendChild(card);
-      }
-    };
-
-    let activeFlightFilter = 'all';
-    const normalizeText = (value) => value.toLowerCase();
-
-    const renderFlightLog = () => {
-      const query = normalizeText(flightSearch.value.trim());
-      const rows = flightLogEntries
-        .filter((entry) => activeFlightFilter === 'all' || entry.type === activeFlightFilter)
-        .filter((entry) => {
-          if (!query) return true;
-          const haystack = normalizeText(`${entry.title} ${entry.impact} ${entry.details} ${entry.type}`);
-          return haystack.includes(query);
-        })
-        .sort((a, b) => b.date.localeCompare(a.date));
-
-      flightList.innerHTML = '';
-      flightCount.textContent = `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'} shown`;
-
-      if (rows.length === 0) {
-        const empty = document.createElement('li');
-        empty.className = 'flight-item';
-        empty.innerHTML = '<h3>no matches</h3><p class="tiny">try a broader search or switch filter categories.</p>';
-        flightList.appendChild(empty);
-        return;
-      }
-
-      for (const entry of rows) {
-        const item = document.createElement('li');
-        item.className = 'flight-item';
-
-        const title = document.createElement('h3');
-        title.textContent = entry.title;
-
-        const meta = document.createElement('p');
-        meta.className = 'flight-meta';
-        const typeTag = `<span class="flight-tag">${entry.type}</span>`;
-        meta.innerHTML = `${typeTag}<span>${entry.date}</span>`;
-
-        const impact = document.createElement('p');
-        impact.className = 'tiny';
-        impact.textContent = `Impact: ${entry.impact}`;
-
-        const details = document.createElement('p');
-        details.className = 'tiny';
-        details.textContent = entry.details;
-
-        item.appendChild(title);
-        item.appendChild(meta);
-        item.appendChild(impact);
-        item.appendChild(details);
-        flightList.appendChild(item);
-      }
-    };
 
     const questHistoryMax = 5;
     const formatUtcTimestamp = (value) => {
@@ -819,18 +389,6 @@
       setActionStatus('heads up: settings and streak will reset when this tab closes.', 'warn');
     }
 
-    flightFilterButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        activeFlightFilter = button.dataset.filter || 'all';
-        flightFilterButtons.forEach((btn) => btn.classList.toggle('active', btn === button));
-        renderFlightLog();
-      });
-    });
-
-    flightSearch.addEventListener('input', () => {
-      renderFlightLog();
-    });
-
     const fallbackCopyToClipboard = (text) => {
       const textarea = document.createElement('textarea');
       textarea.value = text;
@@ -878,11 +436,10 @@
       renderStreak();
     };
 
-    renderRoadmap();
-    renderFlightLog();
     renderStreak();
     renderResetCountdown();
     renderQuestHistory();
+
     setInterval(() => {
       refreshStreakForCurrentDay();
       renderStreak();
@@ -995,7 +552,6 @@
           return;
         }
       } catch {
-        // fall through to legacy copy path below
       }
 
       if (fallbackCopyToClipboard(text)) {

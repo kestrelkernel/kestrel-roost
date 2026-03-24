@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="What shipped on Kestrel's Roost" />
+  <title>Changelog · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 15% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 105%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(920px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:20px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.7rem, 4vw, 2.4rem); }
+    h2 { margin:0 0 10px; font-size:1.02rem; color:#c3d0ff; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+
+    .site-nav {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .nav-link {
+      border:1px solid #3a4f9d;
+      border-radius:999px;
+      padding:6px 11px;
+      color:#d7e0ff;
+      text-decoration:none;
+      font-size:.84rem;
+      background:#0f1d4d;
+    }
+
+    ul { margin:0; padding-left:18px; color:var(--muted); }
+    li { margin:6px 0; }
+
+    .flight-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin:12px 0;
+      align-items:center;
+    }
+    .flight-filter {
+      border:1px solid #4259b5;
+      border-radius:999px;
+      padding:6px 10px;
+      font:inherit;
+      color:#d8e2ff;
+      background:#0d1b49;
+      cursor:pointer;
+    }
+    .flight-filter.active {
+      background:#1b327c;
+      border-color:#84a0ff;
+      color:#fff;
+    }
+    .flight-search {
+      flex:1;
+      min-width:210px;
+      border:1px solid #4259b5;
+      border-radius:10px;
+      padding:7px 10px;
+      font:inherit;
+      color:#e6ecff;
+      background:#091432;
+    }
+    .flight-list {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:10px;
+    }
+    .flight-item {
+      border:1px solid #304285;
+      border-radius:12px;
+      padding:11px 12px;
+      background:#0a1333;
+    }
+    .flight-item h3 { margin:0; font-size:.96rem; color:#e3eaff; }
+    .flight-meta {
+      margin-top:5px;
+      font-size:.78rem;
+      color:#9fb0ff;
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .flight-tag {
+      border:1px solid #4259b5;
+      border-radius:999px;
+      padding:2px 8px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      font-size:.7rem;
+      color:#cdddff;
+      background:#101d4b;
+    }
+    .flight-count { color:#a9bbff; font-size:.82rem; margin-bottom:8px; }
+    .tiny { font-size:.82rem; color:#9fb0ff; margin-top:6px; }
+
+    footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>changelog</h1>
+      <p>what shipped recently on the roost.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>recent changes</h2>
+      <ul>
+        <li>restructured the site into separate pages (home / game / gallery / changelog)</li>
+        <li>added a new <strong>pingu corner</strong> showcase block with community-submitted art</li>
+        <li>launched <strong>sky sprint</strong>, the first playable mini-game page with score tracking + increasing difficulty</li>
+        <li>added a roadmap board with persistent checkbox tasks and live completion meters per track</li>
+        <li>added a searchable, filterable flight log explorer for quickly scanning shipped work by category</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>flight log explorer</h2>
+      <p>scan shipped work by category or keyword.</p>
+      <div class="flight-controls">
+        <button class="flight-filter active" type="button" data-filter="all">all</button>
+        <button class="flight-filter" type="button" data-filter="feature">feature</button>
+        <button class="flight-filter" type="button" data-filter="design">design</button>
+        <button class="flight-filter" type="button" data-filter="content">content</button>
+        <button class="flight-filter" type="button" data-filter="stability">stability</button>
+        <input class="flight-search" id="flightSearch" type="search" placeholder="search title, impact, or details" aria-label="Search flight log" />
+      </div>
+      <p class="flight-count" id="flightCount">loading log…</p>
+      <ul class="flight-list" id="flightList" aria-live="polite"></ul>
+    </section>
+
+    <footer>changelog wing online.</footer>
+  </main>
+
+  <script>
+    const flightLogEntries = [
+      {
+        date: '2026-03-24',
+        type: 'feature',
+        title: 'Site restructure into multi-page nav',
+        impact: 'Homepage is now focused and easier to scan as content grows.',
+        details: 'Split core content across dedicated pages: home, game, gallery, and changelog.'
+      },
+      {
+        date: '2026-03-24',
+        type: 'content',
+        title: 'Pingu corner added',
+        impact: 'Community image now has a dedicated showcase block in the gallery.',
+        details: 'Integrated pingu-corner.png with on-brand copy and layout.'
+      },
+      {
+        date: '2026-03-24',
+        type: 'feature',
+        title: 'Sky Sprint mini-game launched',
+        impact: 'Roost now has a real playable page instead of just status/content widgets.',
+        details: 'Built a canvas-based flight game with flap controls, collisions, escalating speed, and local best-score tracking.'
+      },
+      {
+        date: '2026-03-23',
+        type: 'feature',
+        title: 'Roadmap board shipped',
+        impact: 'Turns vague plans into visible progress with local persistence + completion meters.',
+        details: 'Added three tracks (site core, playground, storytelling) with checkboxes that save in browser storage.'
+      },
+      {
+        date: '2026-03-23',
+        type: 'design',
+        title: 'Flight log explorer launched',
+        impact: 'Makes release history easier to scan than a long static bullet list.',
+        details: 'Users can filter by category and search by keyword in title/impact/details.'
+      },
+      {
+        date: '2026-03-20',
+        type: 'stability',
+        title: 'Storage capability status added',
+        impact: 'People immediately see whether streak/history persistence is actually available.',
+        details: 'A warning is shown when browser storage is blocked.'
+      },
+      {
+        date: '2026-03-19',
+        type: 'content',
+        title: 'Rukia corner added',
+        impact: 'Site personality improved with a dedicated character art block.',
+        details: 'Integrated grayscale styling and copy to keep the section cohesive with roost tone.'
+      }
+    ];
+
+    const flightList = document.getElementById('flightList');
+    const flightCount = document.getElementById('flightCount');
+    const flightSearch = document.getElementById('flightSearch');
+    const flightFilterButtons = Array.from(document.querySelectorAll('.flight-filter'));
+
+    let activeFlightFilter = 'all';
+    const normalizeText = (value) => value.toLowerCase();
+
+    const renderFlightLog = () => {
+      const query = normalizeText(flightSearch.value.trim());
+      const rows = flightLogEntries
+        .filter((entry) => activeFlightFilter === 'all' || entry.type === activeFlightFilter)
+        .filter((entry) => {
+          if (!query) return true;
+          const haystack = normalizeText(`${entry.title} ${entry.impact} ${entry.details} ${entry.type}`);
+          return haystack.includes(query);
+        })
+        .sort((a, b) => b.date.localeCompare(a.date));
+
+      flightList.innerHTML = '';
+      flightCount.textContent = `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'} shown`;
+
+      if (rows.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'flight-item';
+        empty.innerHTML = '<h3>no matches</h3><p class="tiny">try a broader search or switch filter categories.</p>';
+        flightList.appendChild(empty);
+        return;
+      }
+
+      for (const entry of rows) {
+        const item = document.createElement('li');
+        item.className = 'flight-item';
+
+        const title = document.createElement('h3');
+        title.textContent = entry.title;
+
+        const meta = document.createElement('p');
+        meta.className = 'flight-meta';
+        const typeTag = `<span class="flight-tag">${entry.type}</span>`;
+        meta.innerHTML = `${typeTag}<span>${entry.date}</span>`;
+
+        const impact = document.createElement('p');
+        impact.className = 'tiny';
+        impact.textContent = `Impact: ${entry.impact}`;
+
+        const details = document.createElement('p');
+        details.className = 'tiny';
+        details.textContent = entry.details;
+
+        item.appendChild(title);
+        item.appendChild(meta);
+        item.appendChild(impact);
+        item.appendChild(details);
+        flightList.appendChild(item);
+      }
+    };
+
+    flightFilterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        activeFlightFilter = button.dataset.filter || 'all';
+        flightFilterButtons.forEach((btn) => btn.classList.toggle('active', btn === button));
+        renderFlightLog();
+      });
+    });
+
+    flightSearch.addEventListener('input', () => {
+      renderFlightLog();
+    });
+
+    renderFlightLog();
+  </script>
+</body>
+</html>
