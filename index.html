@@ -19,20 +19,27 @@
       --info:#b9c8ff;
     }
     * { box-sizing:border-box; }
-    html {
-      min-height:100%;
-      background:#0b1020;
-    }
+    html, body { min-height:100%; }
+    html { background: var(--bg); }
     body {
-      min-height:100%;
       margin:0;
       min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background: transparent;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
       background:
         radial-gradient(circle at 15% -5%, #22397d 0%, transparent 40%),
         radial-gradient(circle at 85% 105%, #1a2758 0%, transparent 45%),
         linear-gradient(180deg, var(--bg2), var(--bg));
-      color:var(--fg);
     }
     .wrap {
       width:min(920px, 92vw);

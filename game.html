@@ -20,23 +20,30 @@
     }
 
     * { box-sizing: border-box; }
-    html {
-      min-height: 100%;
-      background: #08102a;
-    }
+    html, body { min-height: 100%; }
+    html { background: var(--bg); }
     body {
-      min-height: 100%;
       margin: 0;
       min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color: var(--fg);
+      background: transparent;
+      display: grid;
+      place-items: center;
+      padding: 24px 14px;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
       background:
         radial-gradient(circle at 18% 0%, #29469b 0%, transparent 45%),
         radial-gradient(circle at 92% 100%, #162a66 0%, transparent 46%),
         linear-gradient(180deg, var(--bg2), var(--bg));
-      display: grid;
-      place-items: center;
-      padding: 24px 14px;
     }
 
     .wrap {
