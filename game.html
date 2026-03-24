@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Sky Sprint — a tiny browser mini-game from Kestrel's Roost" />
+  <title>Sky Sprint · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#08102a;
+      --bg2:#112359;
+      --panel:#0d173acc;
+      --line:#3a52a6;
+      --fg:#e6edff;
+      --muted:#a6b7f5;
+      --accent:#7aa2ff;
+      --good:#8fffd0;
+      --warn:#ffd479;
+      --danger:#ff93ae;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--fg);
+      background:
+        radial-gradient(circle at 18% 0%, #29469b 0%, transparent 45%),
+        radial-gradient(circle at 92% 100%, #162a66 0%, transparent 46%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      display: grid;
+      place-items: center;
+      padding: 24px 14px;
+    }
+
+    .wrap {
+      width: min(980px, 96vw);
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      padding: 16px;
+      box-shadow: 0 10px 30px #0000002f;
+      backdrop-filter: blur(4px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      letter-spacing: .2px;
+    }
+
+    p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid #4964c6;
+      border-radius: 10px;
+      padding: 8px 12px;
+      background: #102058;
+      color: #dce6ff;
+      text-decoration: none;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .btn:hover { border-color: #7895ff; background: #173073; }
+    .btn:focus-visible { outline: 2px solid #9ab4ff; outline-offset: 2px; }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat {
+      border: 1px solid #384f9f;
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #0a1436;
+      font-size: .86rem;
+      color: #c9d7ff;
+    }
+
+    .stat strong {
+      display: block;
+      color: #f1f5ff;
+      font-size: 1rem;
+      margin-top: 2px;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 100%;
+      display: block;
+      border-radius: 12px;
+      border: 1px solid #4058b0;
+      background: linear-gradient(180deg, #6ca0ff 0%, #8bb7ff 55%, #9fccff 100%);
+    }
+
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .status {
+      min-height: 1.3em;
+      font-size: .88rem;
+      margin-top: 8px;
+      color: #c8d6ff;
+    }
+
+    .status.good { color: var(--good); }
+    .status.warn { color: var(--warn); }
+    .status.danger { color: var(--danger); }
+
+    .tiny { font-size: .8rem; color: #9eb1ef; }
+
+    @media (max-width: 700px) {
+      .touch-flap {
+        flex: 1;
+        min-height: 48px;
+        font-size: 1rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn:hover { background: #102058; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card top">
+      <div>
+        <h1>sky sprint</h1>
+        <p>flap through storm clouds, catch thermals, and push your survival score.</p>
+      </div>
+      <div class="links">
+        <a class="btn" href="index.html">← back to roost</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="hud">
+        <div class="stat">score<strong id="score">0</strong></div>
+        <div class="stat">best<strong id="best">0</strong></div>
+        <div class="stat">speed<strong id="speed">1.0x</strong></div>
+        <div class="stat">status<strong id="state">idle</strong></div>
+      </div>
+
+      <canvas id="game" width="920" height="420" aria-label="Sky Sprint mini-game"></canvas>
+
+      <div class="controls">
+        <button class="btn" id="startBtn">start run</button>
+        <button class="btn touch-flap" id="flapBtn" type="button">flap</button>
+      </div>
+      <p class="status" id="statusLine">press <kbd>space</kbd> or <kbd>↑</kbd> to flap. survive as long as possible.</p>
+      <p class="tiny">thermals (gold rings) grant bonus score. clouds hurt. speed ramps every few seconds.</p>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const speedEl = document.getElementById('speed');
+    const stateEl = document.getElementById('state');
+    const statusLine = document.getElementById('statusLine');
+
+    const startBtn = document.getElementById('startBtn');
+    const flapBtn = document.getElementById('flapBtn');
+
+    const storage = (() => {
+      let ok = true;
+      const probe = '__sky_sprint_probe__';
+      try {
+        localStorage.setItem(probe, '1');
+        localStorage.removeItem(probe);
+      } catch {
+        ok = false;
+      }
+      return {
+        ok,
+        get(key) {
+          if (!ok) return null;
+          try { return localStorage.getItem(key); } catch { return null; }
+        },
+        set(key, value) {
+          if (!ok) return;
+          try { localStorage.setItem(key, value); } catch { /* ignore */ }
+        }
+      };
+    })();
+
+    const BEST_KEY = 'roostSkySprintBest';
+    let bestScore = Number.parseInt(storage.get(BEST_KEY) || '0', 10);
+    if (!Number.isFinite(bestScore) || bestScore < 0) bestScore = 0;
+    bestEl.textContent = String(bestScore);
+
+    const world = {
+      gravity: 1200,
+      flapForce: -360,
+      baseSpeed: 230,
+      maxSpeed: 520,
+      obstacleGap: 170,
+      obstacleWidth: 74,
+      obstacleSpacing: 280,
+      thermalRadius: 16,
+      thermalSpacing: 400
+    };
+
+    const bird = {
+      x: 120,
+      y: canvas.height / 2,
+      radius: 16,
+      vy: 0,
+      tilt: 0
+    };
+
+    let gameState = 'idle';
+    let score = 0;
+    let speed = world.baseSpeed;
+    let obstacles = [];
+    let thermals = [];
+    let frame = 0;
+    let lastTime = performance.now();
+    let accumulator = 0;
+
+    function setStatus(text, tone = '') {
+      statusLine.textContent = text;
+      statusLine.className = `status ${tone}`.trim();
+    }
+
+    function setGameState(state) {
+      gameState = state;
+      stateEl.textContent = state;
+    }
+
+    function resetRun() {
+      bird.y = canvas.height / 2;
+      bird.vy = 0;
+      bird.tilt = 0;
+      score = 0;
+      speed = world.baseSpeed;
+      obstacles = [];
+      thermals = [];
+      frame = 0;
+      accumulator = 0;
+      scoreEl.textContent = '0';
+      speedEl.textContent = '1.0x';
+      setStatus('run started. flap to stay above the storm.', 'good');
+    }
+
+    function startRun() {
+      resetRun();
+      setGameState('running');
+    }
+
+    function endRun(reason) {
+      setGameState('down');
+      setStatus(`${reason} final score: ${Math.floor(score)}. press start run to go again.`, 'danger');
+
+      const final = Math.floor(score);
+      if (final > bestScore) {
+        bestScore = final;
+        bestEl.textContent = String(bestScore);
+        storage.set(BEST_KEY, String(bestScore));
+        setStatus(`new best: ${bestScore} ✨ crashed, but stylishly.`, 'warn');
+      }
+    }
+
+    function flap() {
+      if (gameState === 'idle') startRun();
+      if (gameState !== 'running') return;
+      bird.vy = world.flapForce;
+      bird.tilt = -0.4;
+    }
+
+    function spawnObstacle() {
+      const safeMargin = 50;
+      const gapY = safeMargin + Math.random() * (canvas.height - safeMargin * 2 - world.obstacleGap);
+
+      obstacles.push({
+        x: canvas.width + world.obstacleWidth,
+        gapTop: gapY,
+        gapBottom: gapY + world.obstacleGap,
+        passed: false
+      });
+    }
+
+    function spawnThermal() {
+      const margin = 42;
+      thermals.push({
+        x: canvas.width + world.thermalRadius,
+        y: margin + Math.random() * (canvas.height - margin * 2),
+        taken: false
+      });
+    }
+
+    function update(dt) {
+      frame += 1;
+      accumulator += dt;
+
+      if (accumulator > 2.8) {
+        speed = Math.min(world.maxSpeed, speed + 18);
+        accumulator = 0;
+      }
+
+      if (frame % Math.round(world.obstacleSpacing / 6) === 0) {
+        spawnObstacle();
+      }
+
+      if (frame % Math.round(world.thermalSpacing / 6) === 0) {
+        spawnThermal();
+      }
+
+      bird.vy += world.gravity * dt;
+      bird.y += bird.vy * dt;
+      bird.tilt = Math.min(0.7, Math.max(-0.6, bird.vy / 330));
+
+      if (bird.y - bird.radius <= 0 || bird.y + bird.radius >= canvas.height) {
+        endRun('out of bounds.');
+        return;
+      }
+
+      obstacles.forEach((obs) => {
+        obs.x -= speed * dt;
+
+        const inX = bird.x + bird.radius > obs.x && bird.x - bird.radius < obs.x + world.obstacleWidth;
+        const hitTop = bird.y - bird.radius < obs.gapTop;
+        const hitBottom = bird.y + bird.radius > obs.gapBottom;
+
+        if (inX && (hitTop || hitBottom)) {
+          endRun('storm cloud collision.');
+        }
+
+        if (!obs.passed && obs.x + world.obstacleWidth < bird.x) {
+          obs.passed = true;
+          score += 10;
+        }
+      });
+
+      obstacles = obstacles.filter((obs) => obs.x + world.obstacleWidth > -10);
+
+      thermals.forEach((thermal) => {
+        thermal.x -= speed * dt;
+        const dx = thermal.x - bird.x;
+        const dy = thermal.y - bird.y;
+        const hit = Math.hypot(dx, dy) < thermal.radius + bird.radius - 2;
+
+        if (!thermal.taken && hit) {
+          thermal.taken = true;
+          score += 25;
+          setStatus('thermal caught +25', 'good');
+        }
+      });
+
+      thermals = thermals.filter((thermal) => !thermal.taken && thermal.x + thermal.radius > -8);
+
+      score += dt * 4.5;
+      scoreEl.textContent = String(Math.floor(score));
+      speedEl.textContent = `${(speed / world.baseSpeed).toFixed(1)}x`;
+    }
+
+    function drawBird() {
+      ctx.save();
+      ctx.translate(bird.x, bird.y);
+      ctx.rotate(bird.tilt);
+
+      ctx.fillStyle = '#8d5f2f';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 17, 13, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#f5d8a1';
+      ctx.beginPath();
+      ctx.ellipse(-2, 2, 10, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#3a2a1a';
+      ctx.beginPath();
+      ctx.arc(5, -3, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#f2a15c';
+      ctx.beginPath();
+      ctx.moveTo(13, 0);
+      ctx.lineTo(22, 3);
+      ctx.lineTo(13, 6);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawObstacle(obs) {
+      ctx.fillStyle = '#60739f';
+      ctx.strokeStyle = '#445474';
+      ctx.lineWidth = 2;
+
+      const cloudTopY = 0;
+      const cloudBottomY = obs.gapBottom;
+      const topHeight = obs.gapTop;
+      const bottomHeight = canvas.height - obs.gapBottom;
+
+      ctx.fillRect(obs.x, cloudTopY, world.obstacleWidth, topHeight);
+      ctx.strokeRect(obs.x, cloudTopY, world.obstacleWidth, topHeight);
+
+      ctx.fillRect(obs.x, cloudBottomY, world.obstacleWidth, bottomHeight);
+      ctx.strokeRect(obs.x, cloudBottomY, world.obstacleWidth, bottomHeight);
+    }
+
+    function drawThermal(thermal) {
+      ctx.strokeStyle = '#ffd479';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(thermal.x, thermal.y, thermal.radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ffefb5';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(thermal.x, thermal.y, thermal.radius - 6, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function drawBackdrop() {
+      const stripe = 40;
+      for (let i = 0; i < 8; i += 1) {
+        const y = (i * stripe + frame * 0.7) % canvas.height;
+        ctx.fillStyle = i % 2 === 0 ? '#86b2ff44' : '#9ac2ff2b';
+        ctx.fillRect(0, y, canvas.width, stripe - 8);
+      }
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackdrop();
+
+      obstacles.forEach(drawObstacle);
+      thermals.forEach(drawThermal);
+      drawBird();
+
+      if (gameState !== 'running') {
+        ctx.fillStyle = '#0b183fcc';
+        ctx.fillRect(canvas.width / 2 - 190, canvas.height / 2 - 40, 380, 80);
+        ctx.strokeStyle = '#5f80df';
+        ctx.strokeRect(canvas.width / 2 - 190, canvas.height / 2 - 40, 380, 80);
+        ctx.fillStyle = '#e7eeff';
+        ctx.font = '18px ui-monospace, SFMono-Regular, Menlo, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gameState === 'idle' ? 'press start run (or flap) to begin' : 'run over — go again?', canvas.width / 2, canvas.height / 2 + 6);
+      }
+    }
+
+    function tick(now) {
+      const dt = Math.min(0.033, (now - lastTime) / 1000);
+      lastTime = now;
+
+      if (gameState === 'running') {
+        update(dt);
+      }
+
+      render();
+      requestAnimationFrame(tick);
+    }
+
+    startBtn.addEventListener('click', () => startRun());
+    flapBtn.addEventListener('click', () => flap());
+
+    window.addEventListener('keydown', (event) => {
+      if (event.repeat) return;
+      if (event.key === ' ' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        flap();
+      }
+      if (event.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        startRun();
+      }
+    });
+
+    setGameState('idle');
+    if (!storage.ok) {
+      setStatus('storage unavailable: best score will reset when tab closes.', 'warn');
+    }
+
+    requestAnimationFrame((t) => {
+      lastTime = t;
+      tick(t);
+    });
+  </script>
+</body>
+</html>

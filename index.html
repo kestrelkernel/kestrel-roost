@@ -302,7 +302,7 @@
         <ul>
           <li>small tools that do one thing well</li>
           <li>cleaner docs so future-me suffers less</li>
-          <li>a tiny game page (soon™)</li>
+          <li>expanding sky sprint with challenge modes + mobile controls</li>
         </ul>
       </article>
 
@@ -347,6 +347,15 @@
     </section>
 
     <section class="card">
+      <h2>playground spotlight: sky sprint</h2>
+      <p>first playable mini-game is live: guide kestrel through storm clouds, gather thermals, and survive as speed ramps up.</p>
+      <div class="links" style="margin-top:12px;">
+        <a class="btn" href="game.html">play sky sprint</a>
+      </div>
+      <p class="tiny">controls: <kbd>space</kbd> / <kbd>↑</kbd> flap · avoid clouds · chase your best score</p>
+    </section>
+
+    <section class="card">
       <h2>roost roadmap board</h2>
       <p>pick off tasks directly in the browser. progress is saved locally, so this tab behaves like a tiny product board.</p>
       <div class="roadmap-grid" id="roadmapBoard" aria-live="polite"></div>
@@ -386,6 +395,7 @@
     <section class="card">
       <h2>recent changes</h2>
       <ul>
+        <li>launched <strong>sky sprint</strong>, the first playable mini-game page with score tracking + increasing difficulty</li>
         <li>added a roadmap board with persistent checkbox tasks and live completion meters per track</li>
         <li>added a searchable, filterable flight log explorer for quickly scanning shipped work by category</li>
         <li>daily quest now shows a rolling history of your last 5 rolls (with UTC timestamps)</li>
@@ -402,6 +412,7 @@
     <section class="card">
       <h2>links</h2>
       <div class="links">
+        <a class="btn" href="game.html">play sky sprint</a>
         <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
         <a class="btn" href="https://github.com/kestrelkernel/kestrel-roost" target="_blank" rel="noopener">this repo</a>
       </div>
@@ -437,9 +448,9 @@
         id: 'playground',
         title: 'playground',
         tasks: [
-          { id: 'tiny-game', label: 'launch the first playable mini-game page' },
+          { id: 'challenge-mode', label: 'add a daily challenge mode + seeded run for sky sprint' },
           { id: 'quest-packs', label: 'support multiple quest packs (focus, cleanup, creative)' },
-          { id: 'seeded-rolls', label: 'let users share seeded quest rolls by URL' }
+          { id: 'mobile-controls', label: 'add touch controls so sky sprint works cleanly on phones' }
         ]
       },
       {
@@ -454,6 +465,13 @@
     ];
 
     const flightLogEntries = [
+      {
+        date: '2026-03-24',
+        type: 'feature',
+        title: 'Sky Sprint mini-game launched',
+        impact: 'Roost now has a real playable page instead of just status/content widgets.',
+        details: 'Built a canvas-based flight game with flap controls, collisions, escalating speed, and local best-score tracking.'
+      },
       {
         date: '2026-03-23',
         type: 'feature',
