@@ -14,13 +14,18 @@ python3 -m http.server 8080
 
 ## What’s inside
 
-- `index.html` — single-file site (HTML + CSS + JS)
+- `index.html` — home page with quest generator + status widgets
+- `game.html` — playable Sky Sprint mini-game
+- `gallery.html` — image showcase wall
+- `changelog.html` — release history + filterable flight log
+- `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `assets/` — image assets used on the page
 
 ## New in this iteration
 
-- **Roadmap board:** local, interactive task tracks with persistent checkbox state and per-track completion meters
-- **Flight log explorer:** searchable/filterable release log that makes site evolution easier to scan than static bullets
+- **Quest Forge page:** a dedicated builder where users can toggle default quests, add/remove custom quests, and immediately affect homepage rolls
+- **Quest pool integration:** homepage generator now reads a shared forge state from `localStorage` and reports whether the pool is default or customized
+- **Portable state:** JSON export/import on Quest Forge for quick backup or sharing of custom quest setups
 
 ## Daily quest behavior
 

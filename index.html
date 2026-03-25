@@ -168,6 +168,7 @@
         <a class="nav-link" href="game.html">game</a>
         <a class="nav-link" href="gallery.html">gallery</a>
         <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
       </nav>
     </section>
 
@@ -189,6 +190,7 @@
         <p class="status">quest streak: <span id="questStreak">0 days</span></p>
         <p class="status">next UTC reset in: <span id="questResetIn">--</span></p>
         <p class="status">persistence: <span id="storageStatus" class="ok">on</span></p>
+        <p class="status">quest pool: <span id="questPoolMeta">loading…</span></p>
         <p class="tiny">last touched: <span id="lastTouched">booting...</span></p>
       </article>
     </section>
@@ -199,6 +201,7 @@
         <a class="btn" href="game.html">play sky sprint</a>
         <a class="btn" href="gallery.html">open gallery</a>
         <a class="btn" href="changelog.html">view changelog</a>
+        <a class="btn" href="quest-forge.html">open quest forge</a>
         <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
       </div>
     </section>
@@ -226,7 +229,7 @@
   </main>
 
   <script>
-    const quests = [
+    const defaultQuests = [
       'refactor one messy file and leave it better than you found it.',
       'drink water, then close one stale browser tab forever.',
       'ship a tiny fix you have been avoiding for no good reason.',
@@ -238,6 +241,53 @@
 
     const accents = ['#7aa2ff', '#b18cff', '#76e7c7', '#ffd479', '#ff9ad5'];
 
+    const questPoolMeta = document.getElementById('questPoolMeta');
+
+    const normalizeQuestText = (value) => value.replace(/\s+/g, ' ').trim();
+
+    const loadQuestPool = () => {
+      let state = null;
+      try {
+        state = JSON.parse(localStorage.getItem('roostQuestForgeState') || 'null');
+      } catch {
+        state = null;
+      }
+
+      const defaultEnabled = Array.isArray(state?.defaultEnabled)
+        ? state.defaultEnabled
+        : defaultQuests.map(() => true);
+
+      const fromDefaults = defaultQuests.filter((_, idx) => defaultEnabled[idx] !== false);
+      const custom = Array.isArray(state?.customQuests)
+        ? state.customQuests
+            .filter((entry) => typeof entry === 'string')
+            .map((entry) => normalizeQuestText(entry))
+            .filter(Boolean)
+        : [];
+
+      const questSet = new Set();
+      const merged = [];
+      for (const quest of [...fromDefaults, ...custom]) {
+        const key = quest.toLowerCase();
+        if (!questSet.has(key)) {
+          questSet.add(key);
+          merged.push(quest);
+        }
+      }
+
+      if (merged.length === 0) {
+        questPoolMeta.textContent = `${defaultQuests.length} default (forge empty → fallback active)`;
+        return [...defaultQuests];
+      }
+
+      const hasCustom = custom.length > 0;
+      const disabledDefaults = defaultQuests.length - fromDefaults.length;
+      const mode = hasCustom || disabledDefaults > 0 ? 'customized' : 'default';
+      questPoolMeta.textContent = `${merged.length} entries (${mode})`;
+      return merged;
+    };
+
+    const quests = loadQuestPool();
     const output = document.getElementById('questOutput');
     const lastTouched = document.getElementById('lastTouched');
     const buildStamp = document.getElementById('buildStamp');

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Quest Forge — customize the daily quest pool for Kestrel's Roost" />
+  <title>Quest Forge · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --accent:#7aa2ff;
+      --good:#8fffcd;
+      --warn:#ffd479;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:transparent;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 15% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 105%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(980px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:20px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.7rem, 4vw, 2.4rem); }
+    h2 { margin:0 0 10px; font-size:1.02rem; color:#c3d0ff; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+
+    .site-nav {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .nav-link {
+      border:1px solid #3a4f9d;
+      border-radius:999px;
+      padding:6px 11px;
+      color:#d7e0ff;
+      text-decoration:none;
+      font-size:.84rem;
+      background:#0f1d4d;
+    }
+
+    .btn {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:10px;
+      padding:8px 12px;
+      transition:.15s ease;
+      background:#112057;
+      cursor:pointer;
+      font:inherit;
+    }
+    .btn:hover { transform: translateY(-1px); border-color:#6f8dff; background:#132668; }
+
+    .grid {
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:12px;
+      align-items:start;
+    }
+
+    .quest-list {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:8px;
+    }
+
+    .quest-item {
+      border:1px solid #314489;
+      border-radius:10px;
+      padding:8px 10px;
+      background:#0b1539;
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      justify-content:space-between;
+    }
+    .quest-item label {
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      color:#d5e0ff;
+      line-height:1.45;
+      flex:1;
+    }
+
+    .quest-item button {
+      border:1px solid #4d67c8;
+      border-radius:8px;
+      background:#14245e;
+      color:#dbe4ff;
+      font:inherit;
+      cursor:pointer;
+      padding:4px 8px;
+      font-size:.8rem;
+    }
+
+    textarea, input {
+      width:100%;
+      border:1px solid #4259b5;
+      border-radius:10px;
+      padding:9px 10px;
+      font:inherit;
+      color:#e6ecff;
+      background:#091432;
+    }
+
+    .stack { display:grid; gap:8px; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; }
+    .tiny { font-size:.82rem; color:#9fb0ff; }
+    .status { min-height:1.2em; font-size:.84rem; color:#b9c8ff; }
+    .status.ok { color:var(--good); }
+    .status.warn { color:var(--warn); }
+    .stats {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap:8px;
+    }
+    .stat {
+      border:1px solid #314489;
+      border-radius:10px;
+      background:#0a1333;
+      padding:8px 10px;
+      font-size:.83rem;
+      color:#b9c8ff;
+    }
+    .stat strong { display:block; margin-top:2px; color:#eaf0ff; font-size:1.02rem; }
+
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>quest forge</h1>
+      <p>build your own daily quest pool. changes here feed directly into the generator on the homepage.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+      </nav>
+    </section>
+
+    <section class="card stats" aria-label="Quest pool stats">
+      <div class="stat">active pool<strong id="activeCount">0</strong></div>
+      <div class="stat">defaults enabled<strong id="defaultCount">0</strong></div>
+      <div class="stat">custom quests<strong id="customCount">0</strong></div>
+    </section>
+
+    <section class="grid">
+      <article class="card stack">
+        <h2>default quest library</h2>
+        <p class="tiny">toggle core quests on/off. at least one quest must remain active overall.</p>
+        <ul class="quest-list" id="defaultList"></ul>
+      </article>
+
+      <article class="card stack">
+        <h2>custom quest builder</h2>
+        <p class="tiny">add your own prompts to personalize the roll output.</p>
+        <div class="stack">
+          <label for="newQuest" class="tiny">new custom quest</label>
+          <textarea id="newQuest" rows="3" placeholder="example: ship one tiny UX polish item in under 20 minutes."></textarea>
+        </div>
+        <div class="row">
+          <button class="btn" id="addQuest" type="button">add custom quest</button>
+          <button class="btn" id="clearCustom" type="button">clear custom quests</button>
+          <button class="btn" id="resetAll" type="button">restore defaults</button>
+        </div>
+        <ul class="quest-list" id="customList"></ul>
+      </article>
+    </section>
+
+    <section class="card stack">
+      <h2>portability</h2>
+      <p class="tiny">export/import forge state as JSON for backup or sharing.</p>
+      <textarea id="exchangeBox" rows="7" placeholder="forge JSON appears here"></textarea>
+      <div class="row">
+        <button class="btn" id="exportState" type="button">export JSON</button>
+        <button class="btn" id="importState" type="button">import JSON</button>
+        <a class="btn" href="index.html">return to quest generator</a>
+      </div>
+      <p id="status" class="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script>
+    const defaultQuests = [
+      'refactor one messy file and leave it better than you found it.',
+      'drink water, then close one stale browser tab forever.',
+      'ship a tiny fix you have been avoiding for no good reason.',
+      'write a 3-line note for future-you in the repo.',
+      'touch grass (or at least open a window) for 5 minutes.',
+      'clean up one naming crime in your codebase.',
+      'remove one TODO you have personally been pretending not to see.'
+    ];
+
+    const KEY = 'roostQuestForgeState';
+
+    const defaultList = document.getElementById('defaultList');
+    const customList = document.getElementById('customList');
+    const newQuestInput = document.getElementById('newQuest');
+    const exchangeBox = document.getElementById('exchangeBox');
+    const status = document.getElementById('status');
+
+    const activeCount = document.getElementById('activeCount');
+    const defaultCount = document.getElementById('defaultCount');
+    const customCount = document.getElementById('customCount');
+
+    const normalizeQuestText = (value) => value.replace(/\s+/g, ' ').trim();
+
+    const makeFreshState = () => ({
+      defaultEnabled: defaultQuests.map(() => true),
+      customQuests: []
+    });
+
+    const hydrateState = (raw) => {
+      const base = makeFreshState();
+      if (!raw || typeof raw !== 'object') return base;
+
+      if (Array.isArray(raw.defaultEnabled)) {
+        base.defaultEnabled = defaultQuests.map((_, idx) => raw.defaultEnabled[idx] !== false);
+      }
+
+      if (Array.isArray(raw.customQuests)) {
+        base.customQuests = raw.customQuests
+          .filter((entry) => typeof entry === 'string')
+          .map((entry) => normalizeQuestText(entry))
+          .filter(Boolean)
+          .slice(0, 80);
+      }
+
+      return base;
+    };
+
+    const loadState = () => {
+      try {
+        return hydrateState(JSON.parse(localStorage.getItem(KEY) || 'null'));
+      } catch {
+        return makeFreshState();
+      }
+    };
+
+    let state = loadState();
+
+    const saveState = () => {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    };
+
+    const setStatus = (text, tone = 'ok') => {
+      status.textContent = text;
+      status.className = `status ${tone}`;
+    };
+
+    const getActivePool = () => {
+      const fromDefaults = defaultQuests.filter((_, idx) => state.defaultEnabled[idx] !== false);
+      const unique = new Set();
+      const merged = [];
+
+      for (const quest of [...fromDefaults, ...state.customQuests]) {
+        const normalized = normalizeQuestText(quest);
+        if (!normalized) continue;
+        const key = normalized.toLowerCase();
+        if (!unique.has(key)) {
+          unique.add(key);
+          merged.push(normalized);
+        }
+      }
+
+      return merged;
+    };
+
+    const refreshStats = () => {
+      const fromDefaults = state.defaultEnabled.filter(Boolean).length;
+      defaultCount.textContent = String(fromDefaults);
+      customCount.textContent = String(state.customQuests.length);
+      activeCount.textContent = String(getActivePool().length);
+    };
+
+    const renderDefaultList = () => {
+      defaultList.innerHTML = '';
+
+      defaultQuests.forEach((quest, idx) => {
+        const item = document.createElement('li');
+        item.className = 'quest-item';
+
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = state.defaultEnabled[idx] !== false;
+
+        checkbox.addEventListener('change', () => {
+          state.defaultEnabled[idx] = checkbox.checked;
+          if (getActivePool().length === 0) {
+            state.defaultEnabled[idx] = true;
+            checkbox.checked = true;
+            setStatus('cannot disable every quest. keep at least one active.', 'warn');
+            return;
+          }
+          saveState();
+          refreshStats();
+          setStatus('default quest toggled.', 'ok');
+        });
+
+        const span = document.createElement('span');
+        span.textContent = quest;
+
+        label.appendChild(checkbox);
+        label.appendChild(span);
+        item.appendChild(label);
+        defaultList.appendChild(item);
+      });
+    };
+
+    const removeCustomQuest = (index) => {
+      state.customQuests.splice(index, 1);
+      if (getActivePool().length === 0) {
+        state.defaultEnabled[0] = true;
+      }
+      saveState();
+      render();
+      setStatus('custom quest removed.', 'ok');
+    };
+
+    const renderCustomList = () => {
+      customList.innerHTML = '';
+
+      if (state.customQuests.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'quest-item';
+        empty.innerHTML = '<span class="tiny">no custom quests yet.</span>';
+        customList.appendChild(empty);
+        return;
+      }
+
+      state.customQuests.forEach((quest, idx) => {
+        const item = document.createElement('li');
+        item.className = 'quest-item';
+
+        const text = document.createElement('span');
+        text.textContent = quest;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.textContent = 'remove';
+        removeBtn.addEventListener('click', () => removeCustomQuest(idx));
+
+        item.appendChild(text);
+        item.appendChild(removeBtn);
+        customList.appendChild(item);
+      });
+    };
+
+    const render = () => {
+      renderDefaultList();
+      renderCustomList();
+      refreshStats();
+    };
+
+    document.getElementById('addQuest').addEventListener('click', () => {
+      const text = normalizeQuestText(newQuestInput.value);
+      if (!text) {
+        setStatus('quest text is empty.', 'warn');
+        return;
+      }
+
+      const dupe = getActivePool().some((entry) => entry.toLowerCase() === text.toLowerCase());
+      if (dupe) {
+        setStatus('that quest already exists in the active pool.', 'warn');
+        return;
+      }
+
+      state.customQuests.push(text);
+      saveState();
+      newQuestInput.value = '';
+      render();
+      setStatus('custom quest added.', 'ok');
+    });
+
+    document.getElementById('clearCustom').addEventListener('click', () => {
+      if (state.customQuests.length === 0) {
+        setStatus('custom list already empty.', 'warn');
+        return;
+      }
+      state.customQuests = [];
+      if (getActivePool().length === 0) {
+        state.defaultEnabled[0] = true;
+      }
+      saveState();
+      render();
+      setStatus('all custom quests cleared.', 'ok');
+    });
+
+    document.getElementById('resetAll').addEventListener('click', () => {
+      state = makeFreshState();
+      saveState();
+      render();
+      setStatus('forge reset to defaults.', 'ok');
+    });
+
+    document.getElementById('exportState').addEventListener('click', () => {
+      exchangeBox.value = JSON.stringify(state, null, 2);
+      exchangeBox.focus();
+      exchangeBox.select();
+      setStatus('forge state exported to textbox.', 'ok');
+    });
+
+    document.getElementById('importState').addEventListener('click', () => {
+      let parsed;
+      try {
+        parsed = JSON.parse(exchangeBox.value);
+      } catch {
+        setStatus('invalid JSON. fix syntax and retry.', 'warn');
+        return;
+      }
+
+      const hydrated = hydrateState(parsed);
+      const hasAtLeastOne = defaultQuests.some((_, idx) => hydrated.defaultEnabled[idx] !== false) || hydrated.customQuests.length > 0;
+      if (!hasAtLeastOne) {
+        setStatus('import blocked: state would leave zero active quests.', 'warn');
+        return;
+      }
+
+      state = hydrated;
+      saveState();
+      render();
+      setStatus('forge state imported.', 'ok');
+    });
+
+    render();
+    setStatus('quest forge ready. homepage will use this pool automatically.', 'ok');
+  </script>
+</body>
+</html>
