@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kestrel Roost flight deck: roadmap and recent ships" />
+  <title>Flight Deck · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#a8b8f7;
+      --line:#2b3a7a;
+      --card:#0d1530cc;
+      --accent:#7aa2ff;
+      --ok:#8fffcd;
+      --warning:#ffd479;
+      --violet:#b18cff;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 110%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(980px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--card);
+      backdrop-filter:blur(4px);
+      box-shadow:0 12px 30px #00000033;
+      padding:20px;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.9rem, 4.3vw, 2.9rem); }
+    h2 { margin:0 0 12px; font-size:1rem; color:#c4d1ff; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+
+    .site-nav {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .nav-link {
+      border:1px solid #3a4f9d;
+      border-radius:999px;
+      padding:6px 11px;
+      color:#d7e0ff;
+      text-decoration:none;
+      font-size:.84rem;
+      background:#0f1d4d;
+    }
+    .nav-link:hover { border-color:#6f8dff; background:#14286a; }
+
+    .roadmap-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .lane {
+      border:1px solid #30418a;
+      border-radius:12px;
+      background:#0b173f;
+      padding:14px;
+    }
+    .lane h3 {
+      margin:0 0 10px;
+      font-size:.9rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#d8e2ff;
+    }
+    .lane-now h3 { color:var(--ok); }
+    .lane-next h3 { color:var(--warning); }
+    .lane-later h3 { color:var(--violet); }
+
+    .lane ul,
+    .updates-list {
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+    }
+    .lane li,
+    .updates-list li { margin:8px 0; }
+
+    .toolbar {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .chip {
+      border:1px solid #3c4f97;
+      border-radius:999px;
+      background:#101f52;
+      color:#d9e2ff;
+      font:inherit;
+      font-size:.8rem;
+      padding:6px 10px;
+      cursor:pointer;
+    }
+    .chip.active,
+    .chip:hover { border-color:#6f8dff; background:#152a6f; }
+
+    .update-title { color:#e8edff; }
+    .update-meta {
+      display:inline-block;
+      margin-top:4px;
+      font-size:.78rem;
+      color:#9fb0f3;
+    }
+    .empty {
+      border:1px dashed #415399;
+      border-radius:10px;
+      color:#9fb0f3;
+      padding:10px;
+      font-size:.86rem;
+    }
+
+    footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:8px 0 20px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>flight deck</h1>
+      <p>single place to see what the roost is building now, what ships next, and what just landed.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>roost roadmap</h2>
+      <div class="roadmap-grid" id="roadmapGrid" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2>recent ships</h2>
+      <div class="toolbar" id="typeFilters" role="toolbar" aria-label="Filter updates by type"></div>
+      <ul class="updates-list" id="updatesList" aria-live="polite"></ul>
+    </section>
+
+    <footer>status board online. turbulence: acceptable.</footer>
+  </main>
+
+  <script>
+    const roadmapGrid = document.getElementById('roadmapGrid');
+    const updatesList = document.getElementById('updatesList');
+    const typeFilters = document.getElementById('typeFilters');
+
+    const laneConfig = [
+      { key: 'now', title: 'now', className: 'lane-now' },
+      { key: 'next', title: 'next', className: 'lane-next' },
+      { key: 'later', title: 'later', className: 'lane-later' }
+    ];
+
+    const createLane = (title, className, items) => {
+      const lane = document.createElement('article');
+      lane.className = `lane ${className}`;
+
+      const heading = document.createElement('h3');
+      heading.textContent = title;
+      lane.appendChild(heading);
+
+      const list = document.createElement('ul');
+      if (!Array.isArray(items) || items.length === 0) {
+        const item = document.createElement('li');
+        item.textContent = 'No items yet.';
+        list.appendChild(item);
+      } else {
+        for (const entry of items) {
+          const item = document.createElement('li');
+          item.textContent = entry;
+          list.appendChild(item);
+        }
+      }
+
+      lane.appendChild(list);
+      return lane;
+    };
+
+    const formatDate = (isoDate) => {
+      const parsed = new Date(`${isoDate}T00:00:00Z`);
+      if (Number.isNaN(parsed.getTime())) return isoDate;
+      return parsed.toLocaleDateString('en-GB', { timeZone: 'UTC', year: 'numeric', month: 'short', day: '2-digit' });
+    };
+
+    const renderUpdates = (updates, activeType = 'all') => {
+      updatesList.innerHTML = '';
+      const filtered = activeType === 'all' ? updates : updates.filter((entry) => entry.type === activeType);
+
+      if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No updates in this category yet. Pick another filter.';
+        updatesList.appendChild(empty);
+        return;
+      }
+
+      for (const update of filtered) {
+        const item = document.createElement('li');
+
+        const title = document.createElement('div');
+        title.className = 'update-title';
+        title.textContent = update.title;
+
+        const meta = document.createElement('span');
+        meta.className = 'update-meta';
+        meta.textContent = `${formatDate(update.date)} · ${update.type}`;
+
+        const impact = document.createElement('p');
+        impact.textContent = update.impact;
+
+        item.appendChild(title);
+        item.appendChild(meta);
+        item.appendChild(impact);
+        updatesList.appendChild(item);
+      }
+    };
+
+    const renderFilters = (updates) => {
+      const types = ['all', ...new Set(updates.map((entry) => entry.type))];
+      let activeType = 'all';
+
+      typeFilters.innerHTML = '';
+      for (const type of types) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        chip.textContent = type;
+        if (type === activeType) chip.classList.add('active');
+
+        chip.addEventListener('click', () => {
+          activeType = type;
+          for (const btn of typeFilters.querySelectorAll('.chip')) {
+            btn.classList.toggle('active', btn === chip);
+          }
+          renderUpdates(updates, activeType);
+        });
+
+        typeFilters.appendChild(chip);
+      }
+
+      renderUpdates(updates, activeType);
+    };
+
+    const bootstrap = async () => {
+      try {
+        const response = await fetch('assets/roost-updates.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Could not load updates data');
+
+        const data = await response.json();
+        const roadmap = data.roadmap || {};
+        const updates = Array.isArray(data.updates) ? [...data.updates] : [];
+
+        roadmapGrid.innerHTML = '';
+        for (const lane of laneConfig) {
+          roadmapGrid.appendChild(createLane(lane.title, lane.className, roadmap[lane.key]));
+        }
+
+        updates.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+        renderFilters(updates);
+      } catch (error) {
+        roadmapGrid.innerHTML = '<div class="empty">Unable to load roadmap data right now.</div>';
+        updatesList.innerHTML = '<div class="empty">Unable to load ship log right now.</div>';
+      }
+    };
+
+    bootstrap();
+  </script>
+</body>
+</html>

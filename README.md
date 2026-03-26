@@ -19,13 +19,14 @@ python3 -m http.server 8080
 - `gallery.html` — image showcase wall
 - `changelog.html` — release history + filterable flight log
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
-- `assets/` — image assets used on the page
+- `flight-deck.html` — roadmap board + filterable ship log for visible product progress
+- `assets/` — image assets + shared JSON data for dynamic sections
 
 ## New in this iteration
 
-- **Quest Forge page:** a dedicated builder where users can toggle default quests, add/remove custom quests, and immediately affect homepage rolls
-- **Quest pool integration:** homepage generator now reads a shared forge state from `localStorage` and reports whether the pool is default or customized
-- **Portable state:** JSON export/import on Quest Forge for quick backup or sharing of custom quest setups
+- **Flight Deck page:** added `flight-deck.html` as a dedicated progress hub with a three-lane roadmap (`now`, `next`, `later`) and a filterable ship log
+- **Shared content system:** introduced `assets/roost-updates.json` so roadmap + updates are data-driven and reusable across pages
+- **Homepage progress feed:** added a new “latest ships” card on `index.html` that pulls the latest three updates from shared JSON
 
 ## Daily quest behavior
 

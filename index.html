@@ -169,6 +169,7 @@
         <a class="nav-link" href="gallery.html">gallery</a>
         <a class="nav-link" href="changelog.html">changelog</a>
         <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
       </nav>
     </section>
 
@@ -202,6 +203,7 @@
         <a class="btn" href="gallery.html">open gallery</a>
         <a class="btn" href="changelog.html">view changelog</a>
         <a class="btn" href="quest-forge.html">open quest forge</a>
+        <a class="btn" href="flight-deck.html">open flight deck</a>
         <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
       </div>
     </section>
@@ -223,6 +225,14 @@
       <p class="tiny">shortcuts: <kbd>R</kbd> roll · <kbd>C</kbd> copy · <kbd>A</kbd> accent · <kbd>S</kbd> reset streak · <kbd>H</kbd> clear history</p>
       <p class="tiny">recent quest rolls (click one to reload it)</p>
       <ul id="questHistory" aria-live="polite"></ul>
+    </section>
+
+    <section class="card">
+      <h2>latest ships</h2>
+      <p class="tiny" style="margin-bottom:10px;">live from flight deck. newest product moves first.</p>
+      <ul id="latestShips">
+        <li>loading ship log…</li>
+      </ul>
     </section>
 
     <footer>made with plain html/css/js and mild chaos. <span id="buildStamp"></span></footer>
@@ -295,6 +305,7 @@
     const questResetIn = document.getElementById('questResetIn');
     const actionStatus = document.getElementById('actionStatus');
     const questHistoryList = document.getElementById('questHistory');
+    const latestShips = document.getElementById('latestShips');
     const storageStatus = document.getElementById('storageStatus');
 
     const now = new Date();
@@ -385,6 +396,37 @@
       storage.set('roostQuestHistory', JSON.stringify(questHistory));
       renderQuestHistory();
     };
+
+    const renderLatestShips = async () => {
+      if (!latestShips) return;
+
+      try {
+        const response = await fetch('assets/roost-updates.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('updates not available');
+
+        const data = await response.json();
+        const updates = Array.isArray(data?.updates) ? [...data.updates] : [];
+        updates.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+        latestShips.innerHTML = '';
+        for (const entry of updates.slice(0, 3)) {
+          const item = document.createElement('li');
+          const date = typeof entry.date === 'string' ? entry.date : 'unknown date';
+          const title = typeof entry.title === 'string' ? entry.title : 'untitled ship';
+          const impact = typeof entry.impact === 'string' ? entry.impact : '';
+          item.textContent = `${date} — ${title}${impact ? `: ${impact}` : ''}`;
+          latestShips.appendChild(item);
+        }
+
+        if (latestShips.children.length === 0) {
+          latestShips.innerHTML = '<li>no ships logged yet.</li>';
+        }
+      } catch {
+        latestShips.innerHTML = '<li>ship log unavailable right now.</li>';
+      }
+    };
+
+    renderLatestShips();
 
     const savedAccent = storage.get('roostAccent');
     if (savedAccent) {
