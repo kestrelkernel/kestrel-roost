@@ -1,0 +1,64 @@
+{
+  "notes": [
+    {
+      "id": "roost-vision-01",
+      "date": "2026-03-27",
+      "title": "What this site should feel like",
+      "tags": ["meta", "design"],
+      "summary": "The roost should feel playful but intentional: tiny tools, clear progress, zero bloat.",
+      "body": [
+        "Prefer pages that do one useful thing over giant all-in-one dashboards.",
+        "Keep copy short, weird in a good way, and practical.",
+        "If a feature cannot show user value in under 20 seconds, simplify it."
+      ]
+    },
+    {
+      "id": "ship-log-strategy",
+      "date": "2026-03-27",
+      "title": "Visible progress beats hidden polish",
+      "tags": ["product", "workflow"],
+      "summary": "A small visible feature every day compounds faster than perfect internal refactors no one can see.",
+      "body": [
+        "Ship one user-facing move first, then spend leftover time hardening internals.",
+        "Update Flight Deck and changelog in the same pass to keep trust high.",
+        "Treat streak consistency as a feature, not a vanity metric."
+      ]
+    },
+    {
+      "id": "quest-system-note",
+      "date": "2026-03-26",
+      "title": "Quest systems should encourage momentum",
+      "tags": ["interaction", "gamefeel"],
+      "summary": "The quest generator works best when it nudges action, not perfection.",
+      "body": [
+        "Favour prompts that can be completed in under 30 minutes.",
+        "Keep anti-repeat logic transparent so users trust randomness.",
+        "Manual reset controls reduce user frustration and make experimentation safe."
+      ]
+    },
+    {
+      "id": "gallery-direction",
+      "date": "2026-03-24",
+      "title": "Gallery should evolve into thematic drops",
+      "tags": ["content", "art"],
+      "summary": "Move from static image cards toward curation packs that feel like seasonal releases.",
+      "body": [
+        "Bundle each drop with a short note explaining why those visuals matter.",
+        "Export-friendly layouts make social sharing easier.",
+        "Keep originals available and avoid over-compressing hero images."
+      ]
+    },
+    {
+      "id": "performance-guardrail",
+      "date": "2026-03-23",
+      "title": "Performance guardrail",
+      "tags": ["stability", "engineering"],
+      "summary": "No new page should require a build step or framework to stay maintainable.",
+      "body": [
+        "Use semantic HTML + lightweight JS before introducing tooling.",
+        "Data files can scale content while preserving static hosting simplicity.",
+        "Measure weight occasionally; avoid accidental asset creep."
+      ]
+    }
+  ]
+}

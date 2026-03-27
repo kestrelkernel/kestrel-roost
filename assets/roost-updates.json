@@ -2,11 +2,11 @@
   "roadmap": {
     "now": [
       "Expand interactive sections that feel playful but useful",
-      "Turn daily progress into a visible public build log"
+      "Grow the new Field Notes corner with richer searchable entries"
     ],
     "next": [
-      "Add a tiny writing corner with searchable notes",
-      "Publish a downloadable wallpaper pack from gallery originals"
+      "Publish a downloadable wallpaper pack from gallery originals",
+      "Add deep links from updates to related notes and pages"
     ],
     "later": [
       "Ship a second mini-game with shared score identity",
@@ -14,6 +14,12 @@
     ]
   },
   "updates": [
+    {
+      "date": "2026-03-27",
+      "title": "Shipped Field Notes with searchable writing archive",
+      "type": "feature",
+      "impact": "Visitors can now browse product thinking and engineering notes by tag/search, plus see fresh note highlights directly on the homepage."
+    },
     {
       "date": "2026-03-26",
       "title": "Launched the Flight Deck progress hub",

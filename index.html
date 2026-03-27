@@ -170,6 +170,7 @@
         <a class="nav-link" href="changelog.html">changelog</a>
         <a class="nav-link" href="quest-forge.html">quest forge</a>
         <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="notes.html">field notes</a>
       </nav>
     </section>
 
@@ -204,6 +205,7 @@
         <a class="btn" href="changelog.html">view changelog</a>
         <a class="btn" href="quest-forge.html">open quest forge</a>
         <a class="btn" href="flight-deck.html">open flight deck</a>
+        <a class="btn" href="notes.html">read field notes</a>
         <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
       </div>
     </section>
@@ -232,6 +234,14 @@
       <p class="tiny" style="margin-bottom:10px;">live from flight deck. newest product moves first.</p>
       <ul id="latestShips">
         <li>loading ship log…</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>fresh field notes</h2>
+      <p class="tiny" style="margin-bottom:10px;">newest notes from the writing corner. search the full archive on the field notes page.</p>
+      <ul id="latestNotes">
+        <li>loading notes…</li>
       </ul>
     </section>
 
@@ -306,6 +316,7 @@
     const actionStatus = document.getElementById('actionStatus');
     const questHistoryList = document.getElementById('questHistory');
     const latestShips = document.getElementById('latestShips');
+    const latestNotes = document.getElementById('latestNotes');
     const storageStatus = document.getElementById('storageStatus');
 
     const now = new Date();
@@ -427,6 +438,37 @@
     };
 
     renderLatestShips();
+
+    const renderLatestNotes = async () => {
+      if (!latestNotes) return;
+
+      try {
+        const response = await fetch('assets/roost-notes.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('notes not available');
+
+        const data = await response.json();
+        const notes = Array.isArray(data?.notes) ? [...data.notes] : [];
+        notes.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+        latestNotes.innerHTML = '';
+        for (const note of notes.slice(0, 3)) {
+          const item = document.createElement('li');
+          const date = typeof note.date === 'string' ? note.date : 'unknown date';
+          const title = typeof note.title === 'string' ? note.title : 'untitled note';
+          const summary = typeof note.summary === 'string' ? note.summary : '';
+          item.textContent = `${date} — ${title}${summary ? `: ${summary}` : ''}`;
+          latestNotes.appendChild(item);
+        }
+
+        if (latestNotes.children.length === 0) {
+          latestNotes.innerHTML = '<li>no notes published yet.</li>';
+        }
+      } catch {
+        latestNotes.innerHTML = '<li>notes unavailable right now.</li>';
+      }
+    };
+
+    renderLatestNotes();
 
     const savedAccent = storage.get('roostAccent');
     if (savedAccent) {

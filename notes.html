@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kestrel Roost field notes: searchable build notes and product thinking." />
+  <title>Field Notes · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#a8b8f7;
+      --line:#2b3a7a;
+      --card:#0d1530cc;
+      --accent:#7aa2ff;
+      --chip:#101f52;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 110%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(980px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--card);
+      backdrop-filter:blur(4px);
+      box-shadow:0 12px 30px #00000033;
+      padding:20px;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.9rem, 4.3vw, 2.9rem); }
+    h2 { margin:0 0 12px; font-size:1rem; color:#c4d1ff; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+
+    .site-nav {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .nav-link {
+      border:1px solid #3a4f9d;
+      border-radius:999px;
+      padding:6px 11px;
+      color:#d7e0ff;
+      text-decoration:none;
+      font-size:.84rem;
+      background:#0f1d4d;
+    }
+    .nav-link:hover,
+    .nav-link:focus-visible { border-color:#6f8dff; background:#14286a; }
+
+    .toolbar {
+      display:grid;
+      gap:10px;
+    }
+    .search {
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #3a4f9d;
+      background:#0d1943;
+      color:#e6ecff;
+      font:inherit;
+    }
+    .search::placeholder { color:#94a7ef; }
+
+    .chip-row {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .chip {
+      border:1px solid #3c4f97;
+      border-radius:999px;
+      background:var(--chip);
+      color:#d9e2ff;
+      font:inherit;
+      font-size:.8rem;
+      padding:6px 10px;
+      cursor:pointer;
+    }
+    .chip.active,
+    .chip:hover { border-color:#6f8dff; background:#152a6f; }
+
+    .btn {
+      border:1px solid #4660be;
+      border-radius:10px;
+      padding:8px 12px;
+      background:#112057;
+      color:#dbe4ff;
+      font:inherit;
+      cursor:pointer;
+      text-decoration:none;
+      width:max-content;
+    }
+    .btn:hover,
+    .btn:focus-visible { border-color:#6f8dff; background:#132668; }
+
+    .meta {
+      font-size:.82rem;
+      color:#93a6ef;
+      margin-bottom:12px;
+    }
+
+    .notes-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+    }
+    .note {
+      border:1px solid #30418a;
+      border-radius:12px;
+      background:#0b173f;
+      padding:14px;
+      display:grid;
+      gap:9px;
+    }
+    .note h3 {
+      margin:0;
+      font-size:.95rem;
+      color:#e8edff;
+    }
+    .note-date {
+      font-size:.76rem;
+      color:#9fb0f3;
+    }
+    .tag-list {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .tag {
+      border:1px solid #4357a2;
+      border-radius:999px;
+      padding:2px 8px;
+      font-size:.72rem;
+      color:#cdddff;
+      background:#121f50;
+    }
+    .summary {
+      color:#b8c6ff;
+      font-size:.87rem;
+    }
+    .detail-list {
+      margin:0;
+      padding-left:16px;
+      color:#9fb0f3;
+      font-size:.82rem;
+    }
+    .detail-list li { margin:5px 0; }
+
+    .empty {
+      border:1px dashed #415399;
+      border-radius:10px;
+      color:#9fb0f3;
+      padding:12px;
+      font-size:.86rem;
+      grid-column:1 / -1;
+    }
+
+    footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:8px 0 20px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>field notes</h1>
+      <p>searchable notes from the roost: product ideas, engineering guardrails, and tiny lessons worth keeping.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="notes.html">field notes</a>
+      </nav>
+    </section>
+
+    <section class="card toolbar" aria-label="Filter and search notes">
+      <input id="noteSearch" class="search" type="search" placeholder="search notes by title, summary, or detail..." autocomplete="off" />
+      <div class="chip-row" id="tagFilters" role="toolbar" aria-label="Filter notes by tag"></div>
+      <button type="button" class="btn" id="surpriseBtn">surprise me</button>
+      <p class="meta" id="resultsMeta">loading notes...</p>
+    </section>
+
+    <section class="card">
+      <h2>note archive</h2>
+      <div class="notes-grid" id="notesGrid" aria-live="polite">
+        <div class="empty">loading notes...</div>
+      </div>
+    </section>
+
+    <footer>kept simple on purpose. static files, live ideas.</footer>
+  </main>
+
+  <script>
+    const notesGrid = document.getElementById('notesGrid');
+    const noteSearch = document.getElementById('noteSearch');
+    const tagFilters = document.getElementById('tagFilters');
+    const resultsMeta = document.getElementById('resultsMeta');
+    const surpriseBtn = document.getElementById('surpriseBtn');
+
+    let allNotes = [];
+    let activeTag = 'all';
+
+    const formatDate = (isoDate) => {
+      const parsed = new Date(`${isoDate}T00:00:00Z`);
+      if (Number.isNaN(parsed.getTime())) return isoDate;
+      return parsed.toLocaleDateString('en-GB', {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit'
+      });
+    };
+
+    const normalize = (value) => String(value || '').toLowerCase();
+
+    const renderNotes = () => {
+      const query = normalize(noteSearch.value.trim());
+      const filtered = allNotes
+        .filter((note) => activeTag === 'all' || (Array.isArray(note.tags) && note.tags.includes(activeTag)))
+        .filter((note) => {
+          if (!query) return true;
+          const haystack = normalize(`${note.title} ${note.summary} ${(note.body || []).join(' ')} ${(note.tags || []).join(' ')}`);
+          return haystack.includes(query);
+        })
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+      notesGrid.innerHTML = '';
+      resultsMeta.textContent = `${filtered.length} ${filtered.length === 1 ? 'note' : 'notes'} shown`;
+
+      if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No notes match that filter yet. Try another tag or wider search.';
+        notesGrid.appendChild(empty);
+        return;
+      }
+
+      for (const note of filtered) {
+        const card = document.createElement('article');
+        card.className = 'note';
+        card.id = note.id || '';
+
+        const title = document.createElement('h3');
+        title.textContent = note.title || 'Untitled note';
+
+        const date = document.createElement('div');
+        date.className = 'note-date';
+        date.textContent = formatDate(note.date);
+
+        const tags = document.createElement('div');
+        tags.className = 'tag-list';
+        for (const tag of (note.tags || [])) {
+          const badge = document.createElement('span');
+          badge.className = 'tag';
+          badge.textContent = tag;
+          tags.appendChild(badge);
+        }
+
+        const summary = document.createElement('p');
+        summary.className = 'summary';
+        summary.textContent = note.summary || '';
+
+        const details = document.createElement('ul');
+        details.className = 'detail-list';
+        for (const line of (note.body || [])) {
+          const item = document.createElement('li');
+          item.textContent = line;
+          details.appendChild(item);
+        }
+
+        card.appendChild(title);
+        card.appendChild(date);
+        card.appendChild(tags);
+        card.appendChild(summary);
+        card.appendChild(details);
+        notesGrid.appendChild(card);
+      }
+    };
+
+    const renderTagFilters = () => {
+      const tags = ['all', ...new Set(allNotes.flatMap((note) => Array.isArray(note.tags) ? note.tags : []))];
+      tagFilters.innerHTML = '';
+
+      for (const tag of tags) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'chip';
+        button.textContent = tag;
+        button.classList.toggle('active', tag === activeTag);
+
+        button.addEventListener('click', () => {
+          activeTag = tag;
+          for (const chip of tagFilters.querySelectorAll('.chip')) {
+            chip.classList.toggle('active', chip === button);
+          }
+          renderNotes();
+        });
+
+        tagFilters.appendChild(button);
+      }
+    };
+
+    const surpriseMe = () => {
+      const cards = Array.from(notesGrid.querySelectorAll('.note'));
+      if (cards.length === 0) return;
+      const pick = cards[Math.floor(Math.random() * cards.length)];
+      pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      pick.style.outline = '2px solid #7aa2ff';
+      setTimeout(() => { pick.style.outline = ''; }, 900);
+    };
+
+    surpriseBtn.addEventListener('click', surpriseMe);
+    noteSearch.addEventListener('input', renderNotes);
+
+    const bootstrap = async () => {
+      try {
+        const response = await fetch('assets/roost-notes.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Failed to load notes data');
+        const data = await response.json();
+        allNotes = Array.isArray(data.notes) ? data.notes : [];
+        renderTagFilters();
+        renderNotes();
+      } catch {
+        notesGrid.innerHTML = '<div class="empty">Unable to load notes right now.</div>';
+        resultsMeta.textContent = 'notes unavailable';
+      }
+    };
+
+    bootstrap();
+  </script>
+</body>
+</html>

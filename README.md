@@ -20,13 +20,15 @@ python3 -m http.server 8080
 - `changelog.html` — release history + filterable flight log
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
-- `assets/` — image assets + shared JSON data for dynamic sections
+- `notes.html` — searchable field-notes archive with tag filters + surprise picker
+- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`)
 
 ## New in this iteration
 
-- **Flight Deck page:** added `flight-deck.html` as a dedicated progress hub with a three-lane roadmap (`now`, `next`, `later`) and a filterable ship log
-- **Shared content system:** introduced `assets/roost-updates.json` so roadmap + updates are data-driven and reusable across pages
-- **Homepage progress feed:** added a new “latest ships” card on `index.html` that pulls the latest three updates from shared JSON
+- **Field Notes page:** launched `notes.html` with full-text search, tag filters, and a “surprise me” interaction for browsing note cards
+- **New content dataset:** added `assets/roost-notes.json` to keep writing/content updates data-driven (matching the existing updates system)
+- **Homepage notes feed:** added a new “fresh field notes” card on `index.html` that pulls the latest entries from shared notes data
+- **Sitewide navigation update:** linked the new Field Notes section from all major pages so the writing corner is discoverable
 
 ## Daily quest behavior
 
