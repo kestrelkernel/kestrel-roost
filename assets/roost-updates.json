@@ -1,12 +1,12 @@
 {
   "roadmap": {
     "now": [
-      "Grow the new connected-storytelling system so ships, notes, and pages link cleanly",
+      "Polish the new wallpaper drop so more art releases feel collectible instead of decorative",
       "Keep adding playful sections that feel useful in under 20 seconds"
     ],
     "next": [
-      "Publish a downloadable wallpaper pack from gallery originals",
-      "Add mini case-study layouts for larger releases"
+      "Add mini case-study layouts for larger releases",
+      "Give the wallpaper packs a lightweight favorite/share system"
     ],
     "later": [
       "Ship a second mini-game with shared score identity",
@@ -14,6 +14,20 @@
     ]
   },
   "updates": [
+    {
+      "slug": "wallpaper-pack-drop",
+      "date": "2026-03-28",
+      "title": "Dropped a downloadable wallpaper pack",
+      "type": "content",
+      "impact": "The gallery now leads to a proper wallpaper destination with downloadable desktop and phone packs, giving visitors something tangible to take away from the art wing.",
+      "details": "Added wallpapers.html, shipped three SVG wallpaper packs with dual form factors, and wired the drop into the gallery plus shared site navigation.",
+      "page": "wallpapers.html",
+      "pageLabel": "Open wallpaper pack",
+      "relatedNotes": [
+        "wallpaper-drop-note",
+        "gallery-direction"
+      ]
+    },
     {
       "slug": "story-mode-links",
       "date": "2026-03-28",
@@ -23,7 +37,10 @@
       "details": "Added shared relationship metadata to the content files, redesigned ship listings into richer cards, and made note/update navigation actually clickable instead of isolated text blocks.",
       "page": "flight-deck.html",
       "pageLabel": "Open flight deck",
-      "relatedNotes": ["roost-linking-system", "ship-log-strategy"]
+      "relatedNotes": [
+        "roost-linking-system",
+        "ship-log-strategy"
+      ]
     },
     {
       "slug": "field-notes-archive",
@@ -34,7 +51,11 @@
       "details": "Launched notes.html, added a shared notes dataset, and surfaced the newest entries on the homepage for quicker discovery.",
       "page": "notes.html",
       "pageLabel": "Read field notes",
-      "relatedNotes": ["roost-vision-01", "ship-log-strategy", "performance-guardrail"]
+      "relatedNotes": [
+        "roost-vision-01",
+        "ship-log-strategy",
+        "performance-guardrail"
+      ]
     },
     {
       "slug": "flight-deck-hub",
@@ -45,7 +66,10 @@
       "details": "Built a roadmap board with lanes for now/next/later and a filterable log for visible product progress.",
       "page": "flight-deck.html",
       "pageLabel": "Open flight deck",
-      "relatedNotes": ["ship-log-strategy", "roost-vision-01"]
+      "relatedNotes": [
+        "ship-log-strategy",
+        "roost-vision-01"
+      ]
     },
     {
       "slug": "quest-forge",
@@ -56,7 +80,10 @@
       "details": "Added a dedicated forge page with quest controls, custom entries, and browser-friendly portability.",
       "page": "quest-forge.html",
       "pageLabel": "Open quest forge",
-      "relatedNotes": ["quest-system-note", "performance-guardrail"]
+      "relatedNotes": [
+        "quest-system-note",
+        "performance-guardrail"
+      ]
     },
     {
       "slug": "homepage-split",
@@ -67,7 +94,9 @@
       "details": "Moved the site toward dedicated surfaces for tools, content, and status so the homepage reads like a launch pad.",
       "page": "index.html",
       "pageLabel": "Open home",
-      "relatedNotes": ["roost-vision-01"]
+      "relatedNotes": [
+        "roost-vision-01"
+      ]
     },
     {
       "slug": "changelog-filters",
@@ -75,10 +104,12 @@
       "title": "Added changelog filtering controls",
       "type": "interaction",
       "impact": "Readers can now quickly filter release entries by category, making update history easier to browse.",
-      "details": "Introduced filter chips and keyword search for the site’s flight log explorer.",
+      "details": "Introduced filter chips and keyword search for the site\u2019s flight log explorer.",
       "page": "changelog.html",
       "pageLabel": "Open changelog",
-      "relatedNotes": ["ship-log-strategy"]
+      "relatedNotes": [
+        "ship-log-strategy"
+      ]
     },
     {
       "slug": "gallery-layout",
@@ -89,7 +120,9 @@
       "details": "Improved gallery presentation and pushed the site closer to curated content drops.",
       "page": "gallery.html",
       "pageLabel": "Open gallery",
-      "relatedNotes": ["gallery-direction"]
+      "relatedNotes": [
+        "gallery-direction"
+      ]
     }
   ]
 }

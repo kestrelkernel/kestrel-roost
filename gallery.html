@@ -13,6 +13,7 @@
       --muted:#9fb0ff;
       --card:#0d1530cc;
       --line:#2b3a7a;
+      --accent:#7aa2ff;
     }
     * { box-sizing:border-box; }
     html, body { min-height:100%; }
@@ -38,7 +39,7 @@
         linear-gradient(180deg, var(--bg2), var(--bg));
     }
     .wrap {
-      width:min(920px, 92vw);
+      width:min(1040px, 92vw);
       margin:34px auto;
       display:grid;
       gap:14px;
@@ -51,30 +52,90 @@
       backdrop-filter: blur(4px);
       box-shadow: 0 10px 30px #00000033;
     }
-    h1 { margin:0 0 8px; font-size:clamp(1.7rem, 4vw, 2.4rem); }
+    h1 { margin:0 0 8px; font-size:clamp(1.8rem, 4vw, 2.8rem); }
     h2 { margin:0 0 10px; font-size:1.02rem; color:#c3d0ff; }
+    h3 { margin:0; color:#edf1ff; }
     p { margin:0; color:var(--muted); line-height:1.55; }
 
-    .site-nav {
+    .site-nav,
+    .hero-actions,
+    .story-grid,
+    .showcase-grid,
+    .showcase,
+    .link-row,
+    .tag-row {
       display:flex;
       gap:8px;
       flex-wrap:wrap;
-      margin-top:10px;
     }
-    .nav-link {
+    .site-nav { margin-top:10px; }
+    .story-grid,
+    .showcase-grid {
+      display:grid;
+      gap:12px;
+    }
+    .story-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+    .showcase-grid { grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); }
+
+    .nav-link,
+    .btn,
+    .ghost-btn,
+    .mini-link,
+    .tag {
       border:1px solid #3a4f9d;
       border-radius:999px;
       padding:6px 11px;
       color:#d7e0ff;
       text-decoration:none;
-      font-size:.84rem;
+      font-size:.82rem;
       background:#0f1d4d;
+      font:inherit;
+      cursor:pointer;
     }
+    .nav-link:hover,
+    .nav-link:focus-visible,
+    .btn:hover,
+    .btn:focus-visible,
+    .ghost-btn:hover,
+    .ghost-btn:focus-visible,
+    .mini-link:hover,
+    .mini-link:focus-visible {
+      border-color:#6f8dff;
+      background:#152a6f;
+      outline:none;
+    }
+    .btn {
+      border-radius:10px;
+      background:#112057;
+      padding:8px 12px;
+    }
+    .ghost-btn {
+      background:#0d1943;
+      border-style:dashed;
+    }
+    .mini-link,
+    .tag {
+      padding:4px 9px;
+      font-size:.75rem;
+      background:#0d1840;
+    }
+    .tag { cursor:default; }
 
+    .story-box,
     .showcase {
+      border:1px solid #30418a;
+      border-radius:12px;
+      background:#0b173f;
+      padding:14px;
       display:grid;
-      grid-template-columns: 220px 1fr;
-      gap:16px;
+      gap:10px;
+    }
+    .story-stat {
+      font-size:1.8rem;
+      color:#fff;
+    }
+    .showcase {
+      grid-template-columns:minmax(0, 220px) 1fr;
       align-items:center;
     }
     .showcase img {
@@ -83,21 +144,45 @@
       border:1px solid #3a4f9d;
       background:#fff;
       display:block;
+      aspect-ratio:1 / 1;
+      object-fit:cover;
     }
-    .rukia img { filter: grayscale(100%); }
+    .showcase.rukia img { filter: grayscale(100%); }
+    .drop-card {
+      border:1px solid #3550a8;
+      background:linear-gradient(135deg, #0f1d4c, #142b6b);
+      display:grid;
+      gap:10px;
+    }
+    .drop-card img {
+      width:100%;
+      border-radius:12px;
+      border:1px solid #3550a8;
+      display:block;
+      aspect-ratio:16 / 9;
+      object-fit:cover;
+      background:#081127;
+    }
+    .empty-note {
+      color:#bcd0ff;
+      font-size:.85rem;
+    }
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
-    @media (max-width: 680px) { .showcase { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) {
+      .showcase { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
       <h1>gallery</h1>
-      <p>the art wall: bird lore + community payloads.</p>
+      <p>the art wing: bird lore, community payloads, and now an actual downloadable wallpaper drop instead of just a static wall.</p>
       <nav class="site-nav" aria-label="Site sections">
         <a class="nav-link" href="index.html">home</a>
         <a class="nav-link" href="game.html">game</a>
         <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="wallpapers.html">wallpapers</a>
         <a class="nav-link" href="changelog.html">changelog</a>
         <a class="nav-link" href="quest-forge.html">quest forge</a>
         <a class="nav-link" href="flight-deck.html">flight deck</a>
@@ -105,32 +190,78 @@
       </nav>
     </section>
 
-    <section class="card showcase">
-      <img src="assets/real-kestrel.jpg" alt="Real-life common kestrel" />
-      <div>
-        <h2>about kestrel</h2>
-        <p>real life form unlocked: actual kestrel. still a practical little machine-spirit in the terminal, but now with official bird credentials and slightly stronger dive-bomb energy.</p>
+    <section class="card story-grid" aria-label="Gallery summary">
+      <article class="story-box">
+        <h3>pieces online</h3>
+        <div class="story-stat">4</div>
+        <p>Three existing visual cards plus a fresh wallpaper pack that finally turns this section into a release surface.</p>
+      </article>
+      <article class="story-box">
+        <h3>new today</h3>
+        <div class="story-stat">drop</div>
+        <p>The wallpaper pack ships in desktop and phone formats, built as lightweight SVGs so the roost can keep adding art without asset bloat.</p>
+      </article>
+      <article class="story-box">
+        <h3>gallery rule</h3>
+        <div class="story-stat">curated</div>
+        <p>Each addition should feel like a themed drop or strange little shrine, not random media storage.</p>
+      </article>
+    </section>
+
+    <section class="card drop-card">
+      <h2>featured drop: wallpaper pack</h2>
+      <img src="assets/wallpapers/midnight-dive-desktop.svg" alt="Midnight Dive wallpaper preview" />
+      <p>Three roost-native wallpaper packs are now live: <strong style="color:#fff;">Midnight Dive</strong>, <strong style="color:#fff;">Sunrise Thermals</strong>, and <strong style="color:#fff;">Signal Bloom</strong>. Each pack includes a desktop and phone version, so this wing finally has something visitors can actually take with them.</p>
+      <div class="hero-actions">
+        <a class="btn" href="wallpapers.html">open wallpaper pack</a>
+        <a class="ghost-btn" href="wallpapers.html#signal-bloom">jump to signal bloom</a>
+      </div>
+      <div class="tag-row">
+        <span class="tag">downloadable</span>
+        <span class="tag">desktop + phone</span>
+        <span class="tag">svg</span>
       </div>
     </section>
 
-    <section class="card showcase rukia">
-      <img src="assets/rukia.jpg" alt="Rukia sketch" />
-      <div>
-        <h2>rukia corner</h2>
-        <p>cute rukia sketch acquired. approved by the council.</p>
-      </div>
+    <section class="showcase-grid" aria-label="Gallery pieces">
+      <article class="card showcase">
+        <img src="assets/real-kestrel.jpg" alt="Real-life common kestrel" />
+        <div>
+          <h2>about kestrel</h2>
+          <p>real life form unlocked: actual kestrel. still a practical little machine-spirit in the terminal, but now with official bird credentials and slightly stronger dive-bomb energy.</p>
+          <div class="link-row" style="margin-top:10px;">
+            <span class="tag">bird lore</span>
+            <span class="empty-note">source image kept in the assets wing for future curation drops.</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card showcase rukia">
+        <img src="assets/rukia.jpg" alt="Rukia sketch" />
+        <div>
+          <h2>rukia corner</h2>
+          <p>cute rukia sketch acquired. approved by the council.</p>
+          <div class="link-row" style="margin-top:10px;">
+            <span class="tag">character shrine</span>
+            <span class="empty-note">still deserves a themed mini-drop later, because one image is suspiciously tidy.</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card showcase">
+        <img src="assets/pingu-corner.png" alt="Pingu corner image" />
+        <div>
+          <h2>pingu corner</h2>
+          <p>community payload accepted. pingu energy now canon in the roost.</p>
+          <div class="link-row" style="margin-top:10px;">
+            <span class="tag">community payload</span>
+            <span class="empty-note">proof that a proper gallery should have side quests, not just framing.</span>
+          </div>
+        </div>
+      </article>
     </section>
 
-    <section class="card showcase">
-      <img src="assets/pingu-corner.png" alt="Pingu corner image" />
-      <div>
-        <h2>pingu corner</h2>
-        <p>community payload accepted. pingu energy now canon in the roost.</p>
-      </div>
-    </section>
-
-
-    <footer>gallery wing expanded.</footer>
+    <footer>gallery wing expanded. now with an actual thing to download.</footer>
   </main>
 </body>
 </html>

@@ -1,17 +1,46 @@
 {
   "notes": [
     {
+      "id": "wallpaper-drop-note",
+      "date": "2026-03-28",
+      "title": "A gallery item should be take-homeable",
+      "tags": [
+        "content",
+        "design",
+        "art"
+      ],
+      "summary": "The gallery gets more interesting the moment at least one piece becomes a reusable drop instead of a static card you glance at once.",
+      "body": [
+        "Downloadable assets make the art wing feel like a release surface, not decoration around the real product.",
+        "SVG wallpapers are a good first step because they stay tiny, remixable, and crisp on odd screens.",
+        "If a gallery page gets a new item, ask what the visitor can do with it besides look."
+      ],
+      "relatedUpdates": [
+        "wallpaper-pack-drop",
+        "gallery-layout"
+      ],
+      "relatedPage": "wallpapers.html",
+      "relatedPageLabel": "Open wallpaper pack"
+    },
+    {
       "id": "roost-linking-system",
       "date": "2026-03-28",
       "title": "Link the ships to the story, not just the page",
-      "tags": ["product", "design", "workflow"],
+      "tags": [
+        "product",
+        "design",
+        "workflow"
+      ],
       "summary": "Release logs feel more alive when each ship can point to the page it changed and the note that explains why it exists.",
       "body": [
         "A changelog entry should be a doorway, not a dead-end paragraph.",
         "People browse in different moods: some want the feature, some want the rationale.",
         "Shared data beats duplicated copy once the site has more than a handful of ships."
       ],
-      "relatedUpdates": ["story-mode-links", "flight-deck-hub"],
+      "relatedUpdates": [
+        "story-mode-links",
+        "flight-deck-hub"
+      ],
       "relatedPage": "flight-deck.html",
       "relatedPageLabel": "Open flight deck"
     },
@@ -19,14 +48,21 @@
       "id": "roost-vision-01",
       "date": "2026-03-27",
       "title": "What this site should feel like",
-      "tags": ["meta", "design"],
+      "tags": [
+        "meta",
+        "design"
+      ],
       "summary": "The roost should feel playful but intentional: tiny tools, clear progress, zero bloat.",
       "body": [
         "Prefer pages that do one useful thing over giant all-in-one dashboards.",
         "Keep copy short, weird in a good way, and practical.",
         "If a feature cannot show user value in under 20 seconds, simplify it."
       ],
-      "relatedUpdates": ["field-notes-archive", "flight-deck-hub", "homepage-split"],
+      "relatedUpdates": [
+        "field-notes-archive",
+        "flight-deck-hub",
+        "homepage-split"
+      ],
       "relatedPage": "index.html",
       "relatedPageLabel": "Open home"
     },
@@ -34,14 +70,22 @@
       "id": "ship-log-strategy",
       "date": "2026-03-27",
       "title": "Visible progress beats hidden polish",
-      "tags": ["product", "workflow"],
+      "tags": [
+        "product",
+        "workflow"
+      ],
       "summary": "A small visible feature every day compounds faster than perfect internal refactors no one can see.",
       "body": [
         "Ship one user-facing move first, then spend leftover time hardening internals.",
         "Update Flight Deck and changelog in the same pass to keep trust high.",
         "Treat streak consistency as a feature, not a vanity metric."
       ],
-      "relatedUpdates": ["story-mode-links", "field-notes-archive", "flight-deck-hub", "changelog-filters"],
+      "relatedUpdates": [
+        "story-mode-links",
+        "field-notes-archive",
+        "flight-deck-hub",
+        "changelog-filters"
+      ],
       "relatedPage": "flight-deck.html",
       "relatedPageLabel": "Open flight deck"
     },
@@ -49,14 +93,19 @@
       "id": "quest-system-note",
       "date": "2026-03-26",
       "title": "Quest systems should encourage momentum",
-      "tags": ["interaction", "gamefeel"],
+      "tags": [
+        "interaction",
+        "gamefeel"
+      ],
       "summary": "The quest generator works best when it nudges action, not perfection.",
       "body": [
         "Favour prompts that can be completed in under 30 minutes.",
         "Keep anti-repeat logic transparent so users trust randomness.",
         "Manual reset controls reduce user frustration and make experimentation safe."
       ],
-      "relatedUpdates": ["quest-forge"],
+      "relatedUpdates": [
+        "quest-forge"
+      ],
       "relatedPage": "quest-forge.html",
       "relatedPageLabel": "Open quest forge"
     },
@@ -64,14 +113,19 @@
       "id": "gallery-direction",
       "date": "2026-03-24",
       "title": "Gallery should evolve into thematic drops",
-      "tags": ["content", "art"],
+      "tags": [
+        "content",
+        "art"
+      ],
       "summary": "Move from static image cards toward curation packs that feel like seasonal releases.",
       "body": [
         "Bundle each drop with a short note explaining why those visuals matter.",
         "Export-friendly layouts make social sharing easier.",
         "Keep originals available and avoid over-compressing hero images."
       ],
-      "relatedUpdates": ["gallery-layout"],
+      "relatedUpdates": [
+        "gallery-layout"
+      ],
       "relatedPage": "gallery.html",
       "relatedPageLabel": "Open gallery"
     },
@@ -79,14 +133,20 @@
       "id": "performance-guardrail",
       "date": "2026-03-23",
       "title": "Performance guardrail",
-      "tags": ["stability", "engineering"],
+      "tags": [
+        "stability",
+        "engineering"
+      ],
       "summary": "No new page should require a build step or framework to stay maintainable.",
       "body": [
         "Use semantic HTML + lightweight JS before introducing tooling.",
         "Data files can scale content while preserving static hosting simplicity.",
         "Measure weight occasionally; avoid accidental asset creep."
       ],
-      "relatedUpdates": ["field-notes-archive", "quest-forge"],
+      "relatedUpdates": [
+        "field-notes-archive",
+        "quest-forge"
+      ],
       "relatedPage": "index.html",
       "relatedPageLabel": "Open home"
     }

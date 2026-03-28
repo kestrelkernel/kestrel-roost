@@ -16,7 +16,8 @@ python3 -m http.server 8080
 
 - `index.html` — home page with quest generator + status widgets
 - `game.html` — playable Sky Sprint mini-game
-- `gallery.html` — image showcase wall
+- `gallery.html` — image showcase wall + featured art drops
+- `wallpapers.html` — downloadable SVG wallpaper packs in desktop + phone sizes
 - `changelog.html` — release history + filterable flight log
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
@@ -25,8 +26,10 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Wallpaper pack drop:** launched `wallpapers.html` with three downloadable SVG wallpaper packs, each shipping in desktop + phone formats
+- **Gallery upgrade:** repositioned the gallery around a featured art drop instead of static image-only cards
 - **Connected story mode:** releases, field notes, and destination pages now cross-link so visitors can follow a ship from launch → rationale → feature surface
-- **Shared content relationships:** expanded `assets/roost-updates.json` and `assets/roost-notes.json` with metadata for related notes, destination pages, and deep links
+- **Shared content relationships:** expanded `assets/roost-updates.json`, `assets/roost-notes.json`, and `assets/wallpapers.json` with metadata for related notes, destination pages, and downloadable assets
 - **Homepage spotlight redesign:** added a story spotlight plus richer latest ships/notes cards with direct jump links instead of plain text summaries
 - **Flight Deck + changelog upgrade:** both pages now render from shared release data and expose note/page links for each ship entry
 - **Field Notes deep links:** note cards now surface linked ships, related pages, and URL-hash navigation for direct sharing/bookmarking

@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Downloadable wallpaper packs from Kestrel's Roost." />
+  <title>Wallpaper Pack · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#a8b8f7;
+      --line:#2b3a7a;
+      --card:#0d1530cc;
+      --accent:#7aa2ff;
+      --ok:#8fffcd;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:transparent;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 12% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 110%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1120px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--card);
+      backdrop-filter:blur(4px);
+      box-shadow:0 12px 30px #00000033;
+      padding:20px;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.9rem, 4.5vw, 3rem); }
+    h2 { margin:0 0 12px; font-size:1rem; color:#c4d1ff; }
+    h3 { margin:0; font-size:1rem; color:#edf1ff; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+
+    .site-nav,
+    .hero-actions,
+    .filter-row,
+    .link-row,
+    .palette-row,
+    .hero-grid,
+    .pack-grid,
+    .tip-grid {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .site-nav { margin-top:10px; }
+    .hero-grid,
+    .tip-grid,
+    .pack-grid {
+      display:grid;
+      gap:12px;
+    }
+    .hero-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+    .tip-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+    .pack-grid { grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); }
+
+    .nav-link,
+    .filter-chip,
+    .btn,
+    .ghost-btn,
+    .mini-link,
+    .tag,
+    .size-badge {
+      border:1px solid #3a4f9d;
+      border-radius:999px;
+      color:#d7e0ff;
+      text-decoration:none;
+      font:inherit;
+      font-size:.82rem;
+      background:#0f1d4d;
+      padding:6px 11px;
+      cursor:pointer;
+    }
+    .nav-link:hover,
+    .nav-link:focus-visible,
+    .filter-chip:hover,
+    .filter-chip.active,
+    .btn:hover,
+    .btn:focus-visible,
+    .ghost-btn:hover,
+    .ghost-btn:focus-visible,
+    .mini-link:hover,
+    .mini-link:focus-visible {
+      border-color:#6f8dff;
+      background:#152a6f;
+      outline:none;
+    }
+    .btn {
+      border-radius:10px;
+      background:#112057;
+      padding:8px 12px;
+    }
+    .ghost-btn {
+      background:#0d1943;
+      border-style:dashed;
+    }
+    .mini-link,
+    .tag,
+    .size-badge {
+      padding:4px 9px;
+      font-size:.75rem;
+      background:#0d1840;
+    }
+    .tag,
+    .size-badge { cursor:default; }
+
+    .hero-box,
+    .tip-box,
+    .pack-card {
+      border:1px solid #30418a;
+      border-radius:12px;
+      background:#0b173f;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .hero-stat {
+      font-size:1.8rem;
+      color:#fff;
+    }
+    .search {
+      width:100%;
+      border-radius:10px;
+      border:1px solid #3a4f9d;
+      background:#0d1943;
+      color:#e6ecff;
+      font:inherit;
+      padding:10px 12px;
+    }
+    .search::placeholder { color:#94a7ef; }
+    .toolbar {
+      display:grid;
+      gap:10px;
+    }
+    .results-meta {
+      color:#9fb0f3;
+      font-size:.82rem;
+    }
+    .pack-preview {
+      display:grid;
+      grid-template-columns:1.1fr .62fr;
+      gap:10px;
+      align-items:start;
+    }
+    .pack-preview a {
+      display:block;
+      border-radius:12px;
+      overflow:hidden;
+      border:1px solid #3650a8;
+      background:#081127;
+    }
+    .pack-preview img {
+      display:block;
+      width:100%;
+      height:auto;
+      aspect-ratio:16 / 9;
+      object-fit:cover;
+    }
+    .pack-preview .phone img { aspect-ratio:9 / 19.5; }
+    .pack-preview .phone { align-self:stretch; }
+    .pack-preview .phone img { height:100%; }
+    .palette-row { align-items:center; }
+    .swatch {
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      border:1px solid #dce6ff33;
+      box-shadow:0 0 0 2px #09122c;
+    }
+    .empty {
+      border:1px dashed #415399;
+      border-radius:10px;
+      color:#9fb0f3;
+      padding:12px;
+      font-size:.86rem;
+      grid-column:1 / -1;
+    }
+    .status-note {
+      color:var(--ok);
+      font-size:.82rem;
+      min-height:1.2em;
+    }
+    @media (max-width: 760px) {
+      .pack-preview { grid-template-columns:1fr; }
+    }
+
+    footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:8px 0 20px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>wallpaper pack</h1>
+      <p>a proper art drop: downloadable roost wallpapers in desktop + phone sizes, generated as crisp SVGs so they stay lightweight and sharp.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="wallpapers.html">wallpapers</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="notes.html">field notes</a>
+      </nav>
+    </section>
+
+    <section class="card hero-grid" aria-label="Wallpaper pack summary">
+      <article class="hero-box">
+        <h3>packs online</h3>
+        <div class="hero-stat" id="packCount">--</div>
+        <p>Distinct moods, each with matching desktop and phone versions.</p>
+      </article>
+      <article class="hero-box">
+        <h3>formats</h3>
+        <div class="hero-stat">svg</div>
+        <p>Vector files stay crisp on weird screens and download almost instantly.</p>
+      </article>
+      <article class="hero-box">
+        <h3>random launch</h3>
+        <div class="hero-stat">yes</div>
+        <p>Use the randomizer if you want the roost to choose your next backdrop for you.</p>
+      </article>
+    </section>
+
+    <section class="card toolbar" aria-label="Filter wallpaper packs">
+      <input class="search" id="packSearch" type="search" placeholder="search by title, mood, or description…" autocomplete="off" />
+      <div class="filter-row" id="moodFilters" role="toolbar" aria-label="Filter packs by mood"></div>
+      <div class="hero-actions">
+        <button type="button" class="btn" id="randomPackBtn">pick random pack</button>
+        <a class="ghost-btn" href="gallery.html">back to gallery wall</a>
+      </div>
+      <p class="results-meta" id="resultsMeta">loading packs…</p>
+      <p class="status-note" id="statusNote" aria-live="polite"></p>
+    </section>
+
+    <section class="card">
+      <h2>download packs</h2>
+      <div class="pack-grid" id="packGrid" aria-live="polite">
+        <div class="empty">loading wallpaper packs…</div>
+      </div>
+    </section>
+
+    <section class="card tip-grid" aria-label="Wallpaper notes">
+      <article class="tip-box">
+        <h3>why svg?</h3>
+        <p>These packs are drawn with gradients and vector lines, so they stay tiny, editable, and sharp even on absurd monitors.</p>
+      </article>
+      <article class="tip-box">
+        <h3>pick by vibe</h3>
+        <p>Midnight Dive is the focused default, Sunrise Thermals adds lift, and Signal Bloom is for when subtlety has already left the chat.</p>
+      </article>
+      <article class="tip-box">
+        <h3>remix-friendly</h3>
+        <p>The source is readable. If you want different colors or text overlays later, this pack is set up to evolve without image-editing drama.</p>
+      </article>
+    </section>
+
+    <footer>art drop deployed. grab a backdrop and go break something productively.</footer>
+  </main>
+
+  <script>
+    const packGrid = document.getElementById('packGrid');
+    const packSearch = document.getElementById('packSearch');
+    const moodFilters = document.getElementById('moodFilters');
+    const randomPackBtn = document.getElementById('randomPackBtn');
+    const resultsMeta = document.getElementById('resultsMeta');
+    const statusNote = document.getElementById('statusNote');
+    const packCount = document.getElementById('packCount');
+
+    let allPacks = [];
+    let activeMood = 'all';
+
+    const normalize = (value) => String(value || '').toLowerCase();
+
+    const setStatus = (message) => {
+      statusNote.textContent = message;
+    };
+
+    const renderFilters = () => {
+      const moods = ['all', ...new Set(allPacks.map((pack) => pack.mood).filter(Boolean))];
+      moodFilters.innerHTML = '';
+
+      for (const mood of moods) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'filter-chip';
+        button.textContent = mood;
+        button.classList.toggle('active', mood === activeMood);
+        button.addEventListener('click', () => {
+          activeMood = mood;
+          renderFilters();
+          renderPacks();
+        });
+        moodFilters.appendChild(button);
+      }
+    };
+
+    const buildDownloadLink = (label, target) => {
+      const link = document.createElement('a');
+      link.className = 'btn';
+      link.href = target.path;
+      link.download = '';
+      link.textContent = `Download ${label}`;
+      return link;
+    };
+
+    const renderPalette = (colors) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'palette-row';
+      for (const color of colors || []) {
+        const swatch = document.createElement('span');
+        swatch.className = 'swatch';
+        swatch.title = color;
+        swatch.style.background = color;
+        wrap.appendChild(swatch);
+      }
+      return wrap;
+    };
+
+    const filteredPacks = () => {
+      const query = normalize(packSearch.value.trim());
+      return [...allPacks]
+        .filter((pack) => activeMood === 'all' || pack.mood === activeMood)
+        .filter((pack) => {
+          if (!query) return true;
+          const haystack = normalize([
+            pack.title,
+            pack.tagline,
+            pack.mood,
+            pack.blurb,
+            ...(pack.palette || [])
+          ].join(' '));
+          return haystack.includes(query);
+        });
+    };
+
+    const scrollToPack = (id) => {
+      const target = document.getElementById(id);
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.animate([
+        { boxShadow: '0 0 0 0 rgba(122, 162, 255, 0)' },
+        { boxShadow: '0 0 0 5px rgba(122, 162, 255, 0.3)' },
+        { boxShadow: '0 0 0 0 rgba(122, 162, 255, 0)' }
+      ], { duration: 1100, easing: 'ease-out' });
+    };
+
+    const renderPacks = () => {
+      const packs = filteredPacks();
+      packGrid.innerHTML = '';
+      resultsMeta.textContent = `${packs.length} ${packs.length === 1 ? 'pack' : 'packs'} shown`;
+
+      if (packs.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No wallpaper packs match that filter yet. Try a different mood or a broader search.';
+        packGrid.appendChild(empty);
+        return;
+      }
+
+      for (const pack of packs) {
+        const card = document.createElement('article');
+        card.className = 'pack-card';
+        card.id = pack.id;
+
+        const title = document.createElement('h3');
+        title.textContent = pack.title || 'Untitled pack';
+
+        const meta = document.createElement('div');
+        meta.className = 'link-row';
+        meta.innerHTML = `<span class="tag">${pack.mood || 'moodless'}</span><span class="size-badge">desktop + phone</span>`;
+
+        const tagline = document.createElement('p');
+        tagline.textContent = pack.tagline || '';
+
+        const preview = document.createElement('div');
+        preview.className = 'pack-preview';
+        preview.innerHTML = `
+          <a href="${pack.desktop.path}" download aria-label="Download ${pack.title} desktop wallpaper">
+            <img src="${pack.desktop.path}" alt="${pack.title} desktop wallpaper preview" />
+          </a>
+          <a class="phone" href="${pack.phone.path}" download aria-label="Download ${pack.title} phone wallpaper">
+            <img src="${pack.phone.path}" alt="${pack.title} phone wallpaper preview" />
+          </a>
+        `;
+
+        const blurb = document.createElement('p');
+        blurb.textContent = pack.blurb || '';
+
+        const palette = renderPalette(pack.palette);
+
+        const actions = document.createElement('div');
+        actions.className = 'link-row';
+        actions.append(
+          buildDownloadLink('desktop', pack.desktop),
+          buildDownloadLink('phone', pack.phone)
+        );
+
+        const specs = document.createElement('div');
+        specs.className = 'link-row';
+        specs.innerHTML = `
+          <span class="size-badge">${pack.desktop.label}</span>
+          <span class="size-badge">${pack.phone.label}</span>
+        `;
+
+        card.append(title, meta, tagline, preview, blurb, palette, actions, specs);
+        packGrid.appendChild(card);
+      }
+    };
+
+    packSearch.addEventListener('input', renderPacks);
+
+    randomPackBtn.addEventListener('click', () => {
+      const packs = filteredPacks();
+      if (packs.length === 0) {
+        setStatus('No visible packs to pick from right now.');
+        return;
+      }
+      const pick = packs[Math.floor(Math.random() * packs.length)];
+      scrollToPack(pick.id);
+      setStatus(`Random pick: ${pick.title}.`);
+    });
+
+    const bootstrap = async () => {
+      try {
+        const response = await fetch('assets/wallpapers.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Failed to load wallpaper packs');
+        const data = await response.json();
+        allPacks = Array.isArray(data.packs) ? data.packs : [];
+        packCount.textContent = String(allPacks.length);
+        renderFilters();
+        renderPacks();
+
+        const targetId = window.location.hash.replace(/^#/, '');
+        if (targetId) {
+          setTimeout(() => scrollToPack(targetId), 120);
+        }
+      } catch {
+        packGrid.innerHTML = '<div class="empty">Unable to load wallpaper packs right now.</div>';
+        resultsMeta.textContent = 'packs unavailable';
+        packCount.textContent = '0';
+      }
+    };
+
+    bootstrap();
+  </script>
+</body>
+</html>

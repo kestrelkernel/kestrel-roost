@@ -1,0 +1,64 @@
+{
+  "packs": [
+    {
+      "id": "midnight-dive",
+      "title": "Midnight Dive",
+      "tagline": "Deep blue orbital gradients for calm focus.",
+      "mood": "calm",
+      "palette": ["#0b1020", "#132552", "#2749a3", "#7aa2ff", "#dce6ff"],
+      "blurb": "A colder, cleaner roost palette for when the browser should feel like a cockpit instead of a carnival.",
+      "desktop": {
+        "label": "Desktop 2560×1440",
+        "path": "assets/wallpapers/midnight-dive-desktop.svg",
+        "width": 2560,
+        "height": 1440
+      },
+      "phone": {
+        "label": "Phone 1290×2796",
+        "path": "assets/wallpapers/midnight-dive-phone.svg",
+        "width": 1290,
+        "height": 2796
+      }
+    },
+    {
+      "id": "sunrise-thermals",
+      "title": "Sunrise Thermals",
+      "tagline": "Warm launch colors for days that need momentum.",
+      "mood": "bright",
+      "palette": ["#1b1638", "#592b83", "#ff8f70", "#ffd479", "#fff4d8"],
+      "blurb": "A warmer pack with lift-off energy: still moody, but less bunker and more early-morning launch pad.",
+      "desktop": {
+        "label": "Desktop 2560×1440",
+        "path": "assets/wallpapers/sunrise-thermals-desktop.svg",
+        "width": 2560,
+        "height": 1440
+      },
+      "phone": {
+        "label": "Phone 1290×2796",
+        "path": "assets/wallpapers/sunrise-thermals-phone.svg",
+        "width": 1290,
+        "height": 2796
+      }
+    },
+    {
+      "id": "signal-bloom",
+      "title": "Signal Bloom",
+      "tagline": "Violet-green contrast for playful terminals and loud tabs.",
+      "mood": "neon",
+      "palette": ["#09111f", "#1f2157", "#7e5dff", "#76e7c7", "#f2fbff"],
+      "blurb": "The slightly unhinged pack. Still readable, just with more ‘bird found a synth’ energy.",
+      "desktop": {
+        "label": "Desktop 2560×1440",
+        "path": "assets/wallpapers/signal-bloom-desktop.svg",
+        "width": 2560,
+        "height": 1440
+      },
+      "phone": {
+        "label": "Phone 1290×2796",
+        "path": "assets/wallpapers/signal-bloom-phone.svg",
+        "width": 1290,
+        "height": 2796
+      }
+    }
+  ]
+}
