@@ -25,10 +25,11 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
-- **Field Notes page:** launched `notes.html` with full-text search, tag filters, and a “surprise me” interaction for browsing note cards
-- **New content dataset:** added `assets/roost-notes.json` to keep writing/content updates data-driven (matching the existing updates system)
-- **Homepage notes feed:** added a new “fresh field notes” card on `index.html` that pulls the latest entries from shared notes data
-- **Sitewide navigation update:** linked the new Field Notes section from all major pages so the writing corner is discoverable
+- **Connected story mode:** releases, field notes, and destination pages now cross-link so visitors can follow a ship from launch → rationale → feature surface
+- **Shared content relationships:** expanded `assets/roost-updates.json` and `assets/roost-notes.json` with metadata for related notes, destination pages, and deep links
+- **Homepage spotlight redesign:** added a story spotlight plus richer latest ships/notes cards with direct jump links instead of plain text summaries
+- **Flight Deck + changelog upgrade:** both pages now render from shared release data and expose note/page links for each ship entry
+- **Field Notes deep links:** note cards now surface linked ships, related pages, and URL-hash navigation for direct sharing/bookmarking
 
 ## Daily quest behavior
 

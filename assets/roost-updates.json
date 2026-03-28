@@ -1,12 +1,12 @@
 {
   "roadmap": {
     "now": [
-      "Expand interactive sections that feel playful but useful",
-      "Grow the new Field Notes corner with richer searchable entries"
+      "Grow the new connected-storytelling system so ships, notes, and pages link cleanly",
+      "Keep adding playful sections that feel useful in under 20 seconds"
     ],
     "next": [
       "Publish a downloadable wallpaper pack from gallery originals",
-      "Add deep links from updates to related notes and pages"
+      "Add mini case-study layouts for larger releases"
     ],
     "later": [
       "Ship a second mini-game with shared score identity",
@@ -15,40 +15,81 @@
   },
   "updates": [
     {
+      "slug": "story-mode-links",
+      "date": "2026-03-28",
+      "title": "Connected the roost with story-mode ship links",
+      "type": "feature",
+      "impact": "Flight Deck, changelog, homepage, and Field Notes now cross-link updates, destination pages, and related notes so visitors can follow a feature from launch to context.",
+      "details": "Added shared relationship metadata to the content files, redesigned ship listings into richer cards, and made note/update navigation actually clickable instead of isolated text blocks.",
+      "page": "flight-deck.html",
+      "pageLabel": "Open flight deck",
+      "relatedNotes": ["roost-linking-system", "ship-log-strategy"]
+    },
+    {
+      "slug": "field-notes-archive",
       "date": "2026-03-27",
       "title": "Shipped Field Notes with searchable writing archive",
       "type": "feature",
-      "impact": "Visitors can now browse product thinking and engineering notes by tag/search, plus see fresh note highlights directly on the homepage."
+      "impact": "Visitors can now browse product thinking and engineering notes by tag/search, plus see fresh note highlights directly on the homepage.",
+      "details": "Launched notes.html, added a shared notes dataset, and surfaced the newest entries on the homepage for quicker discovery.",
+      "page": "notes.html",
+      "pageLabel": "Read field notes",
+      "relatedNotes": ["roost-vision-01", "ship-log-strategy", "performance-guardrail"]
     },
     {
+      "slug": "flight-deck-hub",
       "date": "2026-03-26",
       "title": "Launched the Flight Deck progress hub",
       "type": "feature",
-      "impact": "Created a dedicated roadmap + ship log page so visitors can track active work, upcoming plans, and recent deliveries in one place."
+      "impact": "Created a dedicated roadmap + ship log page so visitors can track active work, upcoming plans, and recent deliveries in one place.",
+      "details": "Built a roadmap board with lanes for now/next/later and a filterable log for visible product progress.",
+      "page": "flight-deck.html",
+      "pageLabel": "Open flight deck",
+      "relatedNotes": ["ship-log-strategy", "roost-vision-01"]
     },
     {
+      "slug": "quest-forge",
       "date": "2026-03-25",
       "title": "Built Quest Forge with import/export",
       "type": "feature",
-      "impact": "Users can now customize quest pools, toggle defaults, and carry quest setups between browsers with JSON import/export."
+      "impact": "Users can now customize quest pools, toggle defaults, and carry quest setups between browsers with JSON import/export.",
+      "details": "Added a dedicated forge page with quest controls, custom entries, and browser-friendly portability.",
+      "page": "quest-forge.html",
+      "pageLabel": "Open quest forge",
+      "relatedNotes": ["quest-system-note", "performance-guardrail"]
     },
     {
+      "slug": "homepage-split",
       "date": "2026-03-24",
       "title": "Split the homepage into focused sections",
       "type": "design",
-      "impact": "Improved scanability by reducing scroll fatigue and grouping key actions into clearer cards."
+      "impact": "Improved scanability by reducing scroll fatigue and grouping key actions into clearer cards.",
+      "details": "Moved the site toward dedicated surfaces for tools, content, and status so the homepage reads like a launch pad.",
+      "page": "index.html",
+      "pageLabel": "Open home",
+      "relatedNotes": ["roost-vision-01"]
     },
     {
+      "slug": "changelog-filters",
       "date": "2026-03-23",
       "title": "Added changelog filtering controls",
       "type": "interaction",
-      "impact": "Readers can now quickly filter release entries by category, making update history easier to browse."
+      "impact": "Readers can now quickly filter release entries by category, making update history easier to browse.",
+      "details": "Introduced filter chips and keyword search for the site’s flight log explorer.",
+      "page": "changelog.html",
+      "pageLabel": "Open changelog",
+      "relatedNotes": ["ship-log-strategy"]
     },
     {
+      "slug": "gallery-layout",
       "date": "2026-03-22",
       "title": "Expanded gallery layout",
       "type": "content",
-      "impact": "Added new visual cards and denser layout spacing so the gallery feels like an intentional wing, not a placeholder."
+      "impact": "Added new visual cards and denser layout spacing so the gallery feels like an intentional wing, not a placeholder.",
+      "details": "Improved gallery presentation and pushed the site closer to curated content drops.",
+      "page": "gallery.html",
+      "pageLabel": "Open gallery",
+      "relatedNotes": ["gallery-direction"]
     }
   ]
 }

@@ -1,6 +1,21 @@
 {
   "notes": [
     {
+      "id": "roost-linking-system",
+      "date": "2026-03-28",
+      "title": "Link the ships to the story, not just the page",
+      "tags": ["product", "design", "workflow"],
+      "summary": "Release logs feel more alive when each ship can point to the page it changed and the note that explains why it exists.",
+      "body": [
+        "A changelog entry should be a doorway, not a dead-end paragraph.",
+        "People browse in different moods: some want the feature, some want the rationale.",
+        "Shared data beats duplicated copy once the site has more than a handful of ships."
+      ],
+      "relatedUpdates": ["story-mode-links", "flight-deck-hub"],
+      "relatedPage": "flight-deck.html",
+      "relatedPageLabel": "Open flight deck"
+    },
+    {
       "id": "roost-vision-01",
       "date": "2026-03-27",
       "title": "What this site should feel like",
@@ -10,7 +25,10 @@
         "Prefer pages that do one useful thing over giant all-in-one dashboards.",
         "Keep copy short, weird in a good way, and practical.",
         "If a feature cannot show user value in under 20 seconds, simplify it."
-      ]
+      ],
+      "relatedUpdates": ["field-notes-archive", "flight-deck-hub", "homepage-split"],
+      "relatedPage": "index.html",
+      "relatedPageLabel": "Open home"
     },
     {
       "id": "ship-log-strategy",
@@ -22,7 +40,10 @@
         "Ship one user-facing move first, then spend leftover time hardening internals.",
         "Update Flight Deck and changelog in the same pass to keep trust high.",
         "Treat streak consistency as a feature, not a vanity metric."
-      ]
+      ],
+      "relatedUpdates": ["story-mode-links", "field-notes-archive", "flight-deck-hub", "changelog-filters"],
+      "relatedPage": "flight-deck.html",
+      "relatedPageLabel": "Open flight deck"
     },
     {
       "id": "quest-system-note",
@@ -34,7 +55,10 @@
         "Favour prompts that can be completed in under 30 minutes.",
         "Keep anti-repeat logic transparent so users trust randomness.",
         "Manual reset controls reduce user frustration and make experimentation safe."
-      ]
+      ],
+      "relatedUpdates": ["quest-forge"],
+      "relatedPage": "quest-forge.html",
+      "relatedPageLabel": "Open quest forge"
     },
     {
       "id": "gallery-direction",
@@ -46,7 +70,10 @@
         "Bundle each drop with a short note explaining why those visuals matter.",
         "Export-friendly layouts make social sharing easier.",
         "Keep originals available and avoid over-compressing hero images."
-      ]
+      ],
+      "relatedUpdates": ["gallery-layout"],
+      "relatedPage": "gallery.html",
+      "relatedPageLabel": "Open gallery"
     },
     {
       "id": "performance-guardrail",
@@ -58,7 +85,10 @@
         "Use semantic HTML + lightweight JS before introducing tooling.",
         "Data files can scale content while preserving static hosting simplicity.",
         "Measure weight occasionally; avoid accidental asset creep."
-      ]
+      ],
+      "relatedUpdates": ["field-notes-archive", "quest-forge"],
+      "relatedPage": "index.html",
+      "relatedPageLabel": "Open home"
     }
   ]
 }

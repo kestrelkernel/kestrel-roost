@@ -28,7 +28,7 @@
         linear-gradient(180deg, var(--bg2), var(--bg));
     }
     .wrap {
-      width:min(980px, 92vw);
+      width:min(1040px, 92vw);
       margin:34px auto;
       display:grid;
       gap:14px;
@@ -45,28 +45,72 @@
     h2 { margin:0 0 12px; font-size:1rem; color:#c4d1ff; }
     p { margin:0; color:var(--muted); line-height:1.5; }
 
-    .site-nav {
+    .site-nav,
+    .chip-row,
+    .link-row,
+    .hero-grid,
+    .notes-grid {
       display:flex;
       gap:8px;
       flex-wrap:wrap;
-      margin-top:10px;
     }
-    .nav-link {
+    .site-nav { margin-top:10px; }
+    .hero-grid,
+    .notes-grid {
+      display:grid;
+      gap:12px;
+    }
+    .hero-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+    .notes-grid { grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); }
+
+    .nav-link,
+    .chip,
+    .btn,
+    .ghost-btn,
+    .mini-link,
+    .tag {
       border:1px solid #3a4f9d;
       border-radius:999px;
-      padding:6px 11px;
       color:#d7e0ff;
       text-decoration:none;
-      font-size:.84rem;
+      font:inherit;
+      font-size:.82rem;
       background:#0f1d4d;
+      padding:6px 11px;
+      cursor:pointer;
     }
     .nav-link:hover,
-    .nav-link:focus-visible { border-color:#6f8dff; background:#14286a; }
-
-    .toolbar {
-      display:grid;
-      gap:10px;
+    .nav-link:focus-visible,
+    .chip:hover,
+    .chip.active,
+    .btn:hover,
+    .btn:focus-visible,
+    .ghost-btn:hover,
+    .ghost-btn:focus-visible,
+    .mini-link:hover,
+    .mini-link:focus-visible {
+      border-color:#6f8dff;
+      background:#152a6f;
+      outline:none;
     }
+    .btn {
+      border-radius:10px;
+      background:#112057;
+      padding:8px 12px;
+      width:max-content;
+    }
+    .ghost-btn {
+      background:#0d1943;
+      border-style:dashed;
+    }
+    .mini-link,
+    .tag {
+      padding:4px 9px;
+      font-size:.75rem;
+      background:#0d1840;
+    }
+    .tag { cursor:default; }
+
     .search {
       width:100%;
       padding:10px 12px;
@@ -77,80 +121,41 @@
       font:inherit;
     }
     .search::placeholder { color:#94a7ef; }
-
-    .chip-row {
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
+    .toolbar {
+      display:grid;
+      gap:10px;
     }
-    .chip {
-      border:1px solid #3c4f97;
-      border-radius:999px;
-      background:var(--chip);
-      color:#d9e2ff;
-      font:inherit;
-      font-size:.8rem;
-      padding:6px 10px;
-      cursor:pointer;
-    }
-    .chip.active,
-    .chip:hover { border-color:#6f8dff; background:#152a6f; }
-
-    .btn {
-      border:1px solid #4660be;
-      border-radius:10px;
-      padding:8px 12px;
-      background:#112057;
-      color:#dbe4ff;
-      font:inherit;
-      cursor:pointer;
-      text-decoration:none;
-      width:max-content;
-    }
-    .btn:hover,
-    .btn:focus-visible { border-color:#6f8dff; background:#132668; }
-
     .meta {
       font-size:.82rem;
       color:#93a6ef;
       margin-bottom:12px;
     }
 
-    .notes-grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-      gap:12px;
-    }
+    .hero-box,
     .note {
       border:1px solid #30418a;
       border-radius:12px;
       background:#0b173f;
       padding:14px;
       display:grid;
-      gap:9px;
+      gap:10px;
     }
+    .hero-box h3,
     .note h3 {
       margin:0;
-      font-size:.95rem;
       color:#e8edff;
+    }
+    .hero-stat {
+      font-size:1.7rem;
+      color:#fff;
+    }
+    .note.highlighted {
+      outline:2px solid #7aa2ff;
+      box-shadow:0 0 0 4px #7aa2ff22;
     }
     .note-date {
       font-size:.76rem;
       color:#9fb0f3;
-    }
-    .tag-list {
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-    }
-    .tag {
-      border:1px solid #4357a2;
-      border-radius:999px;
-      padding:2px 8px;
-      font-size:.72rem;
-      color:#cdddff;
-      background:#121f50;
     }
     .summary {
       color:#b8c6ff;
@@ -163,7 +168,12 @@
       font-size:.82rem;
     }
     .detail-list li { margin:5px 0; }
-
+    .section-label {
+      font-size:.76rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#91a6f4;
+    }
     .empty {
       border:1px dashed #415399;
       border-radius:10px;
@@ -180,7 +190,7 @@
   <main class="wrap">
     <section class="card">
       <h1>field notes</h1>
-      <p>searchable notes from the roost: product ideas, engineering guardrails, and tiny lessons worth keeping.</p>
+      <p>searchable notes from the roost: product ideas, engineering guardrails, and now direct links back to the ships they shaped.</p>
       <nav class="site-nav" aria-label="Site sections">
         <a class="nav-link" href="index.html">home</a>
         <a class="nav-link" href="game.html">game</a>
@@ -192,10 +202,31 @@
       </nav>
     </section>
 
+    <section class="card hero-grid" aria-label="Field notes summary">
+      <article class="hero-box">
+        <h3>notes online</h3>
+        <div class="hero-stat" id="noteCount">--</div>
+        <p>Total notes in the archive.</p>
+      </article>
+      <article class="hero-box">
+        <h3>linked ships</h3>
+        <div class="hero-stat" id="shipLinkCount">--</div>
+        <p>Release entries that now point back to rationale and context.</p>
+      </article>
+      <article class="hero-box">
+        <h3>deep links</h3>
+        <div class="hero-stat">yes</div>
+        <p>Each note can be linked directly with a URL hash for sharing or bookmarking.</p>
+      </article>
+    </section>
+
     <section class="card toolbar" aria-label="Filter and search notes">
-      <input id="noteSearch" class="search" type="search" placeholder="search notes by title, summary, or detail..." autocomplete="off" />
+      <input id="noteSearch" class="search" type="search" placeholder="search notes by title, summary, linked ship, or detail..." autocomplete="off" />
       <div class="chip-row" id="tagFilters" role="toolbar" aria-label="Filter notes by tag"></div>
-      <button type="button" class="btn" id="surpriseBtn">surprise me</button>
+      <div class="link-row">
+        <button type="button" class="btn" id="surpriseBtn">surprise me</button>
+        <button type="button" class="ghost-btn" id="latestBtn">jump to latest</button>
+      </div>
       <p class="meta" id="resultsMeta">loading notes...</p>
     </section>
 
@@ -215,8 +246,12 @@
     const tagFilters = document.getElementById('tagFilters');
     const resultsMeta = document.getElementById('resultsMeta');
     const surpriseBtn = document.getElementById('surpriseBtn');
+    const latestBtn = document.getElementById('latestBtn');
+    const noteCount = document.getElementById('noteCount');
+    const shipLinkCount = document.getElementById('shipLinkCount');
 
     let allNotes = [];
+    let updatesBySlug = new Map();
     let activeTag = 'all';
 
     const formatDate = (isoDate) => {
@@ -232,13 +267,39 @@
 
     const normalize = (value) => String(value || '').toLowerCase();
 
+    const getRelatedUpdates = (note) => (note.relatedUpdates || [])
+      .map((slug) => updatesBySlug.get(slug))
+      .filter(Boolean);
+
+    const updateHeroStats = () => {
+      noteCount.textContent = String(allNotes.length);
+      shipLinkCount.textContent = String(new Set(allNotes.flatMap((note) => note.relatedUpdates || [])).size);
+    };
+
+    const focusNoteFromHash = () => {
+      const hash = window.location.hash.replace(/^#/, '');
+      if (!hash) return;
+      const target = document.getElementById(hash);
+      if (!target) return;
+      target.classList.add('highlighted');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => target.classList.remove('highlighted'), 1800);
+    };
+
     const renderNotes = () => {
       const query = normalize(noteSearch.value.trim());
-      const filtered = allNotes
+      const filtered = [...allNotes]
         .filter((note) => activeTag === 'all' || (Array.isArray(note.tags) && note.tags.includes(activeTag)))
         .filter((note) => {
           if (!query) return true;
-          const haystack = normalize(`${note.title} ${note.summary} ${(note.body || []).join(' ')} ${(note.tags || []).join(' ')}`);
+          const linkedUpdates = getRelatedUpdates(note);
+          const haystack = normalize([
+            note.title,
+            note.summary,
+            ...(note.body || []),
+            ...(note.tags || []),
+            ...linkedUpdates.map((update) => `${update.title} ${update.impact} ${update.type}`)
+          ].join(' '));
           return haystack.includes(query);
         })
         .sort((a, b) => String(b.date).localeCompare(String(a.date)));
@@ -249,7 +310,7 @@
       if (filtered.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'No notes match that filter yet. Try another tag or wider search.';
+        empty.textContent = 'No notes match that filter yet. Try another tag or broader search.';
         notesGrid.appendChild(empty);
         return;
       }
@@ -267,7 +328,7 @@
         date.textContent = formatDate(note.date);
 
         const tags = document.createElement('div');
-        tags.className = 'tag-list';
+        tags.className = 'chip-row';
         for (const tag of (note.tags || [])) {
           const badge = document.createElement('span');
           badge.className = 'tag';
@@ -287,13 +348,50 @@
           details.appendChild(item);
         }
 
-        card.appendChild(title);
-        card.appendChild(date);
-        card.appendChild(tags);
-        card.appendChild(summary);
-        card.appendChild(details);
+        const relatedUpdates = getRelatedUpdates(note);
+        const shipLabel = document.createElement('div');
+        shipLabel.className = 'section-label';
+        shipLabel.textContent = 'linked ships';
+
+        const shipLinks = document.createElement('div');
+        shipLinks.className = 'link-row';
+        if (relatedUpdates.length === 0) {
+          const emptyTag = document.createElement('span');
+          emptyTag.className = 'tag';
+          emptyTag.textContent = 'No linked ships yet';
+          shipLinks.appendChild(emptyTag);
+        } else {
+          for (const update of relatedUpdates) {
+            const link = document.createElement('a');
+            link.className = 'mini-link';
+            link.href = `changelog.html#${update.slug}`;
+            link.textContent = update.title;
+            shipLinks.appendChild(link);
+          }
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'link-row';
+
+        const deepLink = document.createElement('a');
+        deepLink.className = 'btn';
+        deepLink.href = `#${note.id}`;
+        deepLink.textContent = 'Open deep link';
+        actions.appendChild(deepLink);
+
+        if (note.relatedPage) {
+          const pageLink = document.createElement('a');
+          pageLink.className = 'ghost-btn';
+          pageLink.href = note.relatedPage;
+          pageLink.textContent = note.relatedPageLabel || 'Open related page';
+          actions.appendChild(pageLink);
+        }
+
+        card.append(title, date, tags, summary, details, shipLabel, shipLinks, actions);
         notesGrid.appendChild(card);
       }
+
+      focusNoteFromHash();
     };
 
     const renderTagFilters = () => {
@@ -309,9 +407,7 @@
 
         button.addEventListener('click', () => {
           activeTag = tag;
-          for (const chip of tagFilters.querySelectorAll('.chip')) {
-            chip.classList.toggle('active', chip === button);
-          }
+          renderTagFilters();
           renderNotes();
         });
 
@@ -319,24 +415,41 @@
       }
     };
 
+    const pickVisibleNote = () => Array.from(notesGrid.querySelectorAll('.note'));
+
     const surpriseMe = () => {
-      const cards = Array.from(notesGrid.querySelectorAll('.note'));
+      const cards = pickVisibleNote();
       if (cards.length === 0) return;
       const pick = cards[Math.floor(Math.random() * cards.length)];
-      pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      pick.style.outline = '2px solid #7aa2ff';
-      setTimeout(() => { pick.style.outline = ''; }, 900);
+      window.location.hash = pick.id;
+      focusNoteFromHash();
+    };
+
+    const jumpToLatest = () => {
+      const latest = [...allNotes].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+      if (!latest) return;
+      window.location.hash = latest.id;
+      focusNoteFromHash();
     };
 
     surpriseBtn.addEventListener('click', surpriseMe);
+    latestBtn.addEventListener('click', jumpToLatest);
     noteSearch.addEventListener('input', renderNotes);
+    window.addEventListener('hashchange', focusNoteFromHash);
 
     const bootstrap = async () => {
       try {
-        const response = await fetch('assets/roost-notes.json', { cache: 'no-store' });
-        if (!response.ok) throw new Error('Failed to load notes data');
-        const data = await response.json();
-        allNotes = Array.isArray(data.notes) ? data.notes : [];
+        const [notesResponse, updatesResponse] = await Promise.all([
+          fetch('assets/roost-notes.json', { cache: 'no-store' }),
+          fetch('assets/roost-updates.json', { cache: 'no-store' })
+        ]);
+        if (!notesResponse.ok || !updatesResponse.ok) throw new Error('Failed to load connected note data');
+        const notesData = await notesResponse.json();
+        const updatesData = await updatesResponse.json();
+        allNotes = Array.isArray(notesData.notes) ? notesData.notes : [];
+        const updates = Array.isArray(updatesData.updates) ? updatesData.updates : [];
+        updatesBySlug = new Map(updates.map((update) => [update.slug, update]));
+        updateHeroStats();
         renderTagFilters();
         renderNotes();
       } catch {

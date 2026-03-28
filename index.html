@@ -42,7 +42,7 @@
         linear-gradient(180deg, var(--bg2), var(--bg));
     }
     .wrap {
-      width:min(920px, 92vw);
+      width:min(980px, 92vw);
       margin:34px auto;
       display:grid;
       gap:14px;
@@ -61,8 +61,25 @@
     .blink { color:var(--accent); animation:blink 1s step-end infinite; }
     @keyframes blink { 50% { opacity:0; } }
 
-    .links { display:flex; gap:10px; flex-wrap:wrap; }
-    .btn {
+    .links,
+    .site-nav,
+    .link-row,
+    .tag-row,
+    .feed-grid {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .site-nav { margin-top:10px; }
+    .feed-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap:12px;
+    }
+    .btn,
+    .nav-link,
+    .mini-link,
+    .tag {
       text-decoration:none;
       color:#dbe4ff;
       border:1px solid #4660be;
@@ -73,28 +90,36 @@
       cursor:pointer;
       font:inherit;
     }
-    .btn:hover { transform: translateY(-1px); border-color:#6f8dff; background:#132668; }
-    .btn:focus-visible {
+    .btn:hover,
+    .nav-link:hover,
+    .mini-link:hover,
+    .btn:focus-visible,
+    .nav-link:focus-visible,
+    .mini-link:focus-visible {
+      transform: translateY(-1px);
+      border-color:#6f8dff;
+      background:#132668;
+      outline:none;
+    }
+    .btn:focus-visible,
+    .nav-link:focus-visible,
+    .mini-link:focus-visible {
       outline:2px solid #9ab4ff;
       outline-offset:2px;
     }
-
-    .site-nav {
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .nav-link {
-      border:1px solid #3a4f9d;
+    .nav-link,
+    .mini-link,
+    .tag {
       border-radius:999px;
       padding:6px 11px;
-      color:#d7e0ff;
-      text-decoration:none;
-      font-size:.84rem;
+      font-size:.82rem;
       background:#0f1d4d;
     }
-    .nav-link:hover { border-color:#6f8dff; background:#14286a; }
+    .tag {
+      cursor:default;
+      border-style:dashed;
+      color:#c8d5ff;
+    }
 
     .grid {
       display:grid;
@@ -150,11 +175,45 @@
       background:#0f1c49;
     }
 
+    .spotlight {
+      border:1px solid #3550a8;
+      background:linear-gradient(135deg, #0f1d4c, #142b6b);
+      display:grid;
+      gap:10px;
+    }
+    .feed-card {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .feed-card h3 {
+      margin:0;
+      font-size:.95rem;
+      color:#e8edff;
+    }
+    .feed-meta {
+      font-size:.76rem;
+      color:#9fb0ff;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .empty-card {
+      border:1px dashed #415399;
+      border-radius:12px;
+      padding:14px;
+      color:#9fb0ff;
+    }
+
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
     @media (prefers-reduced-motion: reduce) {
       .blink { animation:none; }
-      .btn { transition:none; }
-      .btn:hover { transform:none; }
+      .btn, .nav-link, .mini-link { transition:none; }
+      .btn:hover, .nav-link:hover, .mini-link:hover { transform:none; }
     }
   </style>
 </head>
@@ -178,9 +237,9 @@
       <article class="card">
         <h2>now building</h2>
         <ul>
+          <li>connected release stories instead of dead-end logs</li>
           <li>small tools that do one thing well</li>
-          <li>cleaner docs so future-me suffers less</li>
-          <li>new pages so the homepage stops being scroll simulator</li>
+          <li>new pages so the homepage stays a launch pad, not a scroll pit</li>
         </ul>
       </article>
 
@@ -210,6 +269,11 @@
       </div>
     </section>
 
+    <section class="card spotlight" id="storySpotlight" aria-live="polite">
+      <h2>story spotlight</h2>
+      <p>loading latest ship story…</p>
+    </section>
+
     <section class="card">
       <h2>daily quest generator</h2>
       <div class="terminal">
@@ -231,18 +295,18 @@
 
     <section class="card">
       <h2>latest ships</h2>
-      <p class="tiny" style="margin-bottom:10px;">live from flight deck. newest product moves first.</p>
-      <ul id="latestShips">
-        <li>loading ship log…</li>
-      </ul>
+      <p class="tiny" style="margin-bottom:10px;">live from flight deck. each card now points somewhere useful.</p>
+      <div class="feed-grid" id="latestShips" aria-live="polite">
+        <div class="empty-card">loading ship log…</div>
+      </div>
     </section>
 
     <section class="card">
       <h2>fresh field notes</h2>
-      <p class="tiny" style="margin-bottom:10px;">newest notes from the writing corner. search the full archive on the field notes page.</p>
-      <ul id="latestNotes">
-        <li>loading notes…</li>
-      </ul>
+      <p class="tiny" style="margin-bottom:10px;">newest notes from the writing corner. jump straight into the archive or the page each note shaped.</p>
+      <div class="feed-grid" id="latestNotes" aria-live="polite">
+        <div class="empty-card">loading notes…</div>
+      </div>
     </section>
 
     <footer>made with plain html/css/js and mild chaos. <span id="buildStamp"></span></footer>
@@ -262,6 +326,7 @@
     const accents = ['#7aa2ff', '#b18cff', '#76e7c7', '#ffd479', '#ff9ad5'];
 
     const questPoolMeta = document.getElementById('questPoolMeta');
+    const storySpotlight = document.getElementById('storySpotlight');
 
     const normalizeQuestText = (value) => value.replace(/\s+/g, ' ').trim();
 
@@ -408,67 +473,168 @@
       renderQuestHistory();
     };
 
-    const renderLatestShips = async () => {
+    const normalize = (value) => String(value || '').toLowerCase();
+
+    const renderStorySpotlight = (updates, notesById) => {
+      const latest = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+      if (!latest) {
+        storySpotlight.innerHTML = '<h2>story spotlight</h2><p>no ship story yet.</p>';
+        return;
+      }
+
+      const related = (latest.relatedNotes || []).map((id) => notesById.get(id)).filter(Boolean).slice(0, 2);
+      const relatedLinks = related.length
+        ? related.map((note) => `<a class="mini-link" href="notes.html#${note.id}">${note.title}</a>`).join(' ')
+        : '<span class="tag">No linked notes yet</span>';
+
+      storySpotlight.innerHTML = `
+        <h2>story spotlight</h2>
+        <p><strong style="color:#fff;">${latest.title}</strong> — ${latest.impact}</p>
+        <div class="link-row">
+          ${latest.page ? `<a class="btn" href="${latest.page}">${latest.pageLabel || 'Open page'}</a>` : ''}
+          <a class="btn" href="changelog.html#${latest.slug}">open release entry</a>
+        </div>
+        <div class="tag-row">
+          ${relatedLinks}
+        </div>
+      `;
+    };
+
+    const renderLatestShips = (updates, notesById) => {
       if (!latestShips) return;
 
-      try {
-        const response = await fetch('assets/roost-updates.json', { cache: 'no-store' });
-        if (!response.ok) throw new Error('updates not available');
+      const sorted = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      latestShips.innerHTML = '';
 
-        const data = await response.json();
-        const updates = Array.isArray(data?.updates) ? [...data.updates] : [];
-        updates.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      for (const entry of sorted.slice(0, 3)) {
+        const card = document.createElement('article');
+        card.className = 'feed-card';
 
-        latestShips.innerHTML = '';
-        for (const entry of updates.slice(0, 3)) {
-          const item = document.createElement('li');
-          const date = typeof entry.date === 'string' ? entry.date : 'unknown date';
-          const title = typeof entry.title === 'string' ? entry.title : 'untitled ship';
-          const impact = typeof entry.impact === 'string' ? entry.impact : '';
-          item.textContent = `${date} — ${title}${impact ? `: ${impact}` : ''}`;
-          latestShips.appendChild(item);
+        const title = document.createElement('h3');
+        title.textContent = entry.title || 'untitled ship';
+
+        const meta = document.createElement('div');
+        meta.className = 'feed-meta';
+        meta.innerHTML = `<span class="tag">${entry.type || 'ship'}</span><span>${entry.date || 'unknown date'}</span>`;
+
+        const summary = document.createElement('p');
+        summary.textContent = entry.impact || '';
+
+        const actions = document.createElement('div');
+        actions.className = 'link-row';
+
+        if (entry.page) {
+          const pageLink = document.createElement('a');
+          pageLink.className = 'mini-link';
+          pageLink.href = entry.page;
+          pageLink.textContent = entry.pageLabel || 'Open page';
+          actions.appendChild(pageLink);
         }
 
-        if (latestShips.children.length === 0) {
-          latestShips.innerHTML = '<li>no ships logged yet.</li>';
+        const releaseLink = document.createElement('a');
+        releaseLink.className = 'mini-link';
+        releaseLink.href = `changelog.html#${entry.slug || ''}`;
+        releaseLink.textContent = 'Release entry';
+        actions.appendChild(releaseLink);
+
+        const noteRow = document.createElement('div');
+        noteRow.className = 'tag-row';
+        const relatedNotes = (entry.relatedNotes || []).map((id) => notesById.get(id)).filter(Boolean);
+        if (relatedNotes.length === 0) {
+          const emptyTag = document.createElement('span');
+          emptyTag.className = 'tag';
+          emptyTag.textContent = 'No linked notes';
+          noteRow.appendChild(emptyTag);
+        } else {
+          for (const note of relatedNotes.slice(0, 2)) {
+            const noteLink = document.createElement('a');
+            noteLink.className = 'mini-link';
+            noteLink.href = `notes.html#${note.id}`;
+            noteLink.textContent = note.title;
+            noteRow.appendChild(noteLink);
+          }
         }
-      } catch {
-        latestShips.innerHTML = '<li>ship log unavailable right now.</li>';
+
+        card.append(title, meta, summary, actions, noteRow);
+        latestShips.appendChild(card);
+      }
+
+      if (latestShips.children.length === 0) {
+        latestShips.innerHTML = '<div class="empty-card">no ships logged yet.</div>';
       }
     };
 
-    renderLatestShips();
-
-    const renderLatestNotes = async () => {
+    const renderLatestNotes = (notes) => {
       if (!latestNotes) return;
 
-      try {
-        const response = await fetch('assets/roost-notes.json', { cache: 'no-store' });
-        if (!response.ok) throw new Error('notes not available');
+      const sorted = [...notes].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      latestNotes.innerHTML = '';
 
-        const data = await response.json();
-        const notes = Array.isArray(data?.notes) ? [...data.notes] : [];
-        notes.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      for (const note of sorted.slice(0, 3)) {
+        const card = document.createElement('article');
+        card.className = 'feed-card';
 
-        latestNotes.innerHTML = '';
-        for (const note of notes.slice(0, 3)) {
-          const item = document.createElement('li');
-          const date = typeof note.date === 'string' ? note.date : 'unknown date';
-          const title = typeof note.title === 'string' ? note.title : 'untitled note';
-          const summary = typeof note.summary === 'string' ? note.summary : '';
-          item.textContent = `${date} — ${title}${summary ? `: ${summary}` : ''}`;
-          latestNotes.appendChild(item);
+        const title = document.createElement('h3');
+        title.textContent = note.title || 'untitled note';
+
+        const meta = document.createElement('div');
+        meta.className = 'feed-meta';
+        meta.innerHTML = `<span>${note.date || 'unknown date'}</span><span>${(note.tags || []).slice(0, 2).join(' · ') || 'note'}</span>`;
+
+        const summary = document.createElement('p');
+        summary.textContent = note.summary || '';
+
+        const actions = document.createElement('div');
+        actions.className = 'link-row';
+
+        const noteLink = document.createElement('a');
+        noteLink.className = 'mini-link';
+        noteLink.href = `notes.html#${note.id}`;
+        noteLink.textContent = 'Open note';
+        actions.appendChild(noteLink);
+
+        if (note.relatedPage) {
+          const pageLink = document.createElement('a');
+          pageLink.className = 'mini-link';
+          pageLink.href = note.relatedPage;
+          pageLink.textContent = note.relatedPageLabel || 'Open related page';
+          actions.appendChild(pageLink);
         }
 
-        if (latestNotes.children.length === 0) {
-          latestNotes.innerHTML = '<li>no notes published yet.</li>';
-        }
-      } catch {
-        latestNotes.innerHTML = '<li>notes unavailable right now.</li>';
+        card.append(title, meta, summary, actions);
+        latestNotes.appendChild(card);
+      }
+
+      if (latestNotes.children.length === 0) {
+        latestNotes.innerHTML = '<div class="empty-card">no notes published yet.</div>';
       }
     };
 
-    renderLatestNotes();
+    const renderConnectedContent = async () => {
+      try {
+        const [updatesResponse, notesResponse] = await Promise.all([
+          fetch('assets/roost-updates.json', { cache: 'no-store' }),
+          fetch('assets/roost-notes.json', { cache: 'no-store' })
+        ]);
+        if (!updatesResponse.ok || !notesResponse.ok) throw new Error('connected content not available');
+
+        const updatesData = await updatesResponse.json();
+        const notesData = await notesResponse.json();
+        const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
+        const notes = Array.isArray(notesData?.notes) ? notesData.notes : [];
+        const notesById = new Map(notes.map((note) => [note.id, note]));
+
+        renderStorySpotlight(updates, notesById);
+        renderLatestShips(updates, notesById);
+        renderLatestNotes(notes);
+      } catch {
+        storySpotlight.innerHTML = '<h2>story spotlight</h2><p>ship story unavailable right now.</p>';
+        latestShips.innerHTML = '<div class="empty-card">ship log unavailable right now.</div>';
+        latestNotes.innerHTML = '<div class="empty-card">notes unavailable right now.</div>';
+      }
+    };
+
+    renderConnectedContent();
 
     const savedAccent = storage.get('roostAccent');
     if (savedAccent) {

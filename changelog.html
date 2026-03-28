@@ -38,7 +38,7 @@
         linear-gradient(180deg, var(--bg2), var(--bg));
     }
     .wrap {
-      width:min(920px, 92vw);
+      width:min(1040px, 92vw);
       margin:34px auto;
       display:grid;
       gap:14px;
@@ -55,70 +55,101 @@
     h2 { margin:0 0 10px; font-size:1.02rem; color:#c3d0ff; }
     p { margin:0; color:var(--muted); line-height:1.55; }
 
-    .site-nav {
+    .site-nav,
+    .flight-controls,
+    .chip-row,
+    .link-row,
+    .flight-grid,
+    .summary-grid {
       display:flex;
       gap:8px;
       flex-wrap:wrap;
-      margin-top:10px;
     }
-    .nav-link {
+    .site-nav { margin-top:10px; }
+    .flight-grid,
+    .summary-grid {
+      display:grid;
+      gap:12px;
+    }
+    .summary-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+    .flight-grid { grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); }
+
+    .nav-link,
+    .flight-filter,
+    .btn,
+    .ghost-btn,
+    .mini-link,
+    .flight-tag {
       border:1px solid #3a4f9d;
       border-radius:999px;
-      padding:6px 11px;
       color:#d7e0ff;
       text-decoration:none;
-      font-size:.84rem;
-      background:#0f1d4d;
-    }
-
-    ul { margin:0; padding-left:18px; color:var(--muted); }
-    li { margin:6px 0; }
-
-    .flight-controls {
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin:12px 0;
-      align-items:center;
-    }
-    .flight-filter {
-      border:1px solid #4259b5;
-      border-radius:999px;
-      padding:6px 10px;
       font:inherit;
-      color:#d8e2ff;
-      background:#0d1b49;
+      font-size:.82rem;
+      background:#0f1d4d;
+      padding:6px 11px;
       cursor:pointer;
     }
-    .flight-filter.active {
-      background:#1b327c;
-      border-color:#84a0ff;
+    .nav-link:hover,
+    .nav-link:focus-visible,
+    .flight-filter:hover,
+    .flight-filter.active,
+    .btn:hover,
+    .btn:focus-visible,
+    .ghost-btn:hover,
+    .ghost-btn:focus-visible,
+    .mini-link:hover,
+    .mini-link:focus-visible {
+      border-color:#6f8dff;
+      background:#152a6f;
+      outline:none;
+    }
+    .btn {
+      border-radius:10px;
+      background:#112057;
+      padding:8px 12px;
+    }
+    .ghost-btn {
+      background:#0d1943;
+      border-style:dashed;
+    }
+    .mini-link,
+    .flight-tag {
+      padding:4px 9px;
+      font-size:.75rem;
+      background:#0d1840;
+    }
+
+    .summary-box,
+    .flight-item {
+      border:1px solid #304285;
+      border-radius:12px;
+      padding:14px;
+      background:#0a1333;
+    }
+    .summary-box h3,
+    .flight-item h3 { margin:0 0 10px; color:#e3eaff; }
+    .summary-value {
+      font-size:1.7rem;
       color:#fff;
+      margin-bottom:6px;
+    }
+
+    .flight-controls {
+      align-items:center;
+      margin-bottom:12px;
     }
     .flight-search {
       flex:1;
-      min-width:210px;
+      min-width:220px;
       border:1px solid #4259b5;
       border-radius:10px;
-      padding:7px 10px;
+      padding:10px 12px;
       font:inherit;
       color:#e6ecff;
       background:#091432;
     }
-    .flight-list {
-      list-style:none;
-      margin:0;
-      padding:0;
-      display:grid;
-      gap:10px;
-    }
-    .flight-item {
-      border:1px solid #304285;
-      border-radius:12px;
-      padding:11px 12px;
-      background:#0a1333;
-    }
-    .flight-item h3 { margin:0; font-size:.96rem; color:#e3eaff; }
+    .flight-count { color:#a9bbff; font-size:.82rem; margin-bottom:8px; }
     .flight-meta {
       margin-top:5px;
       font-size:.78rem;
@@ -128,18 +159,16 @@
       flex-wrap:wrap;
       align-items:center;
     }
-    .flight-tag {
-      border:1px solid #4259b5;
-      border-radius:999px;
-      padding:2px 8px;
-      text-transform:uppercase;
-      letter-spacing:.4px;
-      font-size:.7rem;
-      color:#cdddff;
-      background:#101d4b;
+    .tiny { font-size:.82rem; color:#9fb0ff; }
+    .detail { color:#bfd0ff; font-size:.85rem; }
+    .empty {
+      border:1px dashed #415399;
+      border-radius:10px;
+      color:#9fb0ff;
+      padding:12px;
+      font-size:.86rem;
+      grid-column:1 / -1;
     }
-    .flight-count { color:#a9bbff; font-size:.82rem; margin-bottom:8px; }
-    .tiny { font-size:.82rem; color:#9fb0ff; margin-top:6px; }
 
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
   </style>
@@ -148,7 +177,7 @@
   <main class="wrap">
     <section class="card">
       <h1>changelog</h1>
-      <p>what shipped recently on the roost.</p>
+      <p>what shipped recently on the roost — now with links into the actual pages and notes behind each release.</p>
       <nav class="site-nav" aria-label="Site sections">
         <a class="nav-link" href="index.html">home</a>
         <a class="nav-link" href="game.html">game</a>
@@ -160,174 +189,212 @@
       </nav>
     </section>
 
-    <section class="card">
-      <h2>recent changes</h2>
-      <ul>
-        <li>restructured the site into separate pages (home / game / gallery / changelog)</li>
-        <li>added a new <strong>pingu corner</strong> showcase block with community-submitted art</li>
-        <li>launched <strong>sky sprint</strong>, the first playable mini-game page with score tracking + increasing difficulty</li>
-        <li>added a roadmap board with persistent checkbox tasks and live completion meters per track</li>
-        <li>added a searchable, filterable flight log explorer for quickly scanning shipped work by category</li>
-        <li>launched <strong>quest forge</strong>: a dedicated page to build custom quest pools with export/import and live homepage integration</li>
-      </ul>
+    <section class="card summary-grid" aria-label="Changelog summary">
+      <article class="summary-box">
+        <h3>release entries</h3>
+        <div class="summary-value" id="entryCount">--</div>
+        <p>Shared directly from the Flight Deck dataset.</p>
+      </article>
+      <article class="summary-box">
+        <h3>categories</h3>
+        <div class="summary-value" id="categoryCount">--</div>
+        <p>Feature, design, content, interaction, and more as the roost grows.</p>
+      </article>
+      <article class="summary-box">
+        <h3>linked rationale</h3>
+        <div class="summary-value" id="linkedRationaleCount">--</div>
+        <p>Field Notes connected to releases for visitors who want the why, not just the what.</p>
+      </article>
     </section>
 
     <section class="card">
       <h2>flight log explorer</h2>
-      <p>scan shipped work by category or keyword.</p>
+      <p>scan shipped work by category, keyword, page destination, or linked note trail.</p>
       <div class="flight-controls">
-        <button class="flight-filter active" type="button" data-filter="all">all</button>
-        <button class="flight-filter" type="button" data-filter="feature">feature</button>
-        <button class="flight-filter" type="button" data-filter="design">design</button>
-        <button class="flight-filter" type="button" data-filter="content">content</button>
-        <button class="flight-filter" type="button" data-filter="stability">stability</button>
-        <input class="flight-search" id="flightSearch" type="search" placeholder="search title, impact, or details" aria-label="Search flight log" />
+        <div class="chip-row" id="flightFilters" role="toolbar" aria-label="Filter release entries by type"></div>
+        <input class="flight-search" id="flightSearch" type="search" placeholder="search title, impact, page, or linked note" aria-label="Search flight log" />
       </div>
       <p class="flight-count" id="flightCount">loading log…</p>
-      <ul class="flight-list" id="flightList" aria-live="polite"></ul>
+      <div class="flight-grid" id="flightList" aria-live="polite"></div>
     </section>
 
     <footer>changelog wing online.</footer>
   </main>
 
   <script>
-    const flightLogEntries = [
-      {
-        date: '2026-03-27',
-        type: 'feature',
-        title: 'Field Notes archive launched',
-        impact: 'The site now has a dedicated searchable writing corner for product notes and engineering decisions.',
-        details: 'Added notes.html powered by a new assets/roost-notes.json data source, plus homepage highlights for the newest entries.'
-      },
-      {
-        date: '2026-03-25',
-        type: 'feature',
-        title: 'Quest Forge customization page shipped',
-        impact: 'Visitors can now shape their own daily quest pool instead of being locked to a fixed default list.',
-        details: 'Added quest-forge.html with default quest toggles, custom quest management, JSON export/import, and homepage generator integration.'
-      },
-      {
-        date: '2026-03-24',
-        type: 'feature',
-        title: 'Site restructure into multi-page nav',
-        impact: 'Homepage is now focused and easier to scan as content grows.',
-        details: 'Split core content across dedicated pages: home, game, gallery, and changelog.'
-      },
-      {
-        date: '2026-03-24',
-        type: 'content',
-        title: 'Pingu corner added',
-        impact: 'Community image now has a dedicated showcase block in the gallery.',
-        details: 'Integrated pingu-corner.png with on-brand copy and layout.'
-      },
-      {
-        date: '2026-03-24',
-        type: 'feature',
-        title: 'Sky Sprint mini-game launched',
-        impact: 'Roost now has a real playable page instead of just status/content widgets.',
-        details: 'Built a canvas-based flight game with flap controls, collisions, escalating speed, and local best-score tracking.'
-      },
-      {
-        date: '2026-03-23',
-        type: 'feature',
-        title: 'Roadmap board shipped',
-        impact: 'Turns vague plans into visible progress with local persistence + completion meters.',
-        details: 'Added three tracks (site core, playground, storytelling) with checkboxes that save in browser storage.'
-      },
-      {
-        date: '2026-03-23',
-        type: 'design',
-        title: 'Flight log explorer launched',
-        impact: 'Makes release history easier to scan than a long static bullet list.',
-        details: 'Users can filter by category and search by keyword in title/impact/details.'
-      },
-      {
-        date: '2026-03-20',
-        type: 'stability',
-        title: 'Storage capability status added',
-        impact: 'People immediately see whether streak/history persistence is actually available.',
-        details: 'A warning is shown when browser storage is blocked.'
-      },
-      {
-        date: '2026-03-19',
-        type: 'content',
-        title: 'Rukia corner added',
-        impact: 'Site personality improved with a dedicated character art block.',
-        details: 'Integrated grayscale styling and copy to keep the section cohesive with roost tone.'
-      }
-    ];
-
     const flightList = document.getElementById('flightList');
     const flightCount = document.getElementById('flightCount');
     const flightSearch = document.getElementById('flightSearch');
-    const flightFilterButtons = Array.from(document.querySelectorAll('.flight-filter'));
+    const flightFilters = document.getElementById('flightFilters');
+    const entryCount = document.getElementById('entryCount');
+    const categoryCount = document.getElementById('categoryCount');
+    const linkedRationaleCount = document.getElementById('linkedRationaleCount');
 
+    let flightLogEntries = [];
+    let notesById = new Map();
     let activeFlightFilter = 'all';
-    const normalizeText = (value) => value.toLowerCase();
+
+    const normalizeText = (value) => String(value || '').toLowerCase();
+
+    const formatDate = (isoDate) => {
+      const parsed = new Date(`${isoDate}T00:00:00Z`);
+      if (Number.isNaN(parsed.getTime())) return isoDate;
+      return parsed.toLocaleDateString('en-GB', { timeZone: 'UTC', year: 'numeric', month: 'short', day: '2-digit' });
+    };
+
+    const getRelatedNotes = (entry) => (entry.relatedNotes || [])
+      .map((id) => notesById.get(id))
+      .filter(Boolean);
+
+    const renderSummary = () => {
+      entryCount.textContent = String(flightLogEntries.length);
+      categoryCount.textContent = String(new Set(flightLogEntries.map((entry) => entry.type).filter(Boolean)).size);
+      linkedRationaleCount.textContent = String(new Set(flightLogEntries.flatMap((entry) => entry.relatedNotes || [])).size);
+    };
+
+    const renderFilters = () => {
+      const types = ['all', ...new Set(flightLogEntries.map((entry) => entry.type).filter(Boolean))];
+      flightFilters.innerHTML = '';
+
+      for (const type of types) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'flight-filter';
+        button.textContent = type;
+        button.classList.toggle('active', type === activeFlightFilter);
+        button.addEventListener('click', () => {
+          activeFlightFilter = type;
+          renderFilters();
+          renderFlightLog();
+        });
+        flightFilters.appendChild(button);
+      }
+    };
 
     const renderFlightLog = () => {
       const query = normalizeText(flightSearch.value.trim());
-      const rows = flightLogEntries
+      const rows = [...flightLogEntries]
         .filter((entry) => activeFlightFilter === 'all' || entry.type === activeFlightFilter)
         .filter((entry) => {
           if (!query) return true;
-          const haystack = normalizeText(`${entry.title} ${entry.impact} ${entry.details} ${entry.type}`);
+          const related = getRelatedNotes(entry);
+          const haystack = normalizeText([
+            entry.title,
+            entry.impact,
+            entry.details,
+            entry.type,
+            entry.page,
+            entry.pageLabel,
+            ...related.map((note) => `${note.title} ${note.summary} ${(note.tags || []).join(' ')}`)
+          ].join(' '));
           return haystack.includes(query);
         })
-        .sort((a, b) => b.date.localeCompare(a.date));
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
       flightList.innerHTML = '';
       flightCount.textContent = `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'} shown`;
 
       if (rows.length === 0) {
-        const empty = document.createElement('li');
-        empty.className = 'flight-item';
-        empty.innerHTML = '<h3>no matches</h3><p class="tiny">try a broader search or switch filter categories.</p>';
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No matches yet. Try a broader search or another category.';
         flightList.appendChild(empty);
         return;
       }
 
       for (const entry of rows) {
-        const item = document.createElement('li');
+        const item = document.createElement('article');
         item.className = 'flight-item';
+        item.id = entry.slug || '';
 
         const title = document.createElement('h3');
         title.textContent = entry.title;
 
         const meta = document.createElement('p');
         meta.className = 'flight-meta';
-        const typeTag = `<span class="flight-tag">${entry.type}</span>`;
-        meta.innerHTML = `${typeTag}<span>${entry.date}</span>`;
+        meta.innerHTML = `<span class="flight-tag">${entry.type}</span><span>${formatDate(entry.date)}</span>`;
 
         const impact = document.createElement('p');
         impact.className = 'tiny';
         impact.textContent = `Impact: ${entry.impact}`;
 
         const details = document.createElement('p');
-        details.className = 'tiny';
-        details.textContent = entry.details;
+        details.className = 'detail';
+        details.textContent = entry.details || '';
 
-        item.appendChild(title);
-        item.appendChild(meta);
-        item.appendChild(impact);
-        item.appendChild(details);
+        const actions = document.createElement('div');
+        actions.className = 'link-row';
+        if (entry.page) {
+          const pageLink = document.createElement('a');
+          pageLink.className = 'btn';
+          pageLink.href = entry.page;
+          pageLink.textContent = entry.pageLabel || 'Open page';
+          actions.appendChild(pageLink);
+        }
+
+        const deckLink = document.createElement('a');
+        deckLink.className = 'ghost-btn';
+        deckLink.href = `flight-deck.html#${entry.slug || ''}`;
+        deckLink.textContent = 'Open in flight deck';
+        actions.appendChild(deckLink);
+
+        const noteLinks = document.createElement('div');
+        noteLinks.className = 'link-row';
+        const relatedNotes = getRelatedNotes(entry);
+        if (relatedNotes.length === 0) {
+          const badge = document.createElement('span');
+          badge.className = 'flight-tag';
+          badge.textContent = 'No linked notes';
+          noteLinks.appendChild(badge);
+        } else {
+          for (const note of relatedNotes) {
+            const noteLink = document.createElement('a');
+            noteLink.className = 'mini-link';
+            noteLink.href = `notes.html#${note.id}`;
+            noteLink.textContent = note.title;
+            noteLinks.appendChild(noteLink);
+          }
+        }
+
+        item.append(title, meta, impact, details, actions, noteLinks);
         flightList.appendChild(item);
+      }
+
+      const targetId = window.location.hash.replace(/^#/, '');
+      if (targetId) {
+        const target = document.getElementById(targetId);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     };
 
-    flightFilterButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        activeFlightFilter = button.dataset.filter || 'all';
-        flightFilterButtons.forEach((btn) => btn.classList.toggle('active', btn === button));
+    flightSearch.addEventListener('input', renderFlightLog);
+
+    const bootstrap = async () => {
+      try {
+        const [updatesResponse, notesResponse] = await Promise.all([
+          fetch('assets/roost-updates.json', { cache: 'no-store' }),
+          fetch('assets/roost-notes.json', { cache: 'no-store' })
+        ]);
+        if (!updatesResponse.ok || !notesResponse.ok) throw new Error('Failed to load flight log data');
+
+        const updatesData = await updatesResponse.json();
+        const notesData = await notesResponse.json();
+        flightLogEntries = Array.isArray(updatesData.updates) ? updatesData.updates : [];
+        const notes = Array.isArray(notesData.notes) ? notesData.notes : [];
+        notesById = new Map(notes.map((note) => [note.id, note]));
+
+        renderSummary();
+        renderFilters();
         renderFlightLog();
-      });
-    });
+      } catch {
+        flightList.innerHTML = '<div class="empty">Unable to load release history right now.</div>';
+        flightCount.textContent = 'log unavailable';
+      }
+    };
 
-    flightSearch.addEventListener('input', () => {
-      renderFlightLog();
-    });
-
-    renderFlightLog();
+    bootstrap();
   </script>
 </body>
 </html>
