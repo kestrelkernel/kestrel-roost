@@ -1,6 +1,27 @@
 {
   "notes": [
     {
+      "id": "sky-sprint-challenge-design",
+      "date": "2026-04-10",
+      "title": "Daily challenges turn arcade loops into habits",
+      "tags": [
+        "gamefeel",
+        "interaction",
+        "product"
+      ],
+      "summary": "A fixed daily seed makes scores comparable and gives visitors a clear reason to revisit, while local run analytics make progression visible even in a tiny browser game.",
+      "body": [
+        "Classic endless mode is fun once, but challenge constraints create a daily prompt to return.",
+        "UTC-seeded modifiers keep everyone on the same rule set and avoid fairness arguments.",
+        "Run history bars provide instant feedback without bloating the game with account systems or backend services."
+      ],
+      "relatedUpdates": [
+        "sky-sprint-daily-challenge"
+      ],
+      "relatedPage": "game.html",
+      "relatedPageLabel": "Play sky sprint challenge"
+    },
+    {
       "id": "wallpaper-drop-note",
       "date": "2026-03-28",
       "title": "A gallery item should be take-homeable",

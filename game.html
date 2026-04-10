@@ -47,7 +47,7 @@
     }
 
     .wrap {
-      width: min(980px, 96vw);
+      width: min(1040px, 96vw);
       display: grid;
       gap: 14px;
     }
@@ -67,6 +67,14 @@
       letter-spacing: .2px;
     }
 
+    h2 {
+      margin: 0 0 8px;
+      font-size: .95rem;
+      color: #d4deff;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
     p { margin: 0; color: var(--muted); line-height: 1.5; }
 
     .top {
@@ -77,13 +85,19 @@
       align-items: center;
     }
 
-    .links {
+    .links,
+    .mode-controls,
+    .run-actions,
+    .chip-row,
+    .history-bars {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
-    .btn {
+    .btn,
+    .mode-chip {
       border: 1px solid #4964c6;
       border-radius: 10px;
       padding: 8px 12px;
@@ -94,8 +108,34 @@
       cursor: pointer;
     }
 
-    .btn:hover { border-color: #7895ff; background: #173073; }
-    .btn:focus-visible { outline: 2px solid #9ab4ff; outline-offset: 2px; }
+    .btn:hover,
+    .mode-chip:hover {
+      border-color: #7895ff;
+      background: #173073;
+    }
+    .btn:focus-visible,
+    .mode-chip:focus-visible {
+      outline: 2px solid #9ab4ff;
+      outline-offset: 2px;
+    }
+
+    .mode-chip {
+      border-radius: 999px;
+      background: #0f1d4d;
+      padding: 6px 11px;
+      font-size: .82rem;
+    }
+
+    .mode-chip.active {
+      border-color: #8ab0ff;
+      background: #18357d;
+    }
+
+    .layout {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 2fr 1fr;
+    }
 
     .hud {
       display: grid;
@@ -150,6 +190,103 @@
 
     .tiny { font-size: .8rem; color: #9eb1ef; }
 
+    .panel {
+      border: 1px solid #3951a8;
+      border-radius: 12px;
+      background: #091636;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .chip {
+      border: 1px solid #4762bf;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: .74rem;
+      color: #d5e0ff;
+      background: #0f2157;
+    }
+
+    .challenge-tiers {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .tier {
+      border: 1px solid #3d539f;
+      border-radius: 10px;
+      padding: 8px;
+      background: #0b1842;
+      font-size: .78rem;
+      color: #b8c8ff;
+    }
+
+    .tier strong {
+      display: block;
+      color: #fff;
+      margin-top: 2px;
+      font-size: .95rem;
+    }
+
+    .tier.bronze strong { color: #ffd7a4; }
+    .tier.silver strong { color: #dce6ff; }
+    .tier.gold strong { color: #ffe985; }
+
+    .history-bars {
+      align-items: flex-end;
+      min-height: 120px;
+    }
+
+    .history-bar {
+      flex: 1;
+      min-width: 18px;
+      border-radius: 6px 6px 4px 4px;
+      background: linear-gradient(180deg, #7095ff, #3f5cb8);
+      border: 1px solid #6c8cff;
+      position: relative;
+    }
+
+    .history-bar::after {
+      content: attr(data-score);
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: .66rem;
+      color: #c4d3ff;
+      white-space: nowrap;
+    }
+
+    .history-empty {
+      font-size: .82rem;
+      color: #a8b9f2;
+      border: 1px dashed #4359ab;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .streak {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      color: #b8c8ff;
+      font-size: .82rem;
+    }
+
+    .streak strong {
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 700px) {
       .touch-flap {
         flex: 1;
@@ -159,7 +296,8 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .btn:hover { background: #102058; }
+      .btn:hover,
+      .mode-chip:hover { background: #102058; }
     }
   </style>
 </head>
@@ -181,22 +319,54 @@
       </div>
     </section>
 
-    <section class="card">
-      <div class="hud">
-        <div class="stat">score<strong id="score">0</strong></div>
-        <div class="stat">best<strong id="best">0</strong></div>
-        <div class="stat">speed<strong id="speed">1.0x</strong></div>
-        <div class="stat">status<strong id="state">idle</strong></div>
-      </div>
+    <section class="layout">
+      <section class="card">
+        <div class="hud">
+          <div class="stat">score<strong id="score">0</strong></div>
+          <div class="stat">best<strong id="best">0</strong></div>
+          <div class="stat">speed<strong id="speed">1.0x</strong></div>
+          <div class="stat">status<strong id="state">idle</strong></div>
+        </div>
 
-      <canvas id="game" width="920" height="420" aria-label="Sky Sprint mini-game"></canvas>
+        <canvas id="game" width="920" height="420" aria-label="Sky Sprint mini-game"></canvas>
 
-      <div class="controls">
-        <button class="btn" id="startBtn">start run</button>
-        <button class="btn touch-flap" id="flapBtn" type="button">flap</button>
-      </div>
-      <p class="status" id="statusLine">press <kbd>space</kbd> or <kbd>↑</kbd> to flap. survive as long as possible.</p>
-      <p class="tiny">thermals (gold rings) grant bonus score. clouds hurt. speed ramps every few seconds.</p>
+        <div class="controls">
+          <button class="btn" id="startBtn">start run</button>
+          <button class="btn" id="flapBtn" type="button">flap</button>
+        </div>
+        <p class="status" id="statusLine">press <kbd>space</kbd> or <kbd>↑</kbd> to flap. survive as long as possible.</p>
+        <p class="tiny">thermals (gold rings) grant bonus score. clouds hurt. speed ramps every few seconds.</p>
+      </section>
+
+      <section class="card" aria-live="polite">
+        <div class="panel">
+          <h2>mode select</h2>
+          <div class="mode-controls" id="modeControls">
+            <button type="button" class="mode-chip active" data-mode="classic">classic</button>
+            <button type="button" class="mode-chip" data-mode="daily">daily challenge</button>
+          </div>
+          <p id="modeSummary">Classic mode: pure endless run with baseline tuning.</p>
+          <div class="run-actions">
+            <button class="btn" id="copyChallengeBtn" type="button">copy challenge seed</button>
+            <button class="btn" id="clearRunsBtn" type="button">clear run history</button>
+          </div>
+        </div>
+
+        <div class="panel" id="challengePanel">
+          <h2>daily challenge (UTC)</h2>
+          <p id="challengeDate">loading date…</p>
+          <div class="chip-row" id="challengeModifiers"></div>
+          <div class="challenge-tiers" id="challengeTiers"></div>
+          <div class="streak"><span>challenge streak:</span> <strong id="challengeStreak">0 days</strong></div>
+          <p class="tiny">Beat bronze or higher once per UTC day to extend the streak.</p>
+        </div>
+
+        <div class="panel">
+          <h2>recent runs</h2>
+          <div class="history-bars" id="runHistoryBars"></div>
+          <p class="tiny" id="historySummary">No runs yet. Start flying.</p>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -212,6 +382,17 @@
 
     const startBtn = document.getElementById('startBtn');
     const flapBtn = document.getElementById('flapBtn');
+    const modeControls = document.getElementById('modeControls');
+    const modeSummary = document.getElementById('modeSummary');
+    const copyChallengeBtn = document.getElementById('copyChallengeBtn');
+    const clearRunsBtn = document.getElementById('clearRunsBtn');
+
+    const challengeDate = document.getElementById('challengeDate');
+    const challengeModifiers = document.getElementById('challengeModifiers');
+    const challengeTiers = document.getElementById('challengeTiers');
+    const challengeStreak = document.getElementById('challengeStreak');
+    const runHistoryBars = document.getElementById('runHistoryBars');
+    const historySummary = document.getElementById('historySummary');
 
     const storage = (() => {
       let ok = true;
@@ -230,17 +411,26 @@
         },
         set(key, value) {
           if (!ok) return;
-          try { localStorage.setItem(key, value); } catch { /* ignore */ }
+          try { localStorage.setItem(key, value); } catch { }
+        },
+        remove(key) {
+          if (!ok) return;
+          try { localStorage.removeItem(key); } catch { }
         }
       };
     })();
 
     const BEST_KEY = 'roostSkySprintBest';
+    const RUN_HISTORY_KEY = 'roostSkySprintRunHistory';
+    const MODE_KEY = 'roostSkySprintMode';
+    const DAILY_STREAK_COUNT_KEY = 'roostSkySprintDailyStreakCount';
+    const DAILY_STREAK_DAY_KEY = 'roostSkySprintDailyStreakDay';
+
     let bestScore = Number.parseInt(storage.get(BEST_KEY) || '0', 10);
     if (!Number.isFinite(bestScore) || bestScore < 0) bestScore = 0;
     bestEl.textContent = String(bestScore);
 
-    const world = {
+    const worldDefaults = {
       gravity: 1200,
       flapForce: -360,
       baseSpeed: 230,
@@ -249,7 +439,9 @@
       obstacleWidth: 74,
       obstacleSpacing: 280,
       thermalRadius: 16,
-      thermalSpacing: 400
+      thermalSpacing: 400,
+      thermalBonus: 25,
+      scoreRate: 4.5
     };
 
     const bird = {
@@ -262,12 +454,103 @@
 
     let gameState = 'idle';
     let score = 0;
-    let speed = world.baseSpeed;
+    let speed = worldDefaults.baseSpeed;
     let obstacles = [];
     let thermals = [];
     let frame = 0;
     let lastTime = performance.now();
     let accumulator = 0;
+
+    let activeMode = storage.get(MODE_KEY) === 'daily' ? 'daily' : 'classic';
+    let runHistory;
+    try {
+      runHistory = JSON.parse(storage.get(RUN_HISTORY_KEY) || '[]');
+    } catch {
+      runHistory = [];
+    }
+    if (!Array.isArray(runHistory)) runHistory = [];
+    runHistory = runHistory
+      .filter((entry) => entry && Number.isFinite(entry.score) && typeof entry.mode === 'string' && typeof entry.when === 'string')
+      .slice(0, 12);
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const toUtcDay = (date) => Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    const getTodayUtcDay = () => toUtcDay(new Date());
+
+    const seededRandom = (seed) => {
+      let value = seed % 2147483647;
+      if (value <= 0) value += 2147483646;
+      return () => {
+        value = (value * 16807) % 2147483647;
+        return (value - 1) / 2147483646;
+      };
+    };
+
+    const getDailySeedString = () => {
+      const now = new Date();
+      const y = now.getUTCFullYear();
+      const m = String(now.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(now.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+
+    const hashSeed = (text) => {
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i += 1) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return Math.abs(hash);
+    };
+
+    const getDailyChallenge = () => {
+      const dateSeed = getDailySeedString();
+      const seed = hashSeed(`roost-${dateSeed}`);
+      const rand = seededRandom(seed);
+
+      const difficulty = 0.85 + rand() * 0.4;
+      const thermalMultiplier = 0.8 + rand() * 0.8;
+      const speedMultiplier = 0.9 + rand() * 0.35;
+      const gapReduction = Math.round((rand() * 34) + 6);
+      const gravityOffset = Math.round((rand() * 160) - 80);
+
+      const bronze = Math.round(150 * difficulty);
+      const silver = Math.round(250 * difficulty);
+      const gold = Math.round(360 * difficulty);
+
+      return {
+        dateSeed,
+        params: {
+          gravity: Math.max(980, Math.min(1360, worldDefaults.gravity + gravityOffset)),
+          flapForce: worldDefaults.flapForce,
+          baseSpeed: Math.round(worldDefaults.baseSpeed * speedMultiplier),
+          maxSpeed: Math.round(worldDefaults.maxSpeed * speedMultiplier),
+          obstacleGap: Math.max(130, worldDefaults.obstacleGap - gapReduction),
+          obstacleWidth: worldDefaults.obstacleWidth,
+          obstacleSpacing: worldDefaults.obstacleSpacing,
+          thermalRadius: worldDefaults.thermalRadius,
+          thermalSpacing: Math.round(worldDefaults.thermalSpacing * (1.0 + (1 - thermalMultiplier) * 0.45)),
+          thermalBonus: Math.round(worldDefaults.thermalBonus * thermalMultiplier),
+          scoreRate: worldDefaults.scoreRate
+        },
+        tiers: { bronze, silver, gold },
+        modifiers: [
+          `gap ${Math.max(130, worldDefaults.obstacleGap - gapReduction)}px`,
+          `gravity ${Math.max(980, Math.min(1360, worldDefaults.gravity + gravityOffset))}`,
+          `speed ${(speedMultiplier).toFixed(2)}x`,
+          `thermal +${Math.round(worldDefaults.thermalBonus * thermalMultiplier)}`
+        ]
+      };
+    };
+
+    let dailyChallenge = getDailyChallenge();
+
+    let dailyStreakCount = Number.parseInt(storage.get(DAILY_STREAK_COUNT_KEY) || '0', 10);
+    if (!Number.isInteger(dailyStreakCount) || dailyStreakCount < 0) dailyStreakCount = 0;
+    let dailyStreakDay = Number.parseInt(storage.get(DAILY_STREAK_DAY_KEY) || '', 10);
+    if (!Number.isFinite(dailyStreakDay)) dailyStreakDay = NaN;
+
+    const getWorld = () => (activeMode === 'daily' ? dailyChallenge.params : worldDefaults);
 
     function setStatus(text, tone = '') {
       statusLine.textContent = text;
@@ -279,7 +562,105 @@
       stateEl.textContent = state;
     }
 
+    function updateModeUI() {
+      for (const button of modeControls.querySelectorAll('[data-mode]')) {
+        button.classList.toggle('active', button.dataset.mode === activeMode);
+      }
+
+      if (activeMode === 'classic') {
+        modeSummary.textContent = 'Classic mode: pure endless run with baseline tuning.';
+      } else {
+        modeSummary.textContent = `Daily challenge ${dailyChallenge.dateSeed}: fixed modifiers for everyone today.`;
+      }
+    }
+
+    function renderDailyChallenge() {
+      challengeDate.textContent = `seed: ${dailyChallenge.dateSeed}`;
+      challengeModifiers.innerHTML = '';
+      for (const item of dailyChallenge.modifiers) {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = item;
+        challengeModifiers.appendChild(chip);
+      }
+
+      challengeTiers.innerHTML = '';
+      const tierRows = [
+        ['bronze', dailyChallenge.tiers.bronze],
+        ['silver', dailyChallenge.tiers.silver],
+        ['gold', dailyChallenge.tiers.gold]
+      ];
+      for (const [label, value] of tierRows) {
+        const tile = document.createElement('article');
+        tile.className = `tier ${label}`;
+        tile.innerHTML = `${label}<strong>${value}</strong>`;
+        challengeTiers.appendChild(tile);
+      }
+
+      challengeStreak.textContent = `${dailyStreakCount} ${dailyStreakCount === 1 ? 'day' : 'days'}`;
+    }
+
+    function renderRunHistory() {
+      runHistoryBars.innerHTML = '';
+      if (runHistory.length === 0) {
+        runHistoryBars.innerHTML = '<div class="history-empty">No run history yet. Your last 12 runs will show up here as mini bars.</div>';
+        historySummary.textContent = 'No runs yet. Start flying.';
+        return;
+      }
+
+      const recent = [...runHistory].slice(0, 8).reverse();
+      const max = Math.max(...recent.map((entry) => entry.score), 1);
+      for (const entry of recent) {
+        const bar = document.createElement('div');
+        bar.className = 'history-bar';
+        bar.dataset.score = `${entry.score}`;
+        bar.style.height = `${Math.max(14, Math.round((entry.score / max) * 100))}%`;
+        bar.title = `${entry.score} · ${entry.mode} · ${new Date(entry.when).toLocaleString('en-GB', { hour12: false, timeZone: 'UTC' })} UTC`;
+        runHistoryBars.appendChild(bar);
+      }
+
+      const average = Math.round(runHistory.reduce((sum, entry) => sum + entry.score, 0) / runHistory.length);
+      historySummary.textContent = `Recent average: ${average}. Latest run: ${runHistory[0].score} (${runHistory[0].mode}).`;
+    }
+
+    function saveRun(scoreValue) {
+      runHistory = [{ score: scoreValue, mode: activeMode, when: new Date().toISOString() }, ...runHistory].slice(0, 12);
+      storage.set(RUN_HISTORY_KEY, JSON.stringify(runHistory));
+      renderRunHistory();
+    }
+
+    function updateDailyStreakIfNeeded(scoreValue) {
+      if (activeMode !== 'daily') return;
+      if (scoreValue < dailyChallenge.tiers.bronze) return;
+
+      const today = getTodayUtcDay();
+      if (dailyStreakDay === today) return;
+
+      if (Number.isFinite(dailyStreakDay) && today - dailyStreakDay === dayMs) {
+        dailyStreakCount += 1;
+      } else {
+        dailyStreakCount = 1;
+      }
+
+      dailyStreakDay = today;
+      storage.set(DAILY_STREAK_COUNT_KEY, String(dailyStreakCount));
+      storage.set(DAILY_STREAK_DAY_KEY, String(dailyStreakDay));
+      renderDailyChallenge();
+    }
+
+    function refreshDailyChallengeIfDateRolled() {
+      const currentSeed = getDailySeedString();
+      if (currentSeed === dailyChallenge.dateSeed) return;
+
+      dailyChallenge = getDailyChallenge();
+      renderDailyChallenge();
+      if (activeMode === 'daily' && gameState !== 'running') {
+        setStatus(`new daily challenge is live for ${dailyChallenge.dateSeed}.`, 'good');
+      }
+    }
+
     function resetRun() {
+      const world = getWorld();
       bird.y = canvas.height / 2;
       bird.vy = 0;
       bird.tilt = 0;
@@ -291,35 +672,58 @@
       accumulator = 0;
       scoreEl.textContent = '0';
       speedEl.textContent = '1.0x';
-      setStatus('run started. flap to stay above the storm.', 'good');
+
+      if (activeMode === 'daily') {
+        setStatus(`daily challenge run started (${dailyChallenge.dateSeed}).`, 'good');
+      } else {
+        setStatus('classic run started. flap to stay above the storm.', 'good');
+      }
     }
 
     function startRun() {
+      refreshDailyChallengeIfDateRolled();
       resetRun();
       setGameState('running');
     }
 
     function endRun(reason) {
       setGameState('down');
-      setStatus(`${reason} final score: ${Math.floor(score)}. press start run to go again.`, 'danger');
-
       const final = Math.floor(score);
+
+      let suffix = '';
+      if (activeMode === 'daily') {
+        if (final >= dailyChallenge.tiers.gold) {
+          suffix = ' gold tier secured.';
+        } else if (final >= dailyChallenge.tiers.silver) {
+          suffix = ' silver tier secured.';
+        } else if (final >= dailyChallenge.tiers.bronze) {
+          suffix = ' bronze tier secured.';
+        } else {
+          suffix = ` bronze starts at ${dailyChallenge.tiers.bronze}.`;
+        }
+      }
+
+      setStatus(`${reason} final score: ${final}.${suffix}`, final > bestScore ? 'warn' : 'danger');
+      saveRun(final);
+      updateDailyStreakIfNeeded(final);
+
       if (final > bestScore) {
         bestScore = final;
         bestEl.textContent = String(bestScore);
         storage.set(BEST_KEY, String(bestScore));
-        setStatus(`new best: ${bestScore} ✨ crashed, but stylishly.`, 'warn');
       }
     }
 
     function flap() {
       if (gameState === 'idle') startRun();
       if (gameState !== 'running') return;
+      const world = getWorld();
       bird.vy = world.flapForce;
       bird.tilt = -0.4;
     }
 
     function spawnObstacle() {
+      const world = getWorld();
       const safeMargin = 50;
       const gapY = safeMargin + Math.random() * (canvas.height - safeMargin * 2 - world.obstacleGap);
 
@@ -332,6 +736,7 @@
     }
 
     function spawnThermal() {
+      const world = getWorld();
       const margin = 42;
       thermals.push({
         x: canvas.width + world.thermalRadius,
@@ -341,6 +746,8 @@
     }
 
     function update(dt) {
+      const world = getWorld();
+
       frame += 1;
       accumulator += dt;
 
@@ -389,18 +796,18 @@
         thermal.x -= speed * dt;
         const dx = thermal.x - bird.x;
         const dy = thermal.y - bird.y;
-        const hit = Math.hypot(dx, dy) < thermal.radius + bird.radius - 2;
+        const hit = Math.hypot(dx, dy) < world.thermalRadius + bird.radius - 2;
 
         if (!thermal.taken && hit) {
           thermal.taken = true;
-          score += 25;
-          setStatus('thermal caught +25', 'good');
+          score += world.thermalBonus;
+          setStatus(`thermal caught +${world.thermalBonus}`, 'good');
         }
       });
 
-      thermals = thermals.filter((thermal) => !thermal.taken && thermal.x + thermal.radius > -8);
+      thermals = thermals.filter((thermal) => !thermal.taken && thermal.x + world.thermalRadius > -8);
 
-      score += dt * 4.5;
+      score += dt * world.scoreRate;
       scoreEl.textContent = String(Math.floor(score));
       speedEl.textContent = `${(speed / world.baseSpeed).toFixed(1)}x`;
     }
@@ -437,6 +844,7 @@
     }
 
     function drawObstacle(obs) {
+      const world = getWorld();
       ctx.fillStyle = '#60739f';
       ctx.strokeStyle = '#445474';
       ctx.lineWidth = 2;
@@ -454,16 +862,17 @@
     }
 
     function drawThermal(thermal) {
+      const world = getWorld();
       ctx.strokeStyle = '#ffd479';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(thermal.x, thermal.y, thermal.radius, 0, Math.PI * 2);
+      ctx.arc(thermal.x, thermal.y, world.thermalRadius, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.strokeStyle = '#ffefb5';
       ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.arc(thermal.x, thermal.y, thermal.radius - 6, 0, Math.PI * 2);
+      ctx.arc(thermal.x, thermal.y, world.thermalRadius - 6, 0, Math.PI * 2);
       ctx.stroke();
     }
 
@@ -486,19 +895,25 @@
 
       if (gameState !== 'running') {
         ctx.fillStyle = '#0b183fcc';
-        ctx.fillRect(canvas.width / 2 - 190, canvas.height / 2 - 40, 380, 80);
+        ctx.fillRect(canvas.width / 2 - 240, canvas.height / 2 - 44, 480, 88);
         ctx.strokeStyle = '#5f80df';
-        ctx.strokeRect(canvas.width / 2 - 190, canvas.height / 2 - 40, 380, 80);
+        ctx.strokeRect(canvas.width / 2 - 240, canvas.height / 2 - 44, 480, 88);
         ctx.fillStyle = '#e7eeff';
         ctx.font = '18px ui-monospace, SFMono-Regular, Menlo, monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(gameState === 'idle' ? 'press start run (or flap) to begin' : 'run over — go again?', canvas.width / 2, canvas.height / 2 + 6);
+
+        const modeText = activeMode === 'daily' ? `daily challenge ${dailyChallenge.dateSeed}` : 'classic mode';
+        ctx.fillText(gameState === 'idle' ? `press start run (${modeText})` : 'run over — go again?', canvas.width / 2, canvas.height / 2 - 4);
+        ctx.font = '14px ui-monospace, SFMono-Regular, Menlo, monospace';
+        ctx.fillText('space / ↑ = flap · R = restart · M = swap mode', canvas.width / 2, canvas.height / 2 + 22);
       }
     }
 
     function tick(now) {
       const dt = Math.min(0.033, (now - lastTime) / 1000);
       lastTime = now;
+
+      refreshDailyChallengeIfDateRolled();
 
       if (gameState === 'running') {
         update(dt);
@@ -507,6 +922,72 @@
       render();
       requestAnimationFrame(tick);
     }
+
+    function switchMode(mode) {
+      if (mode !== 'classic' && mode !== 'daily') return;
+      activeMode = mode;
+      storage.set(MODE_KEY, mode);
+      updateModeUI();
+
+      if (gameState === 'running') {
+        endRun('mode changed mid-flight.');
+      } else {
+        setStatus(mode === 'daily'
+          ? `daily challenge mode armed (${dailyChallenge.dateSeed}).`
+          : 'classic mode armed.', 'good');
+      }
+    }
+
+    async function copyChallengeSeed() {
+      const text = `Sky Sprint daily challenge ${dailyChallenge.dateSeed} | bronze ${dailyChallenge.tiers.bronze} · silver ${dailyChallenge.tiers.silver} · gold ${dailyChallenge.tiers.gold}`;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          setStatus('challenge seed copied.', 'good');
+          return;
+        }
+      } catch {
+      }
+
+      const field = document.createElement('textarea');
+      field.value = text;
+      field.style.position = 'absolute';
+      field.style.left = '-9999px';
+      document.body.appendChild(field);
+      field.select();
+
+      let copied = false;
+      try {
+        copied = document.execCommand('copy');
+      } catch {
+        copied = false;
+      }
+      document.body.removeChild(field);
+
+      if (copied) {
+        setStatus('challenge seed copied (fallback).', 'good');
+      } else {
+        setStatus('clipboard is blocked in this browser context.', 'warn');
+      }
+    }
+
+    modeControls.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-mode]');
+      if (!target) return;
+      switchMode(target.dataset.mode);
+    });
+
+    copyChallengeBtn.addEventListener('click', () => {
+      copyChallengeSeed();
+    });
+
+    clearRunsBtn.addEventListener('click', () => {
+      runHistory = [];
+      storage.remove(RUN_HISTORY_KEY);
+      renderRunHistory();
+      setStatus('run history cleared.', 'warn');
+    });
 
     startBtn.addEventListener('click', () => startRun());
     flapBtn.addEventListener('click', () => flap());
@@ -521,11 +1002,19 @@
         event.preventDefault();
         startRun();
       }
+      if (event.key.toLowerCase() === 'm') {
+        event.preventDefault();
+        switchMode(activeMode === 'classic' ? 'daily' : 'classic');
+      }
     });
 
     setGameState('idle');
+    updateModeUI();
+    renderDailyChallenge();
+    renderRunHistory();
+
     if (!storage.ok) {
-      setStatus('storage unavailable: best score will reset when tab closes.', 'warn');
+      setStatus('storage unavailable: best score, streak, and history reset when tab closes.', 'warn');
     }
 
     requestAnimationFrame((t) => {

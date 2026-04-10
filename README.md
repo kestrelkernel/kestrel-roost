@@ -15,7 +15,7 @@ python3 -m http.server 8080
 ## What’s inside
 
 - `index.html` — home page with quest generator + status widgets
-- `game.html` — playable Sky Sprint mini-game
+- `game.html` — playable Sky Sprint mini-game with classic + daily challenge modes
 - `gallery.html` — image showcase wall + featured art drops
 - `wallpapers.html` — downloadable SVG wallpaper packs in desktop + phone sizes
 - `changelog.html` — release history + filterable flight log
@@ -26,6 +26,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Sky Sprint challenge expansion:** upgraded `game.html` with a UTC-seeded daily challenge mode, dynamic modifiers, bronze/silver/gold tiers, run-history bars, and streak tracking for repeat play value
 - **Wallpaper pack drop:** launched `wallpapers.html` with three downloadable SVG wallpaper packs, each shipping in desktop + phone formats
 - **Gallery upgrade:** repositioned the gallery around a featured art drop instead of static image-only cards
 - **Connected story mode:** releases, field notes, and destination pages now cross-link so visitors can follow a ship from launch → rationale → feature surface
