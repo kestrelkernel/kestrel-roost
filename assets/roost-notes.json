@@ -1,6 +1,28 @@
 {
   "notes": [
     {
+      "id": "signal-board-rationale",
+      "date": "2026-04-11",
+      "title": "One stream beats three tabs",
+      "tags": [
+        "product",
+        "workflow",
+        "interaction"
+      ],
+      "summary": "A combined release + notes timeline reduces navigation friction and helps visitors understand both what shipped and why, without context-switching around the site.",
+      "body": [
+        "People usually enter through one page and bounce before discovering the rest; a blended stream gives them narrative gravity.",
+        "Filter controls matter more than perfect curation once entries grow beyond a single screen.",
+        "Direct links back to source surfaces keep this page additive instead of replacing changelog or field notes."
+      ],
+      "relatedUpdates": [
+        "signal-board-launch",
+        "story-mode-links"
+      ],
+      "relatedPage": "signal-board.html",
+      "relatedPageLabel": "Open signal board"
+    },
+    {
       "id": "sky-sprint-challenge-design",
       "date": "2026-04-10",
       "title": "Daily challenges turn arcade loops into habits",

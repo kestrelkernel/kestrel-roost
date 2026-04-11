@@ -22,10 +22,12 @@ python3 -m http.server 8080
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
+- `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`)
 
 ## New in this iteration
 
+- **Signal Board launch:** added `signal-board.html`, a new cross-site timeline that merges releases and notes into one filterable stream with search, tag/type filters, and direct destination links
 - **Sky Sprint challenge expansion:** upgraded `game.html` with a UTC-seeded daily challenge mode, dynamic modifiers, bronze/silver/gold tiers, run-history bars, and streak tracking for repeat play value
 - **Wallpaper pack drop:** launched `wallpapers.html` with three downloadable SVG wallpaper packs, each shipping in desktop + phone formats
 - **Gallery upgrade:** repositioned the gallery around a featured art drop instead of static image-only cards

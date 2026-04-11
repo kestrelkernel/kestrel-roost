@@ -15,6 +15,20 @@
   },
   "updates": [
     {
+      "slug": "signal-board-launch",
+      "date": "2026-04-11",
+      "title": "Launched Signal Board cross-site timeline",
+      "type": "feature",
+      "impact": "Visitors can now browse releases and field notes in one searchable stream, with tag/type filters and direct jump links to pages, changelog entries, and note anchors.",
+      "details": "Added signal-board.html with unified data loading from updates + notes, quick-tag chips, search, type filters, tag filters, and one-click links to every related destination.",
+      "page": "signal-board.html",
+      "pageLabel": "Open signal board",
+      "relatedNotes": [
+        "signal-board-rationale",
+        "ship-log-strategy"
+      ]
+    },
+    {
       "slug": "sky-sprint-daily-challenge",
       "date": "2026-04-10",
       "title": "Added Sky Sprint daily challenge mode + run analytics",

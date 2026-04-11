@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Cross-site signal board for releases and field notes" />
+  <title>Signal Board • Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+      --chip:#13235d;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background: var(--bg); }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background: transparent;
+      overflow-x:hidden;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background:
+        radial-gradient(circle at 12% -5%, #243e88 0%, transparent 40%),
+        radial-gradient(circle at 88% 105%, #18285f 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1060px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:20px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.9rem, 4vw, 2.8rem); }
+    h2 { margin:0 0 10px; font-size:1.02rem; color:#c3d0ff; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+
+    .site-nav,
+    .control-row,
+    .chip-row,
+    .meta-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .site-nav { margin-top:12px; }
+
+    .nav-link,
+    .chip,
+    button,
+    select,
+    input {
+      font:inherit;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      background:#112057;
+      border-radius:10px;
+    }
+    .nav-link,
+    .chip,
+    button {
+      text-decoration:none;
+      cursor:pointer;
+      padding:7px 11px;
+      transition:.15s ease;
+    }
+    .nav-link:hover,
+    .chip:hover,
+    button:hover,
+    .nav-link:focus-visible,
+    .chip:focus-visible,
+    button:focus-visible {
+      transform:translateY(-1px);
+      border-color:#6f8dff;
+      background:#132668;
+      outline:none;
+    }
+    .chip {
+      border-radius:999px;
+      font-size:.78rem;
+      background:#0f1d4d;
+    }
+    .chip.active {
+      background:#1c347f;
+      border-color:#88a4ff;
+      color:#f2f6ff;
+    }
+    .chip[data-kind="count"] {
+      cursor:default;
+      border-style:dashed;
+      color:#c5d2ff;
+      background:#111f4f;
+    }
+
+    .control-row {
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: 1.1fr repeat(2, minmax(160px, .45fr)) auto;
+      gap:10px;
+    }
+    input,
+    select,
+    button {
+      padding:9px 11px;
+      width:100%;
+    }
+    input::placeholder { color:#a2b3ef; }
+
+    .board {
+      display:grid;
+      gap:12px;
+    }
+    .entry {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .entry h3 {
+      margin:0;
+      font-size:1rem;
+      color:#ecf1ff;
+    }
+    .meta-row {
+      gap:8px;
+      font-size:.76rem;
+      color:#9fb0ff;
+    }
+    .kind {
+      font-size:.72rem;
+      padding:2px 7px;
+      border-radius:999px;
+      border:1px solid #4760bc;
+      background:var(--chip);
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+    .kind.note { border-color:#4ca2ff; }
+    .kind.update { border-color:#8d7bff; }
+
+    .entry-links {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .entry-links a {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #3f57b1;
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:.76rem;
+      background:#122058;
+    }
+    .entry-links a:hover,
+    .entry-links a:focus-visible {
+      border-color:#7f9bff;
+      background:#183178;
+      outline:none;
+    }
+
+    .empty {
+      border:1px dashed #42559f;
+      border-radius:12px;
+      padding:14px;
+      color:#9fb0ff;
+      background:#0a1436;
+    }
+
+    .tiny {
+      margin-top:8px;
+      color:#92a5eb;
+      font-size:.78rem;
+    }
+
+    footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:4px 0 20px; }
+
+    @media (max-width: 850px) {
+      .control-row {
+        grid-template-columns:1fr;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .nav-link, .chip, button { transition:none; }
+      .nav-link:hover, .chip:hover, button:hover { transform:none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>signal board</h1>
+      <p>One filterable timeline for ships + notes, so visitors can scan what changed and why without hopping tabs.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="wallpapers.html">wallpapers</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="notes.html">field notes</a>
+        <a class="nav-link" href="signal-board.html">signal board</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>filters</h2>
+      <div class="control-row">
+        <input id="searchInput" type="search" placeholder="Search titles, summaries, tags, and details…" autocomplete="off" />
+        <select id="typeSelect" aria-label="Filter by type">
+          <option value="all">All signal types</option>
+          <option value="update">Ships only</option>
+          <option value="note">Notes only</option>
+        </select>
+        <select id="tagSelect" aria-label="Filter by tag">
+          <option value="all">All tags</option>
+        </select>
+        <button id="resetBtn" type="button">reset</button>
+      </div>
+      <div class="chip-row" id="quickChips" aria-label="Quick filters"></div>
+      <p class="tiny" id="resultMeta">Booting board…</p>
+    </section>
+
+    <section class="board" id="board" aria-live="polite"></section>
+  </main>
+
+  <footer>kestrel's roost • ship loud, document why</footer>
+
+  <script>
+    const board = document.getElementById('board');
+    const resultMeta = document.getElementById('resultMeta');
+    const searchInput = document.getElementById('searchInput');
+    const typeSelect = document.getElementById('typeSelect');
+    const tagSelect = document.getElementById('tagSelect');
+    const resetBtn = document.getElementById('resetBtn');
+    const quickChips = document.getElementById('quickChips');
+
+    const quickTagPriority = ['product', 'design', 'workflow', 'interaction', 'content', 'engineering'];
+
+    const formatDate = (isoDate) => {
+      const date = new Date(`${isoDate}T00:00:00Z`);
+      return Number.isNaN(date.getTime()) ? isoDate : new Intl.DateTimeFormat(undefined, {
+        year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'
+      }).format(date);
+    };
+
+    const escapeHtml = (value = '') => value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+
+    const normalize = (value = '') => value.toLowerCase().trim();
+
+    function makeSearchBlob(entry) {
+      return normalize([
+        entry.title,
+        entry.summary,
+        entry.detail,
+        ...(entry.tags || []),
+        ...(entry.relatedUpdates || []),
+        ...(entry.relatedNotes || [])
+      ].join(' '));
+    }
+
+    function cardTemplate(entry) {
+      const kindClass = entry.kind === 'note' ? 'note' : 'update';
+      const tags = (entry.tags || []).map((tag) => `<span class="chip">#${escapeHtml(tag)}</span>`).join('');
+      const links = [];
+
+      if (entry.page) {
+        links.push(`<a href="${escapeHtml(entry.page)}">${escapeHtml(entry.pageLabel || 'Open related page')}</a>`);
+      }
+      if (entry.kind === 'update') {
+        links.push(`<a href="changelog.html#${escapeHtml(entry.slug)}">Open in changelog</a>`);
+      }
+      if (entry.kind === 'note') {
+        links.push(`<a href="notes.html#${escapeHtml(entry.id)}">Open in field notes</a>`);
+      }
+
+      return `
+        <article class="entry">
+          <div class="meta-row">
+            <span class="kind ${kindClass}">${entry.kind}</span>
+            <span>${formatDate(entry.date)}</span>
+          </div>
+          <h3>${escapeHtml(entry.title)}</h3>
+          <p>${escapeHtml(entry.summary || entry.detail || '')}</p>
+          ${tags ? `<div class="chip-row">${tags}</div>` : ''}
+          <div class="entry-links">${links.join('')}</div>
+        </article>
+      `;
+    }
+
+    function renderEntries(entries, activeFilters) {
+      if (!entries.length) {
+        board.innerHTML = '<article class="empty">No matches yet. Try clearing one filter or searching for fewer terms.</article>';
+      } else {
+        board.innerHTML = entries.map(cardTemplate).join('');
+      }
+
+      const detailBits = [
+        `${entries.length} signal${entries.length === 1 ? '' : 's'}`,
+        activeFilters.type === 'all' ? 'all types' : `${activeFilters.type}s only`,
+        activeFilters.tag === 'all' ? 'all tags' : `tag: #${activeFilters.tag}`
+      ];
+
+      if (activeFilters.query) {
+        detailBits.push(`query: “${activeFilters.query}”`);
+      }
+      resultMeta.textContent = detailBits.join(' • ');
+    }
+
+    function hydrateQuickChips(tagCounts, setTag) {
+      const tags = Object.keys(tagCounts)
+        .sort((a, b) => (tagCounts[b] - tagCounts[a]) || a.localeCompare(b));
+
+      const ordered = [
+        ...quickTagPriority.filter((tag) => tags.includes(tag)),
+        ...tags.filter((tag) => !quickTagPriority.includes(tag)).slice(0, 5)
+      ].slice(0, 8);
+
+      quickChips.innerHTML = [
+        '<span class="chip" data-kind="count">quick tags</span>',
+        ...ordered.map((tag) => `<button class="chip" data-tag="${escapeHtml(tag)}" type="button">#${escapeHtml(tag)} <span aria-hidden="true">(${tagCounts[tag]})</span></button>`)
+      ].join('');
+
+      quickChips.querySelectorAll('button[data-tag]').forEach((button) => {
+        button.addEventListener('click', () => {
+          setTag(button.dataset.tag || 'all');
+        });
+      });
+    }
+
+    async function bootSignalBoard() {
+      try {
+        const [updatesRes, notesRes] = await Promise.all([
+          fetch('assets/roost-updates.json', { cache: 'no-store' }),
+          fetch('assets/roost-notes.json', { cache: 'no-store' })
+        ]);
+
+        if (!updatesRes.ok || !notesRes.ok) {
+          throw new Error('Data files failed to load.');
+        }
+
+        const updatesPayload = await updatesRes.json();
+        const notesPayload = await notesRes.json();
+
+        const updates = (updatesPayload.updates || []).map((update) => ({
+          kind: 'update',
+          date: update.date,
+          title: update.title,
+          summary: update.impact,
+          detail: update.details,
+          page: update.page,
+          pageLabel: update.pageLabel,
+          slug: update.slug,
+          tags: [update.type].filter(Boolean),
+          relatedNotes: update.relatedNotes || []
+        }));
+
+        const notes = (notesPayload.notes || []).map((note) => ({
+          kind: 'note',
+          date: note.date,
+          title: note.title,
+          summary: note.summary,
+          detail: (note.body || []).join(' '),
+          page: note.relatedPage,
+          pageLabel: note.relatedPageLabel,
+          id: note.id,
+          tags: note.tags || [],
+          relatedUpdates: note.relatedUpdates || []
+        }));
+
+        const entries = [...updates, ...notes]
+          .sort((a, b) => `${b.date}`.localeCompare(`${a.date}`))
+          .map((entry) => ({ ...entry, searchBlob: makeSearchBlob(entry) }));
+
+        const tagCounts = {};
+        entries.forEach((entry) => {
+          (entry.tags || []).forEach((tag) => {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          });
+        });
+
+        const tags = Object.keys(tagCounts).sort((a, b) => a.localeCompare(b));
+        tagSelect.innerHTML = ['<option value="all">All tags</option>', ...tags.map((tag) => `<option value="${escapeHtml(tag)}">#${escapeHtml(tag)} (${tagCounts[tag]})</option>`)].join('');
+
+        let activeFilters = { query: '', type: 'all', tag: 'all' };
+
+        const applyFilters = () => {
+          const query = normalize(activeFilters.query);
+          const filtered = entries.filter((entry) => {
+            if (activeFilters.type !== 'all' && entry.kind !== activeFilters.type) return false;
+            if (activeFilters.tag !== 'all' && !(entry.tags || []).includes(activeFilters.tag)) return false;
+            if (query && !entry.searchBlob.includes(query)) return false;
+            return true;
+          });
+
+          renderEntries(filtered, activeFilters);
+          quickChips.querySelectorAll('button[data-tag]').forEach((chip) => {
+            chip.classList.toggle('active', chip.dataset.tag === activeFilters.tag);
+          });
+        };
+
+        const setTag = (tag) => {
+          activeFilters = { ...activeFilters, tag };
+          tagSelect.value = tag;
+          applyFilters();
+        };
+
+        hydrateQuickChips(tagCounts, setTag);
+
+        searchInput.addEventListener('input', () => {
+          activeFilters = { ...activeFilters, query: searchInput.value };
+          applyFilters();
+        });
+
+        typeSelect.addEventListener('change', () => {
+          activeFilters = { ...activeFilters, type: typeSelect.value };
+          applyFilters();
+        });
+
+        tagSelect.addEventListener('change', () => {
+          setTag(tagSelect.value);
+        });
+
+        resetBtn.addEventListener('click', () => {
+          activeFilters = { query: '', type: 'all', tag: 'all' };
+          searchInput.value = '';
+          typeSelect.value = 'all';
+          tagSelect.value = 'all';
+          applyFilters();
+        });
+
+        applyFilters();
+      } catch (error) {
+        board.innerHTML = '<article class="empty">Signal board failed to boot. Check local preview server and data file paths.</article>';
+        resultMeta.textContent = 'Load error';
+        console.error(error);
+      }
+    }
+
+    bootSignalBoard();
+  </script>
+</body>
+</html>
