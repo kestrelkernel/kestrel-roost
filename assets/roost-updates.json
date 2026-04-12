@@ -1,8 +1,8 @@
 {
   "roadmap": {
     "now": [
-      "Tune daily challenge balancing using real run-history patterns from players",
-      "Add one new playful utility page that solves a tiny real problem in under 20 seconds"
+      "Add trend comparisons and release-quality scoring to Release Radar",
+      "Tune daily challenge balancing using real run-history patterns from players"
     ],
     "next": [
       "Add mini case-study layouts for larger releases",
@@ -14,6 +14,20 @@
     ]
   },
   "updates": [
+    {
+      "slug": "release-radar-launch",
+      "date": "2026-04-12",
+      "title": "Shipped Release Radar momentum dashboard",
+      "type": "feature",
+      "impact": "Visitors can now see shipping cadence, release mix, and monthly momentum at a glance instead of reading static logs line-by-line.",
+      "details": "Added release-radar.html with interactive time windows (30/90/180/all), derived velocity stats, type distribution bars, monthly pulse cards, roadmap highlights, and latest-release spotlight.",
+      "page": "release-radar.html",
+      "pageLabel": "Open release radar",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "signal-board-rationale"
+      ]
+    },
     {
       "slug": "signal-board-launch",
       "date": "2026-04-11",

@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Release Radar tracks how fast and where Kestrel's Roost is shipping." />
+  <title>Release Radar | Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+      --info:#b9c8ff;
+      --warn:#ffd479;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      color:var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background:
+        radial-gradient(circle at 18% -8%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 108%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+    }
+    .wrap {
+      width:min(1080px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 10px 30px #00000033;
+      backdrop-filter: blur(4px);
+    }
+    h1 { margin:0; font-size:clamp(2rem, 4vw, 3rem); }
+    h2 { margin:0 0 10px; font-size:1.02rem; color:#d2ddff; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+
+    .site-nav,
+    .controls,
+    .stat-grid,
+    .roadmap-grid,
+    .bars {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .site-nav { margin-top:10px; }
+    .stat-grid,
+    .roadmap-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+      gap:12px;
+    }
+    .btn,
+    .nav-link,
+    .chip {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:6px 11px;
+      font-size:.82rem;
+      background:#0f1d4d;
+    }
+    .btn {
+      border-radius:10px;
+      background:#112057;
+      cursor:pointer;
+      font:inherit;
+      padding:8px 12px;
+    }
+    .btn:hover,
+    .nav-link:hover,
+    .chip:hover,
+    .btn:focus-visible,
+    .nav-link:focus-visible,
+    .chip:focus-visible {
+      border-color:#6f8dff;
+      background:#132668;
+      outline:none;
+    }
+    .chip[aria-pressed="true"] {
+      border-color:#8fb0ff;
+      box-shadow:0 0 0 1px #8fb0ff55 inset;
+      background:#173175;
+    }
+    .stat {
+      border:1px solid #304285;
+      border-radius:12px;
+      padding:12px;
+      background:#0a1333;
+    }
+    .stat strong {
+      display:block;
+      font-size:1.45rem;
+      color:#e8edff;
+      margin-bottom:4px;
+    }
+    .stat span {
+      font-size:.8rem;
+      color:#9fb0ff;
+    }
+
+    .list {
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+    }
+    .list li { margin:6px 0; }
+
+    .bars {
+      display:grid;
+      gap:8px;
+    }
+    .bar-row {
+      display:grid;
+      grid-template-columns:minmax(80px, 120px) 1fr auto;
+      gap:8px;
+      align-items:center;
+      font-size:.82rem;
+    }
+    .bar-track {
+      height:10px;
+      border-radius:999px;
+      background:#111c46;
+      border:1px solid #2b3f83;
+      overflow:hidden;
+    }
+    .bar-fill {
+      height:100%;
+      background:linear-gradient(90deg, #4f73db, #83a8ff);
+    }
+
+    .timeline {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+    .month {
+      border:1px solid #304285;
+      border-radius:10px;
+      padding:9px;
+      background:#0a1333;
+    }
+    .month strong {
+      display:block;
+      font-size:1rem;
+      color:#ecf1ff;
+    }
+    .month span { font-size:.78rem; color:#9fb0ff; }
+
+    .pulse {
+      border:1px solid #3550a8;
+      border-radius:12px;
+      background:linear-gradient(135deg, #0f1d4c, #142b6b);
+      padding:14px;
+      display:grid;
+      gap:9px;
+    }
+    .muted { color:#9fb0ff; font-size:.82rem; }
+
+    footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>release radar</h1>
+      <p>Tracking ship cadence, category mix, and where the roost is flying next.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="wallpapers.html">wallpapers</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="notes.html">field notes</a>
+        <a class="nav-link" href="signal-board.html">signal board</a>
+        <a class="nav-link" href="release-radar.html">release radar</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>window</h2>
+      <div class="controls" id="windowControls" role="group" aria-label="Radar time window">
+        <button class="chip" data-window="30" aria-pressed="true">last 30d</button>
+        <button class="chip" data-window="90" aria-pressed="false">last 90d</button>
+        <button class="chip" data-window="180" aria-pressed="false">last 180d</button>
+        <button class="chip" data-window="all" aria-pressed="false">all-time</button>
+      </div>
+    </section>
+
+    <section class="stat-grid" id="stats"></section>
+
+    <section class="card">
+      <h2>type mix</h2>
+      <div class="bars" id="typeBars"></div>
+    </section>
+
+    <section class="card">
+      <h2>monthly shipping pulse</h2>
+      <div class="timeline" id="monthTimeline"></div>
+    </section>
+
+    <section class="roadmap-grid">
+      <article class="card">
+        <h2>roadmap now</h2>
+        <ul class="list" id="roadmapNow"></ul>
+      </article>
+      <article class="card">
+        <h2>roadmap next</h2>
+        <ul class="list" id="roadmapNext"></ul>
+      </article>
+      <article class="card">
+        <h2>today pulse</h2>
+        <div class="pulse" id="latestPulse"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer>release radar · numbers from roost-updates.json</footer>
+
+  <script>
+    const formatShort = (value) => new Intl.DateTimeFormat('en', {
+      month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+    }).format(value);
+
+    const formatMonth = (date) => new Intl.DateTimeFormat('en', {
+      month: 'short', year: '2-digit', timeZone: 'UTC'
+    }).format(date);
+
+    const statsEl = document.getElementById('stats');
+    const barsEl = document.getElementById('typeBars');
+    const monthEl = document.getElementById('monthTimeline');
+    const controlsEl = document.getElementById('windowControls');
+    const roadmapNowEl = document.getElementById('roadmapNow');
+    const roadmapNextEl = document.getElementById('roadmapNext');
+    const latestPulseEl = document.getElementById('latestPulse');
+
+    let updates = [];
+    let roadmap = { now: [], next: [] };
+    let currentWindow = 30;
+
+    const toMs = (entry) => {
+      const parsed = Date.parse(`${entry.date}T00:00:00Z`);
+      return Number.isFinite(parsed) ? parsed : NaN;
+    };
+
+    const renderRoadmap = () => {
+      roadmapNowEl.innerHTML = '';
+      roadmapNextEl.innerHTML = '';
+      for (const item of roadmap.now ?? []) {
+        const li = document.createElement('li');
+        li.textContent = item;
+        roadmapNowEl.append(li);
+      }
+      for (const item of roadmap.next ?? []) {
+        const li = document.createElement('li');
+        li.textContent = item;
+        roadmapNextEl.append(li);
+      }
+    };
+
+    const filterByWindow = () => {
+      if (currentWindow === 'all') return [...updates];
+      const windowMs = Number(currentWindow) * 24 * 60 * 60 * 1000;
+      const latestMs = updates[0]?.ms;
+      if (!Number.isFinite(latestMs)) return [];
+      return updates.filter((entry) => latestMs - entry.ms <= windowMs);
+    };
+
+    const renderStats = (windowed) => {
+      const latest = windowed[0];
+      const oldest = windowed[windowed.length - 1];
+      const spanDays = latest && oldest ? Math.max(1, Math.round((latest.ms - oldest.ms) / (24 * 60 * 60 * 1000)) + 1) : 0;
+      const cadence = spanDays > 0 ? (windowed.length / spanDays * 30) : 0;
+      const streak = (() => {
+        if (windowed.length === 0) return 0;
+        let count = 1;
+        for (let i = 1; i < windowed.length; i += 1) {
+          const delta = Math.round((windowed[i - 1].ms - windowed[i].ms) / (24 * 60 * 60 * 1000));
+          if (delta <= 2) count += 1;
+          else break;
+        }
+        return count;
+      })();
+
+      const cards = [
+        { value: windowed.length, label: 'releases in window' },
+        { value: spanDays, label: 'days covered' },
+        { value: cadence.toFixed(1), label: 'releases / 30 days' },
+        { value: streak, label: 'hot streak (<=2 day gaps)' }
+      ];
+
+      statsEl.innerHTML = '';
+      for (const card of cards) {
+        const node = document.createElement('article');
+        node.className = 'stat card';
+        node.innerHTML = `<strong>${card.value}</strong><span>${card.label}</span>`;
+        statsEl.append(node);
+      }
+    };
+
+    const renderTypeBars = (windowed) => {
+      const counts = new Map();
+      for (const entry of windowed) {
+        counts.set(entry.type, (counts.get(entry.type) ?? 0) + 1);
+      }
+      const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+      const max = rows[0]?.[1] ?? 1;
+
+      barsEl.innerHTML = '';
+      if (rows.length === 0) {
+        barsEl.innerHTML = '<p class="muted">No releases in this window yet.</p>';
+        return;
+      }
+
+      for (const [type, count] of rows) {
+        const pct = Math.round((count / max) * 100);
+        const row = document.createElement('div');
+        row.className = 'bar-row';
+        row.innerHTML = `
+          <span>${type}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <span>${count}</span>
+        `;
+        barsEl.append(row);
+      }
+    };
+
+    const renderMonths = (windowed) => {
+      const monthCounts = new Map();
+      for (const entry of windowed) {
+        const date = new Date(entry.ms);
+        const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+        monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1);
+      }
+
+      const rows = [...monthCounts.entries()]
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .slice(0, 8);
+
+      monthEl.innerHTML = '';
+      if (rows.length === 0) {
+        monthEl.innerHTML = '<p class="muted">No monthly data to display yet.</p>';
+        return;
+      }
+
+      for (const [key, count] of rows) {
+        const [year, month] = key.split('-').map(Number);
+        const when = new Date(Date.UTC(year, month - 1, 1));
+        const node = document.createElement('article');
+        node.className = 'month';
+        node.innerHTML = `<strong>${count}</strong><span>${formatMonth(when)}</span>`;
+        monthEl.append(node);
+      }
+    };
+
+    const renderLatestPulse = () => {
+      const latest = updates[0];
+      if (!latest) {
+        latestPulseEl.innerHTML = '<p class="muted">No release data found.</p>';
+        return;
+      }
+      latestPulseEl.innerHTML = `
+        <p><strong>${latest.title}</strong></p>
+        <p class="muted">${formatShort(new Date(latest.ms))} · ${latest.type}</p>
+        <p>${latest.impact}</p>
+        <a class="btn" href="${latest.page}">${latest.pageLabel ?? 'open page'}</a>
+      `;
+    };
+
+    const render = () => {
+      const windowed = filterByWindow();
+      renderStats(windowed);
+      renderTypeBars(windowed);
+      renderMonths(windowed);
+      renderLatestPulse();
+    };
+
+    const setWindow = (value) => {
+      currentWindow = value;
+      for (const button of controlsEl.querySelectorAll('.chip')) {
+        button.setAttribute('aria-pressed', String(button.dataset.window === String(value)));
+      }
+      render();
+    };
+
+    controlsEl.addEventListener('click', (event) => {
+      const target = event.target.closest('button[data-window]');
+      if (!target) return;
+      setWindow(target.dataset.window);
+    });
+
+    const boot = async () => {
+      try {
+        const response = await fetch('assets/roost-updates.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        roadmap = data.roadmap ?? roadmap;
+        updates = (data.updates ?? [])
+          .map((entry) => ({ ...entry, ms: toMs(entry) }))
+          .filter((entry) => Number.isFinite(entry.ms))
+          .sort((a, b) => b.ms - a.ms);
+
+        renderRoadmap();
+        render();
+      } catch (error) {
+        statsEl.innerHTML = `<article class="card"><p>radar offline: ${error.message}</p></article>`;
+      }
+    };
+
+    boot();
+  </script>
+</body>
+</html>
