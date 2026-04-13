@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Interactive map of how Kestrel Roost pages, updates, and notes connect" />
+  <title>Roost Atlas · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --line:#2b3a7a;
+      --card:#0d1530cc;
+      --update:#8ab0ff;
+      --note:#7de8c4;
+      --page:#ffcf85;
+      --edge:#3f57a6;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:transparent;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 10% 5%, #22397d 0%, transparent 42%),
+        radial-gradient(circle at 90% 100%, #192957 0%, transparent 44%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1120px, 94vw);
+      margin:30px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--card);
+      padding:18px;
+      backdrop-filter: blur(4px);
+      box-shadow:0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.8rem, 4vw, 2.8rem); }
+    h2 { margin:0 0 10px; font-size:1rem; color:#c8d5ff; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .site-nav {
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .nav-link,
+    button,
+    select,
+    .mini-link {
+      font:inherit;
+      color:#e3eaff;
+      border:1px solid #4962be;
+      border-radius:10px;
+      background:#112057;
+      padding:7px 11px;
+      text-decoration:none;
+    }
+    .nav-link,
+    .mini-link {
+      border-radius:999px;
+      font-size:.82rem;
+      background:#0f1d4d;
+    }
+    button:hover,
+    .nav-link:hover,
+    .mini-link:hover,
+    button:focus-visible,
+    .nav-link:focus-visible,
+    .mini-link:focus-visible,
+    select:focus-visible {
+      border-color:#7390ff;
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+      gap:12px;
+    }
+    .controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .legend {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-left:auto;
+    }
+    .dot {
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      display:inline-block;
+      margin-right:6px;
+      vertical-align:middle;
+    }
+    .atlas-shell {
+      border:1px solid #354a96;
+      border-radius:14px;
+      background:#07102c;
+      overflow:hidden;
+      position:relative;
+    }
+    canvas {
+      display:block;
+      width:100%;
+      height:min(68vh, 640px);
+      cursor:grab;
+    }
+    canvas.dragging { cursor:grabbing; }
+    .hint {
+      position:absolute;
+      left:10px;
+      bottom:10px;
+      font-size:.74rem;
+      color:#9fb0ff;
+      background:#08133a;
+      border:1px solid #31458e;
+      border-radius:999px;
+      padding:4px 8px;
+      pointer-events:none;
+    }
+    .detail {
+      display:grid;
+      gap:10px;
+      align-content:start;
+    }
+    .pill-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .pill {
+      border:1px solid #445da8;
+      border-radius:999px;
+      padding:3px 9px;
+      font-size:.74rem;
+      color:#cfdaff;
+      background:#0d1b4a;
+    }
+    ul { margin:0; padding-left:18px; color:var(--muted); }
+    li { margin:6px 0; }
+    .stat-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+    .stat {
+      border:1px solid #334991;
+      border-radius:10px;
+      background:#0a153a;
+      padding:8px;
+    }
+    .stat b { display:block; font-size:1.05rem; color:#ebf0ff; }
+    .stat span { font-size:.74rem; color:#98a9eb; }
+    footer { text-align:center; color:#8fa3ec; font-size:.84rem; padding:0 0 22px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .legend { margin-left:0; }
+      canvas { height:55vh; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost atlas</h1>
+      <p>Interactive map of how ships, notes, and destination pages connect across the roost.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="wallpapers.html">wallpapers</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="notes.html">field notes</a>
+        <a class="nav-link" href="signal-board.html">signal board</a>
+        <a class="nav-link" href="release-radar.html">release radar</a>
+        <a class="nav-link" href="roost-atlas.html">roost atlas</a>
+      </nav>
+    </section>
+
+    <section class="card layout">
+      <div>
+        <div class="controls">
+          <label for="scope">Scope</label>
+          <select id="scope">
+            <option value="all">All releases</option>
+            <option value="90">Last 90 days</option>
+            <option value="30">Last 30 days</option>
+          </select>
+          <button id="shuffleBtn" type="button">reshuffle map</button>
+          <button id="centerBtn" type="button">center view</button>
+          <div class="legend" aria-label="Node legend">
+            <span><i class="dot" style="background:var(--update)"></i>ship</span>
+            <span><i class="dot" style="background:var(--note)"></i>note</span>
+            <span><i class="dot" style="background:var(--page)"></i>page</span>
+          </div>
+        </div>
+        <div class="atlas-shell">
+          <canvas id="atlas" aria-label="Roost relationship graph"></canvas>
+          <div class="hint">drag canvas to pan · scroll to zoom · click node for details</div>
+        </div>
+      </div>
+      <aside class="detail">
+        <article class="card" style="padding:14px; margin:0;">
+          <h2 id="detailTitle">Select a node</h2>
+          <p id="detailText">Click a ship, note, or page to inspect how it connects to the rest of the site.</p>
+          <div class="pill-row" id="detailTags"></div>
+          <p id="detailMeta" style="font-size:.78rem; color:#94a8ef;"></p>
+          <div id="detailLinks" class="site-nav" style="margin-top:8px;"></div>
+        </article>
+
+        <article class="card" style="padding:14px; margin:0;">
+          <h2>atlas stats</h2>
+          <div class="stat-grid" id="stats"></div>
+          <ul id="insights"></ul>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <footer>kestrel roost · story map mode</footer>
+
+  <script>
+    const CANVAS = document.getElementById('atlas');
+    const ctx = CANVAS.getContext('2d');
+    const scopeSelect = document.getElementById('scope');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const centerBtn = document.getElementById('centerBtn');
+
+    const detailTitle = document.getElementById('detailTitle');
+    const detailText = document.getElementById('detailText');
+    const detailTags = document.getElementById('detailTags');
+    const detailMeta = document.getElementById('detailMeta');
+    const detailLinks = document.getElementById('detailLinks');
+    const statsEl = document.getElementById('stats');
+    const insightsEl = document.getElementById('insights');
+
+    const TYPE_COLOR = {
+      update: '#8ab0ff',
+      note: '#7de8c4',
+      page: '#ffcf85'
+    };
+
+    let graph = { nodes: [], edges: [] };
+    let selectedId = null;
+    let hoveredId = null;
+
+    let view = { x: 0, y: 0, zoom: 1 };
+    let dragging = false;
+    let lastPointer = null;
+
+    function setCanvasSize() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = CANVAS.getBoundingClientRect();
+      CANVAS.width = Math.floor(rect.width * dpr);
+      CANVAS.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function parseDate(dateStr) {
+      return Number.isNaN(Date.parse(dateStr)) ? null : new Date(dateStr + 'T00:00:00Z');
+    }
+
+    function filterUpdates(updates, scope) {
+      if (scope === 'all') return updates;
+      const days = Number(scope);
+      if (!Number.isFinite(days)) return updates;
+      const latestMs = Math.max(...updates.map((u) => Date.parse(u.date + 'T00:00:00Z')));
+      const minMs = latestMs - days * 24 * 60 * 60 * 1000;
+      return updates.filter((u) => Date.parse(u.date + 'T00:00:00Z') >= minMs);
+    }
+
+    function buildGraph(updatesData, notesData, scope) {
+      const filteredUpdates = filterUpdates(updatesData.updates || [], scope);
+      const noteMap = new Map((notesData.notes || []).map((note) => [note.id, note]));
+
+      const usedNoteIds = new Set();
+      const usedPages = new Set();
+
+      const nodes = [];
+      const edges = [];
+
+      filteredUpdates.forEach((update) => {
+        nodes.push({
+          id: 'u:' + update.slug,
+          key: update.slug,
+          label: update.title,
+          short: update.title,
+          type: 'update',
+          date: update.date,
+          data: update
+        });
+
+        if (update.page) {
+          usedPages.add(update.page);
+          edges.push({
+            from: 'u:' + update.slug,
+            to: 'p:' + update.page,
+            kind: 'ships-on'
+          });
+        }
+
+        (update.relatedNotes || []).forEach((noteId) => {
+          if (noteMap.has(noteId)) {
+            usedNoteIds.add(noteId);
+            edges.push({
+              from: 'u:' + update.slug,
+              to: 'n:' + noteId,
+              kind: 'explained-by'
+            });
+          }
+        });
+      });
+
+      usedNoteIds.forEach((noteId) => {
+        const note = noteMap.get(noteId);
+        nodes.push({
+          id: 'n:' + note.id,
+          key: note.id,
+          label: note.title,
+          short: note.title,
+          type: 'note',
+          date: note.date,
+          data: note
+        });
+
+        if (note.relatedPage) {
+          usedPages.add(note.relatedPage);
+          edges.push({
+            from: 'n:' + note.id,
+            to: 'p:' + note.relatedPage,
+            kind: 'anchors-to'
+          });
+        }
+      });
+
+      usedPages.forEach((page) => {
+        nodes.push({
+          id: 'p:' + page,
+          key: page,
+          label: page.replace('.html', '').replace(/-/g, ' '),
+          short: page,
+          type: 'page',
+          data: { page }
+        });
+      });
+
+      const width = CANVAS.clientWidth || 900;
+      const height = CANVAS.clientHeight || 600;
+      nodes.forEach((node, i) => {
+        const ring = node.type === 'page' ? 0.72 : node.type === 'note' ? 0.48 : 0.3;
+        const angle = (i / Math.max(nodes.length, 1)) * Math.PI * 2;
+        const radius = Math.min(width, height) * ring;
+        node.x = Math.cos(angle) * radius + width * 0.5;
+        node.y = Math.sin(angle) * radius + height * 0.5;
+        node.vx = 0;
+        node.vy = 0;
+        node.r = node.type === 'update' ? 8 : node.type === 'note' ? 7 : 6;
+      });
+
+      return { nodes, edges };
+    }
+
+    function runLayout(iterations = 320) {
+      const nodes = graph.nodes;
+      const edges = graph.edges;
+      const nodeById = new Map(nodes.map((n) => [n.id, n]));
+
+      for (let step = 0; step < iterations; step += 1) {
+        for (let i = 0; i < nodes.length; i += 1) {
+          const a = nodes[i];
+          for (let j = i + 1; j < nodes.length; j += 1) {
+            const b = nodes[j];
+            let dx = a.x - b.x;
+            let dy = a.y - b.y;
+            const distSq = dx * dx + dy * dy + 0.1;
+            const force = 1200 / distSq;
+            dx /= Math.sqrt(distSq);
+            dy /= Math.sqrt(distSq);
+            a.vx += dx * force;
+            a.vy += dy * force;
+            b.vx -= dx * force;
+            b.vy -= dy * force;
+          }
+        }
+
+        edges.forEach((edge) => {
+          const from = nodeById.get(edge.from);
+          const to = nodeById.get(edge.to);
+          if (!from || !to) return;
+          const dx = to.x - from.x;
+          const dy = to.y - from.y;
+          const dist = Math.max(Math.hypot(dx, dy), 1);
+          const rest = edge.kind === 'ships-on' ? 145 : 125;
+          const spring = (dist - rest) * 0.008;
+          const ux = dx / dist;
+          const uy = dy / dist;
+          from.vx += ux * spring;
+          from.vy += uy * spring;
+          to.vx -= ux * spring;
+          to.vy -= uy * spring;
+        });
+
+        nodes.forEach((node) => {
+          node.vx *= 0.83;
+          node.vy *= 0.83;
+          node.x += node.vx;
+          node.y += node.vy;
+        });
+      }
+    }
+
+    function worldToScreen(x, y) {
+      return {
+        x: x * view.zoom + view.x,
+        y: y * view.zoom + view.y
+      };
+    }
+
+    function screenToWorld(x, y) {
+      return {
+        x: (x - view.x) / view.zoom,
+        y: (y - view.y) / view.zoom
+      };
+    }
+
+    function draw() {
+      const width = CANVAS.clientWidth;
+      const height = CANVAS.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+
+      const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
+      const linkedToSelected = new Set();
+      if (selectedId) {
+        graph.edges.forEach((edge) => {
+          if (edge.from === selectedId) linkedToSelected.add(edge.to);
+          if (edge.to === selectedId) linkedToSelected.add(edge.from);
+        });
+      }
+
+      graph.edges.forEach((edge) => {
+        const from = nodeById.get(edge.from);
+        const to = nodeById.get(edge.to);
+        if (!from || !to) return;
+        const a = worldToScreen(from.x, from.y);
+        const b = worldToScreen(to.x, to.y);
+        const isHighlighted = selectedId && (edge.from === selectedId || edge.to === selectedId);
+        ctx.strokeStyle = isHighlighted ? '#9fb5ff' : 'rgba(70, 95, 180, 0.62)';
+        ctx.lineWidth = isHighlighted ? 1.8 : 1;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      });
+
+      graph.nodes.forEach((node) => {
+        const p = worldToScreen(node.x, node.y);
+        const selected = node.id === selectedId;
+        const hovered = node.id === hoveredId;
+        const linked = linkedToSelected.has(node.id);
+
+        ctx.beginPath();
+        ctx.fillStyle = TYPE_COLOR[node.type] || '#b6c6ff';
+        ctx.globalAlpha = selected || hovered || !selectedId || linked ? 1 : 0.38;
+        ctx.arc(p.x, p.y, (node.r + (selected ? 3 : hovered ? 2 : 0)) * view.zoom, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        if (selected || hovered || view.zoom > 1.1) {
+          ctx.font = '12px ui-monospace, SFMono-Regular, Menlo, monospace';
+          ctx.fillStyle = '#dce6ff';
+          ctx.fillText(node.short.slice(0, 38), p.x + 10, p.y - 6);
+        }
+      });
+    }
+
+    function findNodeAt(screenX, screenY) {
+      for (let i = graph.nodes.length - 1; i >= 0; i -= 1) {
+        const node = graph.nodes[i];
+        const p = worldToScreen(node.x, node.y);
+        const radius = (node.r + 4) * view.zoom;
+        const dx = screenX - p.x;
+        const dy = screenY - p.y;
+        if (dx * dx + dy * dy <= radius * radius) return node;
+      }
+      return null;
+    }
+
+    function setDetails(node) {
+      if (!node) {
+        detailTitle.textContent = 'Select a node';
+        detailText.textContent = 'Click a ship, note, or page to inspect how it connects to the rest of the site.';
+        detailMeta.textContent = '';
+        detailTags.innerHTML = '';
+        detailLinks.innerHTML = '';
+        return;
+      }
+
+      detailTitle.textContent = node.label;
+      detailTags.innerHTML = '';
+      detailLinks.innerHTML = '';
+
+      const neighborCount = graph.edges.filter((edge) => edge.from === node.id || edge.to === node.id).length;
+      detailMeta.textContent = `${node.type} · ${neighborCount} connections${node.date ? ` · ${node.date}` : ''}`;
+
+      if (node.type === 'update') {
+        detailText.textContent = node.data.impact || 'Release entry';
+        const typeTag = document.createElement('span');
+        typeTag.className = 'pill';
+        typeTag.textContent = node.data.type || 'ship';
+        detailTags.append(typeTag);
+        if (node.data.page) {
+          const link = document.createElement('a');
+          link.className = 'mini-link';
+          link.href = node.data.page;
+          link.textContent = node.data.pageLabel || 'open destination page';
+          detailLinks.append(link);
+        }
+      } else if (node.type === 'note') {
+        detailText.textContent = node.data.summary || 'Field note';
+        (node.data.tags || []).forEach((tag) => {
+          const pill = document.createElement('span');
+          pill.className = 'pill';
+          pill.textContent = tag;
+          detailTags.append(pill);
+        });
+        if (node.data.relatedPage) {
+          const link = document.createElement('a');
+          link.className = 'mini-link';
+          link.href = node.data.relatedPage;
+          link.textContent = node.data.relatedPageLabel || 'open related page';
+          detailLinks.append(link);
+        }
+        if (node.data.id) {
+          const noteLink = document.createElement('a');
+          noteLink.className = 'mini-link';
+          noteLink.href = `notes.html#${encodeURIComponent(node.data.id)}`;
+          noteLink.textContent = 'jump to note entry';
+          detailLinks.append(noteLink);
+        }
+      } else {
+        detailText.textContent = 'Destination page used by one or more ships and notes.';
+        const pageLink = document.createElement('a');
+        pageLink.className = 'mini-link';
+        pageLink.href = node.data.page;
+        pageLink.textContent = 'open page';
+        detailLinks.append(pageLink);
+      }
+    }
+
+    function updateStats() {
+      const counts = {
+        update: graph.nodes.filter((n) => n.type === 'update').length,
+        note: graph.nodes.filter((n) => n.type === 'note').length,
+        page: graph.nodes.filter((n) => n.type === 'page').length,
+        edges: graph.edges.length
+      };
+
+      const statRows = [
+        ['ships', counts.update],
+        ['notes', counts.note],
+        ['pages', counts.page],
+        ['links', counts.edges]
+      ];
+      statsEl.innerHTML = statRows
+        .map(([label, value]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`)
+        .join('');
+
+      const busiest = graph.nodes
+        .map((node) => ({
+          node,
+          degree: graph.edges.filter((edge) => edge.from === node.id || edge.to === node.id).length
+        }))
+        .sort((a, b) => b.degree - a.degree)
+        .slice(0, 3);
+
+      insightsEl.innerHTML = '';
+      busiest.forEach((entry, idx) => {
+        const item = document.createElement('li');
+        item.textContent = `Top connector ${idx + 1}: ${entry.node.label} (${entry.degree} links)`;
+        insightsEl.append(item);
+      });
+    }
+
+    function centerView() {
+      view.zoom = 1;
+      view.x = 0;
+      view.y = 0;
+      draw();
+    }
+
+    async function loadData() {
+      const [updatesRes, notesRes] = await Promise.all([
+        fetch('assets/roost-updates.json', { cache: 'no-store' }),
+        fetch('assets/roost-notes.json', { cache: 'no-store' })
+      ]);
+
+      if (!updatesRes.ok || !notesRes.ok) {
+        throw new Error('Failed to load atlas datasets');
+      }
+
+      const updates = await updatesRes.json();
+      const notes = await notesRes.json();
+
+      graph = buildGraph(updates, notes, scopeSelect.value);
+      runLayout();
+      selectedId = graph.nodes[0]?.id || null;
+      setDetails(graph.nodes[0] || null);
+      updateStats();
+      centerView();
+    }
+
+    scopeSelect.addEventListener('change', loadData);
+    shuffleBtn.addEventListener('click', () => {
+      graph.nodes.forEach((node) => {
+        node.x += (Math.random() - 0.5) * 150;
+        node.y += (Math.random() - 0.5) * 150;
+      });
+      runLayout(220);
+      draw();
+    });
+    centerBtn.addEventListener('click', centerView);
+
+    CANVAS.addEventListener('mousedown', (event) => {
+      dragging = true;
+      CANVAS.classList.add('dragging');
+      lastPointer = { x: event.clientX, y: event.clientY };
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      const rect = CANVAS.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      hoveredId = findNodeAt(x, y)?.id || null;
+
+      if (dragging && lastPointer) {
+        view.x += event.clientX - lastPointer.x;
+        view.y += event.clientY - lastPointer.y;
+        lastPointer = { x: event.clientX, y: event.clientY };
+      }
+
+      draw();
+    });
+
+    window.addEventListener('mouseup', () => {
+      dragging = false;
+      CANVAS.classList.remove('dragging');
+      lastPointer = null;
+    });
+
+    CANVAS.addEventListener('click', (event) => {
+      const rect = CANVAS.getBoundingClientRect();
+      const node = findNodeAt(event.clientX - rect.left, event.clientY - rect.top);
+      selectedId = node?.id || null;
+      setDetails(node || null);
+      draw();
+    });
+
+    CANVAS.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      const rect = CANVAS.getBoundingClientRect();
+      const sx = event.clientX - rect.left;
+      const sy = event.clientY - rect.top;
+      const before = screenToWorld(sx, sy);
+      const factor = event.deltaY < 0 ? 1.08 : 0.92;
+      view.zoom = Math.min(2.8, Math.max(0.45, view.zoom * factor));
+      const after = worldToScreen(before.x, before.y);
+      view.x += sx - after.x;
+      view.y += sy - after.y;
+      draw();
+    }, { passive: false });
+
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+      draw();
+    });
+
+    setCanvasSize();
+    loadData().catch((error) => {
+      detailTitle.textContent = 'Atlas offline';
+      detailText.textContent = error.message;
+    });
+  </script>
+</body>
+</html>

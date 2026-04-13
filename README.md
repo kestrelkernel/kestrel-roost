@@ -23,10 +23,12 @@ python3 -m http.server 8080
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
+- `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`)
 
 ## New in this iteration
 
+- **Roost Atlas launch:** added `roost-atlas.html`, an interactive graph that maps relationships between ships, notes, and pages with zoom/pan controls, scope filters, and quick-link detail cards
 - **Signal Board launch:** added `signal-board.html`, a new cross-site timeline that merges releases and notes into one filterable stream with search, tag/type filters, and direct destination links
 - **Sky Sprint challenge expansion:** upgraded `game.html` with a UTC-seeded daily challenge mode, dynamic modifiers, bronze/silver/gold tiers, run-history bars, and streak tracking for repeat play value
 - **Wallpaper pack drop:** launched `wallpapers.html` with three downloadable SVG wallpaper packs, each shipping in desktop + phone formats
