@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Generate shareable Kestrel Roost progress digests." />
+  <title>Captain's Log - Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+      --warn:#ffd479;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 15% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 105%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1100px, 94vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+      padding-bottom:26px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:20px;
+      backdrop-filter: blur(4px);
+      box-shadow:0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 10px; font-size:clamp(2rem,5vw,3rem); }
+    h2 { margin:0 0 8px; font-size:1rem; color:#c7d3ff; }
+    h3 { margin:0; font-size:.95rem; color:#dbe3ff; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+    .site-nav, .controls, .chip-row, .link-row {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .site-nav { margin-top:10px; }
+    .nav-link, button, select {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:7px 12px;
+      background:#0f1d4d;
+      font:inherit;
+      font-size:.82rem;
+    }
+    button, select { border-radius:10px; cursor:pointer; }
+    button:hover, .nav-link:hover, select:hover,
+    button:focus-visible, .nav-link:focus-visible, select:focus-visible {
+      transform:translateY(-1px);
+      border-color:#6f8dff;
+      background:#132668;
+      outline:none;
+    }
+    .controls { align-items:center; }
+    .layout {
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+    }
+    .summary-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap:10px;
+    }
+    .summary-box {
+      border:1px solid #31448b;
+      border-radius:12px;
+      padding:12px;
+      background:#09122f;
+      display:grid;
+      gap:5px;
+    }
+    .summary-value { font-size:1.45rem; color:#eaf0ff; }
+    .chip {
+      border:1px dashed #4861be;
+      border-radius:999px;
+      padding:5px 10px;
+      color:#c9d5ff;
+      font-size:.78rem;
+    }
+    textarea {
+      width:100%;
+      min-height:420px;
+      resize:vertical;
+      border:1px solid #3b4f9f;
+      border-radius:12px;
+      background:#060c24;
+      color:#dce5ff;
+      font:inherit;
+      padding:12px;
+      line-height:1.45;
+    }
+    .status { min-height:1.2em; margin-top:8px; font-size:.8rem; color:#b7c7ff; }
+    .entry-list {
+      margin:0;
+      padding-left:18px;
+      color:#b9c8ff;
+      display:grid;
+      gap:8px;
+    }
+    .entry-list strong { color:#e5ebff; }
+    .ok { color:var(--good); }
+    .warn { color:var(--warn); }
+    .small { font-size:.8rem; color:#9fb0ff; }
+    @media (max-width: 940px) {
+      .layout { grid-template-columns: 1fr; }
+      textarea { min-height:320px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>captain's log</h1>
+      <p>Generate a shareable digest from recent ships and field notes in one click, with markdown output for changelogs, Discord posts, and planning docs.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="wallpapers.html">wallpapers</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="notes.html">field notes</a>
+        <a class="nav-link" href="signal-board.html">signal board</a>
+        <a class="nav-link" href="release-radar.html">release radar</a>
+        <a class="nav-link" href="roost-atlas.html">roost atlas</a>
+        <a class="nav-link" href="captains-log.html">captain's log</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <div class="controls" role="group" aria-label="Digest controls">
+        <label>
+          Window
+          <select id="windowSelect">
+            <option value="7">last 7 days</option>
+            <option value="30" selected>last 30 days</option>
+            <option value="90">last 90 days</option>
+            <option value="all">all-time</option>
+          </select>
+        </label>
+        <label>
+          Focus
+          <select id="focusSelect">
+            <option value="all" selected>all ships</option>
+            <option value="feature">feature ships</option>
+            <option value="content">content ships</option>
+            <option value="design">design ships</option>
+            <option value="interaction">interaction ships</option>
+          </select>
+        </label>
+        <button id="regenerateBtn" type="button">regenerate digest</button>
+        <button id="copyBtn" type="button">copy markdown</button>
+      </div>
+      <div class="status" id="status" aria-live="polite"></div>
+    </section>
+
+    <section class="layout" aria-label="Digest output and context">
+      <article class="card">
+        <h2>digest markdown</h2>
+        <p class="small">Edits are allowed before copying. The generated text is plain markdown so it works in docs, issues, and chat tools.</p>
+        <textarea id="digestOutput" spellcheck="false" aria-label="Generated digest markdown"></textarea>
+      </article>
+      <article class="card" id="contextPanel">
+        <h2>digest snapshot</h2>
+        <div class="summary-grid" id="summaryGrid"></div>
+        <h3 style="margin-top:14px;">included ships</h3>
+        <ol class="entry-list" id="shipList"></ol>
+        <h3 style="margin-top:14px;">included notes</h3>
+        <ol class="entry-list" id="noteList"></ol>
+        <div class="chip-row" id="tagChips" style="margin-top:12px;"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const fmtDate = (value) => {
+      const date = new Date(value + 'T00:00:00Z');
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+    };
+
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('digestOutput');
+    const summaryGridEl = document.getElementById('summaryGrid');
+    const shipListEl = document.getElementById('shipList');
+    const noteListEl = document.getElementById('noteList');
+    const tagChipsEl = document.getElementById('tagChips');
+
+    const state = { updates: [], notes: [] };
+
+    function setStatus(text, cls = '') {
+      statusEl.textContent = text;
+      statusEl.className = `status ${cls}`.trim();
+    }
+
+    function getRangeStart(windowValue) {
+      if (windowValue === 'all') return null;
+      const days = Number(windowValue) || 30;
+      const now = new Date();
+      const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      start.setUTCDate(start.getUTCDate() - days + 1);
+      return start;
+    }
+
+    function inRange(itemDate, startDate) {
+      if (!startDate) return true;
+      const d = new Date(itemDate + 'T00:00:00Z');
+      return d >= startDate;
+    }
+
+    function summarizeTypes(updates) {
+      return updates.reduce((acc, update) => {
+        acc[update.type] = (acc[update.type] || 0) + 1;
+        return acc;
+      }, {});
+    }
+
+    function makeDigest(updates, notes, windowValue, focus) {
+      const rangeStart = getRangeStart(windowValue);
+      const visibleUpdates = updates
+        .filter((update) => inRange(update.date, rangeStart))
+        .filter((update) => focus === 'all' ? true : update.type === focus);
+
+      const relatedUpdateSlugs = new Set(visibleUpdates.map((update) => update.slug));
+      const visibleNotes = notes.filter((note) => {
+        if (!inRange(note.date, rangeStart)) return false;
+        if (focus === 'all') return true;
+        return note.relatedUpdates?.some((slug) => relatedUpdateSlugs.has(slug));
+      });
+
+      const typeMix = summarizeTypes(visibleUpdates);
+      const topTags = visibleNotes
+        .flatMap((note) => note.tags || [])
+        .reduce((acc, tag) => {
+          acc[tag] = (acc[tag] || 0) + 1;
+          return acc;
+        }, {});
+
+      const orderedTags = Object.entries(topTags)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 6);
+
+      const today = new Date();
+      const headingWindow = windowValue === 'all' ? 'all-time' : `${windowValue}-day`;
+      const lines = [
+        `# Kestrel Roost Captain's Log (${headingWindow} digest)`,
+        '',
+        `Generated: ${today.toISOString().slice(0, 10)} (UTC)`,
+        '',
+        '## Snapshot',
+        `- Ships logged: ${visibleUpdates.length}`,
+        `- Notes included: ${visibleNotes.length}`,
+        `- Focus mode: ${focus}`,
+        `- Type mix: ${Object.keys(typeMix).length ? Object.entries(typeMix).map(([type, count]) => `${type} ${count}`).join(', ') : 'none'}`,
+        `- Top tags: ${orderedTags.length ? orderedTags.map(([tag, count]) => `${tag} (${count})`).join(', ') : 'none'}`,
+        '',
+        '## Shipped this window',
+        ...(visibleUpdates.length
+          ? visibleUpdates.map((update) => `- **${fmtDate(update.date)}** - ${update.title} (${update.type})\n  - ${update.impact}`)
+          : ['- No ships matched this filter window yet.']),
+        '',
+        '## Notes worth reading',
+        ...(visibleNotes.length
+          ? visibleNotes.map((note) => `- **${fmtDate(note.date)}** - ${note.title}\n  - ${note.summary}`)
+          : ['- No notes matched this filter window yet.']),
+        '',
+        '## Next move',
+        visibleUpdates.length
+          ? `- Expand on **${visibleUpdates[0].title}** with a follow-up interaction or content drop this week.`
+          : '- Ship one visible feature before the next digest so this section has momentum to report.'
+      ];
+
+      return {
+        markdown: lines.join('\n'),
+        visibleUpdates,
+        visibleNotes,
+        typeMix,
+        orderedTags
+      };
+    }
+
+    function renderSummary(model) {
+      summaryGridEl.innerHTML = '';
+      const summary = [
+        ['ships', model.visibleUpdates.length],
+        ['notes', model.visibleNotes.length],
+        ['types', Object.keys(model.typeMix).length],
+        ['tags', model.orderedTags.length]
+      ];
+      summary.forEach(([label, value]) => {
+        const box = document.createElement('div');
+        box.className = 'summary-box';
+        box.innerHTML = `<div class="summary-value">${value}</div><div>${label}</div>`;
+        summaryGridEl.appendChild(box);
+      });
+
+      shipListEl.innerHTML = '';
+      noteListEl.innerHTML = '';
+      tagChipsEl.innerHTML = '';
+
+      const shipPreview = model.visibleUpdates.slice(0, 7);
+      const notePreview = model.visibleNotes.slice(0, 7);
+
+      if (!shipPreview.length) {
+        const li = document.createElement('li');
+        li.textContent = 'No ships in this filter window.';
+        shipListEl.appendChild(li);
+      } else {
+        shipPreview.forEach((item) => {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${item.title}</strong> <span class="small">(${item.type}, ${fmtDate(item.date)})</span>`;
+          shipListEl.appendChild(li);
+        });
+      }
+
+      if (!notePreview.length) {
+        const li = document.createElement('li');
+        li.textContent = 'No notes in this filter window.';
+        noteListEl.appendChild(li);
+      } else {
+        notePreview.forEach((item) => {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${item.title}</strong> <span class="small">(${fmtDate(item.date)})</span>`;
+          noteListEl.appendChild(li);
+        });
+      }
+
+      if (!model.orderedTags.length) {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = 'no tags in current filter';
+        tagChipsEl.appendChild(chip);
+      } else {
+        model.orderedTags.forEach(([tag, count]) => {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = `${tag} (${count})`;
+          tagChipsEl.appendChild(chip);
+        });
+      }
+    }
+
+    function regenerate() {
+      const windowValue = document.getElementById('windowSelect').value;
+      const focus = document.getElementById('focusSelect').value;
+      const model = makeDigest(state.updates, state.notes, windowValue, focus);
+      outputEl.value = model.markdown;
+      renderSummary(model);
+      setStatus(`Digest regenerated for ${windowValue === 'all' ? 'all-time' : `${windowValue} days`} (${focus} focus).`, 'ok');
+    }
+
+    async function copyMarkdown() {
+      const text = outputEl.value;
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('Copied digest markdown to clipboard.', 'ok');
+      } catch {
+        outputEl.focus();
+        outputEl.select();
+        const ok = document.execCommand('copy');
+        setStatus(ok ? 'Copied digest markdown to clipboard.' : 'Copy failed, select and copy manually.', ok ? 'ok' : 'warn');
+      }
+    }
+
+    async function init() {
+      setStatus('Loading ships and notes...');
+      try {
+        const [updatesRes, notesRes] = await Promise.all([
+          fetch('assets/roost-updates.json', { cache: 'no-store' }),
+          fetch('assets/roost-notes.json', { cache: 'no-store' })
+        ]);
+        if (!updatesRes.ok || !notesRes.ok) {
+          throw new Error('Could not load content data.');
+        }
+        const updatesData = await updatesRes.json();
+        const notesData = await notesRes.json();
+        state.updates = Array.isArray(updatesData.updates) ? updatesData.updates : [];
+        state.notes = Array.isArray(notesData.notes) ? notesData.notes : [];
+
+        document.getElementById('regenerateBtn').addEventListener('click', regenerate);
+        document.getElementById('copyBtn').addEventListener('click', copyMarkdown);
+        document.getElementById('windowSelect').addEventListener('change', regenerate);
+        document.getElementById('focusSelect').addEventListener('change', regenerate);
+
+        regenerate();
+      } catch (error) {
+        setStatus(error.message || 'Failed to load data.', 'warn');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

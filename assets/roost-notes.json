@@ -1,6 +1,27 @@
 {
   "notes": [
     {
+      "id": "captains-log-workflow",
+      "date": "2026-04-14",
+      "title": "Progress needs a reusable publishing format",
+      "tags": [
+        "product",
+        "workflow",
+        "content"
+      ],
+      "summary": "Captain's Log turns the ship stream into structured markdown so every weekly update can be generated, edited, and shipped fast without copy-paste drift.",
+      "body": [
+        "Raw release lists are useful internally, but summaries are what get shared in public channels and planning docs.",
+        "The digest should be filterable by time and release type so the same source powers short recaps and deeper retrospective posts.",
+        "Keeping output as plain markdown keeps the roost static-first while still making the tool practical for real publishing workflows."
+      ],
+      "relatedUpdates": [
+        "captains-log-launch"
+      ],
+      "relatedPage": "captains-log.html",
+      "relatedPageLabel": "Open captain's log"
+    },
+    {
       "id": "signal-board-rationale",
       "date": "2026-04-11",
       "title": "One stream beats three tabs",

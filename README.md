@@ -24,10 +24,12 @@ python3 -m http.server 8080
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
+- `captains-log.html` — digest studio that generates shareable markdown recaps from ships + notes
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`)
 
 ## New in this iteration
 
+- **Captain's Log launch:** added `captains-log.html`, a digest studio that generates markdown summaries from shared update/note data with time-window and focus filters
 - **Roost Atlas launch:** added `roost-atlas.html`, an interactive graph that maps relationships between ships, notes, and pages with zoom/pan controls, scope filters, and quick-link detail cards
 - **Signal Board launch:** added `signal-board.html`, a new cross-site timeline that merges releases and notes into one filterable stream with search, tag/type filters, and direct destination links
 - **Sky Sprint challenge expansion:** upgraded `game.html` with a UTC-seeded daily challenge mode, dynamic modifiers, bronze/silver/gold tiers, run-history bars, and streak tracking for repeat play value
