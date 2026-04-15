@@ -204,6 +204,84 @@
     }
     .story-callout strong { color:#ffffff; }
 
+    .planner-grid {
+      display:grid;
+      gap:12px;
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+      align-items:start;
+    }
+    .planner-box {
+      border:1px solid #30418a;
+      border-radius:12px;
+      background:#0b173f;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .planner-box h3 {
+      margin:0;
+      font-size:.9rem;
+      color:#dce5ff;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .planner-list {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:8px;
+    }
+    .planner-item {
+      border:1px solid #3a4f9d;
+      border-radius:10px;
+      background:#0f1d4b;
+      padding:10px;
+      display:grid;
+      gap:8px;
+    }
+    .planner-item-title {
+      margin:0;
+      font-size:.86rem;
+      color:#e6ecff;
+    }
+    .planner-item-meta {
+      font-size:.74rem;
+      color:#9fb0f3;
+      display:flex;
+      gap:7px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .planner-actions {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .planner-note {
+      border-radius:10px;
+      border:1px solid #3a4f9d;
+      background:#0d1943;
+      color:#e6ecff;
+      font:inherit;
+      min-height:90px;
+      padding:10px 12px;
+      resize:vertical;
+    }
+    .planner-meta {
+      font-size:.79rem;
+      color:#a8b8f7;
+    }
+    .status-chip {
+      border:1px dashed #4e66bf;
+      border-radius:999px;
+      padding:3px 9px;
+      font-size:.72rem;
+      color:#bfd0ff;
+      background:#111f52;
+      width:fit-content;
+    }
+
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:8px 0 20px; }
   </style>
 </head>
@@ -259,6 +337,29 @@
     </section>
 
     <section class="card">
+      <h2>mission planner</h2>
+      <p style="margin-bottom:12px;">pick up to three ships, add a mission note, and copy a markdown brief for your next build sprint.</p>
+      <div class="planner-grid">
+        <article class="planner-box">
+          <h3>selected mission ships</h3>
+          <ul class="planner-list" id="missionList" aria-live="polite"></ul>
+          <p class="planner-meta" id="missionMeta">loading mission state...</p>
+          <textarea class="planner-note" id="missionNote" placeholder="Mission focus note (optional): what outcome are we aiming for?"></textarea>
+          <div class="planner-actions">
+            <button class="btn" id="copyMissionBrief" type="button">Copy mission brief</button>
+            <button class="ghost-btn" id="clearMission" type="button">Clear mission</button>
+            <span class="status-chip" id="missionStatus">standby</span>
+          </div>
+        </article>
+        <article class="planner-box">
+          <h3>quick picks (latest ships)</h3>
+          <div class="chip-row" id="missionQuickPicks"></div>
+          <p class="planner-meta">Tip: use “Add to mission” inside any ship card below to curate your sprint directly from filtered results.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
       <h2>connected ships</h2>
       <div class="toolbar" aria-label="Filter ship cards">
         <div class="chip-row" id="typeFilters" role="toolbar" aria-label="Filter updates by type"></div>
@@ -281,6 +382,13 @@
     const shipCount = document.getElementById('shipCount');
     const linkedNoteCount = document.getElementById('linkedNoteCount');
     const destinationCount = document.getElementById('destinationCount');
+    const missionList = document.getElementById('missionList');
+    const missionMeta = document.getElementById('missionMeta');
+    const missionNote = document.getElementById('missionNote');
+    const missionStatus = document.getElementById('missionStatus');
+    const missionQuickPicks = document.getElementById('missionQuickPicks');
+    const copyMissionBrief = document.getElementById('copyMissionBrief');
+    const clearMission = document.getElementById('clearMission');
 
     const laneConfig = [
       { key: 'now', title: 'now', className: 'lane-now' },
@@ -291,6 +399,8 @@
     let allUpdates = [];
     let notesById = new Map();
     let activeType = 'all';
+    const missionStorageKey = 'kestrelRoostMissionPlanV1';
+    let missionPlan = { picks: [], note: '' };
 
     const formatDate = (isoDate) => {
       const parsed = new Date(`${isoDate}T00:00:00Z`);
@@ -299,6 +409,162 @@
     };
 
     const normalize = (value) => String(value || '').toLowerCase();
+
+    const sortByDateDesc = (items) => [...items].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+    const getUpdateBySlug = (slug) => allUpdates.find((entry) => entry.slug === slug);
+
+    const setMissionStatus = (text) => {
+      missionStatus.textContent = text;
+    };
+
+    const loadMissionPlan = () => {
+      try {
+        const raw = localStorage.getItem(missionStorageKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.picks)) {
+          missionPlan.picks = parsed.picks.filter((slug) => typeof slug === 'string').slice(0, 3);
+        }
+        if (typeof parsed.note === 'string') {
+          missionPlan.note = parsed.note;
+        }
+      } catch {
+        missionPlan = { picks: [], note: '' };
+      }
+    };
+
+    const saveMissionPlan = () => {
+      localStorage.setItem(missionStorageKey, JSON.stringify(missionPlan));
+    };
+
+    const getMissionUpdates = () => missionPlan.picks
+      .map((slug) => getUpdateBySlug(slug))
+      .filter(Boolean);
+
+    const removeMissionPick = (slug) => {
+      missionPlan.picks = missionPlan.picks.filter((item) => item !== slug);
+      saveMissionPlan();
+      renderMissionPlanner();
+      renderUpdates();
+      setMissionStatus('ship removed');
+    };
+
+    const addMissionPick = (slug) => {
+      if (!slug || missionPlan.picks.includes(slug)) {
+        setMissionStatus('already in mission');
+        return;
+      }
+      if (missionPlan.picks.length >= 3) {
+        setMissionStatus('mission full (max 3)');
+        return;
+      }
+      missionPlan.picks.push(slug);
+      saveMissionPlan();
+      renderMissionPlanner();
+      renderUpdates();
+      setMissionStatus('ship added');
+    };
+
+    const createMissionBrief = () => {
+      const picks = getMissionUpdates();
+      const lines = [
+        '# Kestrel Roost Mission Brief',
+        '',
+        `Date: ${new Date().toISOString().slice(0, 10)}`,
+        ''
+      ];
+
+      if (missionPlan.note.trim()) {
+        lines.push('## Focus');
+        lines.push(missionPlan.note.trim());
+        lines.push('');
+      }
+
+      lines.push('## Priority Ships');
+      if (picks.length === 0) {
+        lines.push('- No ships selected yet.');
+      } else {
+        for (const update of picks) {
+          lines.push(`- **${update.title}** (${update.type || 'ship'}, ${formatDate(update.date)})`);
+          lines.push(`  - Impact: ${update.impact || 'n/a'}`);
+          if (update.page) lines.push(`  - Destination: ${update.page}`);
+        }
+      }
+
+      return lines.join('\n');
+    };
+
+    const copyMissionToClipboard = async () => {
+      const brief = createMissionBrief();
+      try {
+        await navigator.clipboard.writeText(brief);
+        setMissionStatus('brief copied');
+      } catch {
+        setMissionStatus('clipboard blocked');
+      }
+    };
+
+    const renderMissionQuickPicks = () => {
+      missionQuickPicks.innerHTML = '';
+      const latest = sortByDateDesc(allUpdates).slice(0, 8);
+      for (const update of latest) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip';
+        btn.textContent = missionPlan.picks.includes(update.slug) ? `✓ ${update.title}` : `+ ${update.title}`;
+        btn.disabled = !missionPlan.picks.includes(update.slug) && missionPlan.picks.length >= 3;
+        btn.addEventListener('click', () => {
+          if (missionPlan.picks.includes(update.slug)) {
+            removeMissionPick(update.slug);
+          } else {
+            addMissionPick(update.slug);
+          }
+        });
+        missionQuickPicks.appendChild(btn);
+      }
+    };
+
+    const renderMissionPlanner = () => {
+      missionList.innerHTML = '';
+      const picks = getMissionUpdates();
+      missionMeta.textContent = `${picks.length}/3 ships selected`;
+      missionNote.value = missionPlan.note;
+
+      if (picks.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'planner-item';
+        empty.innerHTML = '<p class="planner-item-title">No ships selected yet. Add from quick picks or ship cards.</p>';
+        missionList.appendChild(empty);
+      } else {
+        for (const update of picks) {
+          const item = document.createElement('li');
+          item.className = 'planner-item';
+
+          const title = document.createElement('p');
+          title.className = 'planner-item-title';
+          title.textContent = update.title;
+
+          const meta = document.createElement('div');
+          meta.className = 'planner-item-meta';
+          meta.innerHTML = `<span class="type-badge">${update.type || 'ship'}</span><span>${formatDate(update.date)}</span>`;
+
+          const actions = document.createElement('div');
+          actions.className = 'planner-actions';
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'ghost-btn';
+          removeBtn.textContent = 'Remove';
+          removeBtn.addEventListener('click', () => removeMissionPick(update.slug));
+          actions.appendChild(removeBtn);
+
+          item.append(title, meta, actions);
+          missionList.appendChild(item);
+        }
+      }
+
+      renderMissionQuickPicks();
+    };
 
     const createLane = (title, className, items) => {
       const lane = document.createElement('article');
@@ -431,6 +697,19 @@
         changelogLink.textContent = 'Open changelog entry';
         actions.appendChild(changelogLink);
 
+        const missionBtn = document.createElement('button');
+        missionBtn.type = 'button';
+        missionBtn.className = 'ghost-btn';
+        missionBtn.textContent = missionPlan.picks.includes(update.slug) ? 'Remove from mission' : 'Add to mission';
+        missionBtn.addEventListener('click', () => {
+          if (missionPlan.picks.includes(update.slug)) {
+            removeMissionPick(update.slug);
+          } else {
+            addMissionPick(update.slug);
+          }
+        });
+        actions.appendChild(missionBtn);
+
         const relatedWrap = document.createElement('div');
         relatedWrap.className = 'link-row';
         const relatedNotes = getRelatedNotes(update);
@@ -476,6 +755,18 @@
     };
 
     shipSearch.addEventListener('input', renderUpdates);
+    missionNote.addEventListener('input', () => {
+      missionPlan.note = missionNote.value;
+      saveMissionPlan();
+    });
+    copyMissionBrief.addEventListener('click', copyMissionToClipboard);
+    clearMission.addEventListener('click', () => {
+      missionPlan = { picks: [], note: '' };
+      saveMissionPlan();
+      renderMissionPlanner();
+      renderUpdates();
+      setMissionStatus('mission cleared');
+    });
 
     const bootstrap = async () => {
       try {
@@ -500,12 +791,16 @@
         renderSummary();
         renderStoryCallout();
         renderFilters();
+        loadMissionPlan();
+        renderMissionPlanner();
+        setMissionStatus('ready');
         renderUpdates();
       } catch (error) {
         roadmapGrid.innerHTML = '<div class="empty">Unable to load roadmap data right now.</div>';
         updatesGrid.innerHTML = '<div class="empty">Unable to load ship log right now.</div>';
         storyCallout.innerHTML = '<p>Connected story unavailable right now.</p>';
         resultsMeta.textContent = 'ships unavailable';
+        missionList.innerHTML = '<li class="planner-item"><p class="planner-item-title">Mission planner unavailable right now.</p></li>';
       }
     };
 

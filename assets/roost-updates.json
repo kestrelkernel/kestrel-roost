@@ -2,7 +2,8 @@
   "roadmap": {
     "now": [
       "Add one-click publish targets (Discord/GitHub) to Captain's Log output",
-      "Add path-highlighting modes and URL-shareable filters to Roost Atlas"
+      "Add path-highlighting modes and URL-shareable filters to Roost Atlas",
+      "Add auto-generated mission suggestions based on release velocity and note tags in Flight Deck"
     ],
     "next": [
       "Add mini case-study layouts for larger releases",
@@ -14,6 +15,20 @@
     ]
   },
   "updates": [
+    {
+      "slug": "flight-deck-mission-planner",
+      "date": "2026-04-15",
+      "title": "Added Flight Deck mission planner with persistent sprint briefs",
+      "type": "interaction",
+      "impact": "Visitors can now pick up to three releases as a focused mission, store their sprint note locally, and copy a markdown brief in one click for planning or sharing.",
+      "details": "Expanded flight-deck.html with a new mission planner surface, quick-pick chips from recent ships, in-card add/remove mission controls, localStorage-backed state, and clipboard brief export.",
+      "page": "flight-deck.html",
+      "pageLabel": "Open mission planner",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "captains-log-workflow"
+      ]
+    },
     {
       "slug": "captains-log-launch",
       "date": "2026-04-14",
