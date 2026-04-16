@@ -16,6 +16,20 @@
   },
   "updates": [
     {
+      "slug": "roost-lab-theme-studio",
+      "date": "2026-04-16",
+      "title": "Launched Roost Lab theme prototyping studio",
+      "type": "feature",
+      "impact": "Visitors can now dial in accent color, spacing, radius, and type scale in real time, validate contrast, and copy a ready-to-paste CSS token block for rapid visual iteration.",
+      "details": "Added roost-lab.html with persistent slider controls, live component preview, contrast ratio status, accent hex readout, and one-click CSS token export to clipboard.",
+      "page": "roost-lab.html",
+      "pageLabel": "Open roost lab",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "roost-linking-system"
+      ]
+    },
+    {
       "slug": "flight-deck-mission-planner",
       "date": "2026-04-15",
       "title": "Added Flight Deck mission planner with persistent sprint briefs",

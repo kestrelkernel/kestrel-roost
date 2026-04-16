@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Lab: interactive theme and layout prototyping for Kestrel's Roost." />
+  <title>Roost Lab - Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --line:#2b3a7a;
+      --card:#0d1530cc;
+      --radius:16px;
+      --space:16px;
+      --scale:1;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background: linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1100px, 94vw);
+      margin:30px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:var(--card);
+      padding:calc(var(--space) * 1px);
+      box-shadow: 0 10px 28px #0000002e;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3rem); }
+    p { margin:0; color:var(--muted); line-height:1.55; font-size:calc(0.96rem * var(--scale)); }
+    h2 { margin:0; font-size:calc(1.05rem * var(--scale)); color:#dbe4ff; }
+    h3 { margin:0; font-size:calc(0.95rem * var(--scale)); color:#dbe4ff; }
+
+    .site-nav, .toolbar, .chips {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+    }
+    .nav-link, .btn, .chip {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:6px 11px;
+      background:#112057;
+      font:inherit;
+      font-size:.82rem;
+      cursor:pointer;
+    }
+    .btn { border-radius:10px; padding:8px 12px; }
+    .btn:hover, .nav-link:hover, .chip:hover { border-color:#6f8dff; background:#132668; }
+
+    .grid {
+      display:grid;
+      gap:12px;
+      grid-template-columns: minmax(260px, 360px) 1fr;
+    }
+    @media (max-width: 880px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .control-group {
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .control-row {
+      display:grid;
+      gap:7px;
+    }
+    label {
+      color:#ccdaff;
+      font-size:.85rem;
+    }
+    input[type="range"] {
+      width:100%;
+      accent-color: var(--accent);
+    }
+    .control-value {
+      color:#9fb0ff;
+      font-size:.8rem;
+    }
+
+    .preview {
+      display:grid;
+      gap:12px;
+      align-content:start;
+    }
+    .preview-panel {
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, #101736), #0b1230);
+      padding:calc(var(--space) * 1px);
+      display:grid;
+      gap:10px;
+    }
+    .panel-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+    .mini {
+      font-size:.78rem;
+      color:#b7c8ff;
+    }
+    .badge {
+      border:1px solid color-mix(in srgb, var(--accent) 60%, #2f438f);
+      color:#dbe5ff;
+      border-radius:999px;
+      padding:4px 9px;
+      font-size:.72rem;
+      background:#122157;
+    }
+    .panel-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap:10px;
+    }
+    .token-card {
+      border:1px solid #3a4f9d;
+      border-radius:12px;
+      background:#0b1435;
+      padding:10px;
+      display:grid;
+      gap:6px;
+    }
+    .swatch {
+      height:42px;
+      border-radius:8px;
+      border:1px solid #4159aa;
+      background:var(--accent);
+    }
+
+    textarea {
+      width:100%;
+      min-height:180px;
+      border-radius:12px;
+      border:1px solid #4056aa;
+      background:#09112d;
+      color:#dae5ff;
+      padding:10px;
+      font:inherit;
+      font-size:.82rem;
+      line-height:1.45;
+      resize:vertical;
+    }
+    .status { min-height:1.2em; font-size:.8rem; color:#b7c8ff; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost lab</h1>
+      <p>Theme + layout prototyping bay. Tune the look live, stress test contrast, then copy production-ready CSS tokens.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="game.html">game</a>
+        <a class="nav-link" href="gallery.html">gallery</a>
+        <a class="nav-link" href="wallpapers.html">wallpapers</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="quest-forge.html">quest forge</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="notes.html">field notes</a>
+        <a class="nav-link" href="signal-board.html">signal board</a>
+        <a class="nav-link" href="release-radar.html">release radar</a>
+        <a class="nav-link" href="roost-atlas.html">roost atlas</a>
+        <a class="nav-link" href="roost-lab.html">roost lab</a>
+        <a class="nav-link" href="captains-log.html">captain's log</a>
+      </nav>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>controls</h2>
+        <p>Dial in a visual direction. Values persist in your browser so you can iterate over multiple sessions.</p>
+        <div class="control-group">
+          <div class="control-row">
+            <label for="hue">accent hue</label>
+            <input id="hue" type="range" min="180" max="300" value="220" />
+            <div class="control-value" id="hueValue">220°</div>
+          </div>
+          <div class="control-row">
+            <label for="sat">accent saturation</label>
+            <input id="sat" type="range" min="40" max="100" value="88" />
+            <div class="control-value" id="satValue">88%</div>
+          </div>
+          <div class="control-row">
+            <label for="light">accent lightness</label>
+            <input id="light" type="range" min="55" max="82" value="72" />
+            <div class="control-value" id="lightValue">72%</div>
+          </div>
+          <div class="control-row">
+            <label for="radius">corner radius</label>
+            <input id="radius" type="range" min="8" max="28" value="16" />
+            <div class="control-value" id="radiusValue">16px</div>
+          </div>
+          <div class="control-row">
+            <label for="space">card spacing</label>
+            <input id="space" type="range" min="12" max="28" value="16" />
+            <div class="control-value" id="spaceValue">16px</div>
+          </div>
+          <div class="control-row">
+            <label for="scale">type scale</label>
+            <input id="scale" type="range" min="90" max="120" value="100" />
+            <div class="control-value" id="scaleValue">100%</div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button id="copyCss" class="btn" type="button">copy css tokens</button>
+          <button id="reset" class="btn" type="button">reset defaults</button>
+        </div>
+        <p class="status" id="status" aria-live="polite"></p>
+      </article>
+
+      <article class="preview">
+        <section class="preview-panel" id="previewPanel">
+          <div class="panel-head">
+            <h2>live preview</h2>
+            <span class="badge" id="contrastBadge">contrast: --</span>
+          </div>
+          <p class="mini">Use this panel as a mini stress test before pushing a style change to the rest of the site.</p>
+          <div class="chips">
+            <span class="chip">ship-ready</span>
+            <span class="chip">high legibility</span>
+            <span class="chip">dark-mode native</span>
+          </div>
+          <div class="panel-grid">
+            <article class="token-card">
+              <h3>accent swatch</h3>
+              <div class="swatch" id="swatch"></div>
+              <p class="mini" id="accentHex">#000000</p>
+            </article>
+            <article class="token-card">
+              <h3>type sample</h3>
+              <p>Navigation text, body rhythm, and small utility labels should stay readable.</p>
+            </article>
+            <article class="token-card">
+              <h3>cta sample</h3>
+              <div class="toolbar">
+                <button class="btn" type="button">launch feature</button>
+                <button class="btn" type="button">ship update</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>export tokens</h2>
+          <p>Paste this block into any page style tag to reuse the current look immediately.</p>
+          <textarea id="cssOutput" readonly></textarea>
+        </section>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const defaults = { hue: 220, sat: 88, light: 72, radius: 16, space: 16, scale: 100 };
+    const storageKey = 'roostLabTokensV1';
+
+    const controls = {
+      hue: document.getElementById('hue'),
+      sat: document.getElementById('sat'),
+      light: document.getElementById('light'),
+      radius: document.getElementById('radius'),
+      space: document.getElementById('space'),
+      scale: document.getElementById('scale')
+    };
+
+    const valueNodes = {
+      hue: document.getElementById('hueValue'),
+      sat: document.getElementById('satValue'),
+      light: document.getElementById('lightValue'),
+      radius: document.getElementById('radiusValue'),
+      space: document.getElementById('spaceValue'),
+      scale: document.getElementById('scaleValue')
+    };
+
+    const cssOutput = document.getElementById('cssOutput');
+    const accentHex = document.getElementById('accentHex');
+    const contrastBadge = document.getElementById('contrastBadge');
+    const statusNode = document.getElementById('status');
+
+    const hslToRgb = (h, s, l) => {
+      s /= 100;
+      l /= 100;
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      const m = l - c / 2;
+      let r = 0, g = 0, b = 0;
+
+      if (h < 60) [r, g, b] = [c, x, 0];
+      else if (h < 120) [r, g, b] = [x, c, 0];
+      else if (h < 180) [r, g, b] = [0, c, x];
+      else if (h < 240) [r, g, b] = [0, x, c];
+      else if (h < 300) [r, g, b] = [x, 0, c];
+      else [r, g, b] = [c, 0, x];
+
+      return [r, g, b].map((v) => Math.round((v + m) * 255));
+    };
+
+    const rgbToHex = ([r, g, b]) => '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+
+    const luminance = (rgb) => {
+      const fn = (value) => {
+        const c = value / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      };
+      const [r, g, b] = rgb.map(fn);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+
+    const contrastRatio = (a, b) => {
+      const L1 = luminance(a);
+      const L2 = luminance(b);
+      const [light, dark] = L1 > L2 ? [L1, L2] : [L2, L1];
+      return ((light + 0.05) / (dark + 0.05)).toFixed(2);
+    };
+
+    const formatCss = (state) => {
+      const accent = `hsl(${state.hue} ${state.sat}% ${state.light}%)`;
+      return `:root {\n  --accent: ${accent};\n  --radius: ${state.radius}px;\n  --space: ${state.space}px;\n  --scale: ${(state.scale / 100).toFixed(2)};\n}`;
+    };
+
+    const getState = () => Object.fromEntries(Object.entries(controls).map(([k, el]) => [k, Number(el.value)]));
+
+    const saveState = (state) => localStorage.setItem(storageKey, JSON.stringify(state));
+
+    const applyState = (state) => {
+      Object.entries(state).forEach(([k, value]) => {
+        if (controls[k]) controls[k].value = String(value);
+      });
+      render();
+    };
+
+    const render = () => {
+      const state = getState();
+      const accent = `hsl(${state.hue} ${state.sat}% ${state.light}%)`;
+      const accentRgb = hslToRgb(state.hue, state.sat, state.light);
+      const bgRgb = [11, 16, 32];
+
+      document.documentElement.style.setProperty('--accent', accent);
+      document.documentElement.style.setProperty('--radius', `${state.radius}px`);
+      document.documentElement.style.setProperty('--space', String(state.space));
+      document.documentElement.style.setProperty('--scale', String(state.scale / 100));
+
+      valueNodes.hue.textContent = `${state.hue}°`;
+      valueNodes.sat.textContent = `${state.sat}%`;
+      valueNodes.light.textContent = `${state.light}%`;
+      valueNodes.radius.textContent = `${state.radius}px`;
+      valueNodes.space.textContent = `${state.space}px`;
+      valueNodes.scale.textContent = `${state.scale}%`;
+
+      const accentHexValue = rgbToHex(accentRgb);
+      accentHex.textContent = accentHexValue;
+      cssOutput.value = formatCss(state);
+
+      const ratio = contrastRatio(accentRgb, bgRgb);
+      const status = ratio >= 4.5 ? 'AA-safe' : ratio >= 3 ? 'Large text only' : 'Needs more contrast';
+      contrastBadge.textContent = `contrast: ${ratio} (${status})`;
+
+      saveState(state);
+    };
+
+    document.getElementById('copyCss').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(cssOutput.value);
+        statusNode.textContent = 'Copied CSS tokens to clipboard.';
+      } catch {
+        statusNode.textContent = 'Clipboard blocked. Select and copy manually.';
+      }
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+      applyState(defaults);
+      statusNode.textContent = 'Reset to defaults.';
+    });
+
+    Object.values(controls).forEach((control) => control.addEventListener('input', render));
+
+    try {
+      const cached = JSON.parse(localStorage.getItem(storageKey) || 'null');
+      applyState({ ...defaults, ...(cached || {}) });
+    } catch {
+      applyState(defaults);
+    }
+  </script>
+</body>
+</html>
