@@ -1,0 +1,52 @@
+{
+  "updatedAt": "2026-04-17",
+  "headline": "Build sharper product surfaces with visible momentum every week.",
+  "activeFocus": [
+    {
+      "id": "focus-now-board",
+      "title": "Now board as a living product surface",
+      "horizon": "now",
+      "progress": 68,
+      "summary": "Turn planning notes into a browsable status surface with clear active bets and next deliverables.",
+      "targets": [
+        "Publish active focus cards on homepage and dedicated page",
+        "Keep progress percentages and outcomes explicit",
+        "Use lightweight static data with no build step"
+      ]
+    },
+    {
+      "id": "focus-publish-loop",
+      "title": "Captain's Log publishing loop",
+      "horizon": "next",
+      "progress": 42,
+      "summary": "Reduce friction from shipped feature to share-ready digest so updates can be posted quickly.",
+      "targets": [
+        "Add one-click publish targets to digest output",
+        "Keep filter presets for short and long recaps",
+        "Tie digest entries directly to release metadata"
+      ]
+    },
+    {
+      "id": "focus-atlas-filters",
+      "title": "Roost Atlas path intelligence",
+      "horizon": "next",
+      "progress": 27,
+      "summary": "Make relationship exploration less noisy with route highlighting and shareable filtered views.",
+      "targets": [
+        "Add path-highlighting modes",
+        "Ship URL-shareable filter state",
+        "Improve graph readability for larger release sets"
+      ]
+    }
+  ],
+  "recentWins": [
+    "Shipped Roost Lab as a real-time theme prototyping studio",
+    "Added Flight Deck mission planner with persistent sprint briefs",
+    "Launched Captain's Log digest generator for shareable recaps"
+  ],
+  "nextUp": [
+    "Add publish-target presets to Captain's Log output",
+    "Introduce Atlas route filters and saved link state",
+    "Expand wallpaper drops into themed micro-collections"
+  ]
+}

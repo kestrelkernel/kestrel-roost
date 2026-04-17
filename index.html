@@ -227,6 +227,7 @@
         <a class="nav-link" href="game.html">game</a>
         <a class="nav-link" href="gallery.html">gallery</a>
         <a class="nav-link" href="wallpapers.html">wallpapers</a>
+        <a class="nav-link" href="now.html">now</a>
         <a class="nav-link" href="changelog.html">changelog</a>
         <a class="nav-link" href="quest-forge.html">quest forge</a>
         <a class="nav-link" href="flight-deck.html">flight deck</a>
@@ -270,6 +271,7 @@
         <a class="btn" href="game.html">play sky sprint</a>
         <a class="btn" href="gallery.html">open gallery</a>
         <a class="btn" href="wallpapers.html">grab wallpapers</a>
+        <a class="btn" href="now.html">open now board</a>
         <a class="btn" href="changelog.html">view changelog</a>
         <a class="btn" href="quest-forge.html">open quest forge</a>
         <a class="btn" href="flight-deck.html">open flight deck</a>
@@ -285,6 +287,14 @@
     <section class="card spotlight" id="storySpotlight" aria-live="polite">
       <h2>story spotlight</h2>
       <p>loading latest ship story…</p>
+    </section>
+
+    <section class="card" id="nowBoard" aria-live="polite">
+      <h2>focus now</h2>
+      <p class="tiny" style="margin-bottom:10px;">live focus feed from the now board.</p>
+      <div class="feed-grid" id="nowFocusGrid">
+        <div class="empty-card">loading active focus…</div>
+      </div>
     </section>
 
     <section class="card">
@@ -395,6 +405,7 @@
     const questHistoryList = document.getElementById('questHistory');
     const latestShips = document.getElementById('latestShips');
     const latestNotes = document.getElementById('latestNotes');
+    const nowFocusGrid = document.getElementById('nowFocusGrid');
     const storageStatus = document.getElementById('storageStatus');
 
     const now = new Date();
@@ -625,25 +636,61 @@
 
     const renderConnectedContent = async () => {
       try {
-        const [updatesResponse, notesResponse] = await Promise.all([
+        const [updatesResponse, notesResponse, nowResponse] = await Promise.all([
           fetch('assets/roost-updates.json', { cache: 'no-store' }),
-          fetch('assets/roost-notes.json', { cache: 'no-store' })
+          fetch('assets/roost-notes.json', { cache: 'no-store' }),
+          fetch('assets/roost-now.json', { cache: 'no-store' })
         ]);
-        if (!updatesResponse.ok || !notesResponse.ok) throw new Error('connected content not available');
+        if (!updatesResponse.ok || !notesResponse.ok || !nowResponse.ok) throw new Error('connected content not available');
 
         const updatesData = await updatesResponse.json();
         const notesData = await notesResponse.json();
+        const nowData = await nowResponse.json();
         const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
         const notes = Array.isArray(notesData?.notes) ? notesData.notes : [];
         const notesById = new Map(notes.map((note) => [note.id, note]));
+        const activeFocus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [];
 
         renderStorySpotlight(updates, notesById);
         renderLatestShips(updates, notesById);
         renderLatestNotes(notes);
+
+        nowFocusGrid.innerHTML = '';
+        for (const entry of activeFocus.slice(0, 3)) {
+          const card = document.createElement('article');
+          card.className = 'feed-card';
+
+          const title = document.createElement('h3');
+          title.textContent = entry.title || 'untitled focus';
+
+          const meta = document.createElement('div');
+          meta.className = 'feed-meta';
+          const progress = Number.isFinite(Number(entry.progress)) ? Number(entry.progress) : 0;
+          meta.innerHTML = `<span class="tag">${entry.horizon || 'now'}</span><span>${Math.max(0, Math.min(100, progress))}%</span>`;
+
+          const summary = document.createElement('p');
+          summary.textContent = entry.summary || '';
+
+          const actions = document.createElement('div');
+          actions.className = 'link-row';
+          const nowLink = document.createElement('a');
+          nowLink.className = 'mini-link';
+          nowLink.href = 'now.html';
+          nowLink.textContent = 'Open now board';
+          actions.appendChild(nowLink);
+
+          card.append(title, meta, summary, actions);
+          nowFocusGrid.appendChild(card);
+        }
+
+        if (nowFocusGrid.children.length === 0) {
+          nowFocusGrid.innerHTML = '<div class="empty-card">no active focus set yet.</div>';
+        }
       } catch {
         storySpotlight.innerHTML = '<h2>story spotlight</h2><p>ship story unavailable right now.</p>';
         latestShips.innerHTML = '<div class="empty-card">ship log unavailable right now.</div>';
         latestNotes.innerHTML = '<div class="empty-card">notes unavailable right now.</div>';
+        nowFocusGrid.innerHTML = '<div class="empty-card">now board unavailable right now.</div>';
       }
     };
 

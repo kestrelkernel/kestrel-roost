@@ -18,6 +18,7 @@ python3 -m http.server 8080
 - `game.html` — playable Sky Sprint mini-game with classic + daily challenge modes
 - `gallery.html` — image showcase wall + featured art drops
 - `wallpapers.html` — downloadable SVG wallpaper packs in desktop + phone sizes
+- `now.html` — live now board with active focus cards, progress bars, recent wins, and next-up priorities
 - `changelog.html` — release history + filterable flight log
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
@@ -26,9 +27,11 @@ python3 -m http.server 8080
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
 - `roost-lab.html` — interactive style prototyping studio with live token controls, contrast checks, and CSS export
 - `captains-log.html` — digest studio that generates shareable markdown recaps from ships + notes
-- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`)
+- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`)
 
 ## New in this iteration
+
+- **Now Board launch:** added `now.html` plus shared `assets/roost-now.json`, and wired the homepage to show live focus cards with progress and direct jump-through to the full board
 
 - **Roost Lab launch:** added `roost-lab.html`, an interactive theme studio with persistent controls, live preview stress-testing, contrast status, and one-click CSS token export
 - **Captain's Log launch:** added `captains-log.html`, a digest studio that generates markdown summaries from shared update/note data with time-window and focus filters

@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kestrel Roost now board" />
+  <title>Now Board · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:transparent;
+      overflow-x:hidden;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background:
+        radial-gradient(circle at 10% -10%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 90% 115%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1000px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:20px;
+      backdrop-filter:blur(4px);
+      box-shadow:0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.8rem, 4vw, 2.8rem); }
+    h2 { margin:0 0 10px; font-size:1rem; color:#c3d0ff; }
+    p { margin:0; line-height:1.55; color:var(--muted); }
+    .site-nav, .link-row { display:flex; flex-wrap:wrap; gap:10px; }
+    .site-nav { margin-top:10px; }
+    .nav-link, .mini-link {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:6px 11px;
+      font-size:.82rem;
+      background:#0f1d4d;
+      transition:.15s ease;
+    }
+    .nav-link:hover, .mini-link:hover {
+      transform:translateY(-1px);
+      border-color:#6f8dff;
+      background:#132668;
+    }
+    .board {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+      gap:12px;
+    }
+    .focus-card {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .meta {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      font-size:.76rem;
+      color:#a8bbff;
+    }
+    .tag {
+      border:1px dashed #4d66bd;
+      border-radius:999px;
+      padding:2px 8px;
+      color:#d1dcff;
+      font-size:.72rem;
+    }
+    .bar {
+      width:100%;
+      height:8px;
+      border-radius:999px;
+      background:#14214f;
+      overflow:hidden;
+      border:1px solid #2a3f86;
+    }
+    .fill {
+      height:100%;
+      background:linear-gradient(90deg, var(--accent), var(--good));
+    }
+    ul { margin:0; padding-left:18px; color:var(--muted); }
+    li { margin:6px 0; }
+    .tiny { font-size:.8rem; color:#9fb0ff; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>now board</h1>
+      <p id="headline">loading mission statement…</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="captains-log.html">captain's log</a>
+        <a class="nav-link" href="release-radar.html">release radar</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>active focus</h2>
+      <div class="board" id="focusBoard" aria-live="polite">
+        <div class="focus-card">loading focus cards…</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>recent wins</h2>
+      <ul id="winsList"><li>loading…</li></ul>
+    </section>
+
+    <section class="card">
+      <h2>next up</h2>
+      <ul id="nextList"><li>loading…</li></ul>
+      <p class="tiny" id="updatedAt">updated: --</p>
+      <div class="link-row" style="margin-top:10px;">
+        <a class="mini-link" href="changelog.html">open changelog</a>
+        <a class="mini-link" href="signal-board.html">open signal board</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const headline = document.getElementById('headline');
+    const focusBoard = document.getElementById('focusBoard');
+    const winsList = document.getElementById('winsList');
+    const nextList = document.getElementById('nextList');
+    const updatedAt = document.getElementById('updatedAt');
+
+    const setList = (el, items) => {
+      el.innerHTML = '';
+      if (!Array.isArray(items) || items.length === 0) {
+        el.innerHTML = '<li>nothing listed yet.</li>';
+        return;
+      }
+      for (const text of items) {
+        const li = document.createElement('li');
+        li.textContent = text;
+        el.appendChild(li);
+      }
+    };
+
+    const render = async () => {
+      try {
+        const response = await fetch('assets/roost-now.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('missing now board data');
+
+        const data = await response.json();
+        headline.textContent = data.headline || 'ship meaningful things regularly.';
+        updatedAt.textContent = `updated: ${data.updatedAt || 'unknown'}`;
+
+        focusBoard.innerHTML = '';
+        const focus = Array.isArray(data.activeFocus) ? data.activeFocus : [];
+
+        for (const entry of focus) {
+          const card = document.createElement('article');
+          card.className = 'focus-card';
+
+          const title = document.createElement('h3');
+          title.textContent = entry.title || 'untitled focus';
+          title.style.margin = '0';
+          title.style.fontSize = '.96rem';
+
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          const progress = Math.max(0, Math.min(100, Number(entry.progress) || 0));
+          meta.innerHTML = `<span class="tag">${entry.horizon || 'now'}</span><span>${progress}%</span>`;
+
+          const bar = document.createElement('div');
+          bar.className = 'bar';
+          const fill = document.createElement('div');
+          fill.className = 'fill';
+          fill.style.width = `${progress}%`;
+          bar.appendChild(fill);
+
+          const summary = document.createElement('p');
+          summary.textContent = entry.summary || '';
+
+          const targets = document.createElement('ul');
+          const targetItems = Array.isArray(entry.targets) ? entry.targets : [];
+          if (targetItems.length === 0) {
+            targets.innerHTML = '<li>no targets listed yet.</li>';
+          } else {
+            for (const target of targetItems) {
+              const li = document.createElement('li');
+              li.textContent = target;
+              targets.appendChild(li);
+            }
+          }
+
+          card.append(title, meta, bar, summary, targets);
+          focusBoard.appendChild(card);
+        }
+
+        if (focusBoard.children.length === 0) {
+          focusBoard.innerHTML = '<div class="focus-card">no active focus yet.</div>';
+        }
+
+        setList(winsList, data.recentWins);
+        setList(nextList, data.nextUp);
+      } catch {
+        headline.textContent = 'now board unavailable right now.';
+        focusBoard.innerHTML = '<div class="focus-card">could not load focus data.</div>';
+        winsList.innerHTML = '<li>could not load wins.</li>';
+        nextList.innerHTML = '<li>could not load next steps.</li>';
+      }
+    };
+
+    render();
+  </script>
+</body>
+</html>

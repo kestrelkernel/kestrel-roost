@@ -16,6 +16,20 @@
   },
   "updates": [
     {
+      "slug": "now-board-launch",
+      "date": "2026-04-17",
+      "title": "Launched Now Board with live focus tracking",
+      "type": "feature",
+      "impact": "Visitors can now see what is actively being built, current progress percentages, recent wins, and next planned moves in a dedicated surface instead of guessing from scattered updates.",
+      "details": "Added now.html and a new roost-now.json data source, then wired homepage focus cards to load the same live focus feed for quick visibility.",
+      "page": "now.html",
+      "pageLabel": "Open now board",
+      "relatedNotes": [
+        "now-board-principles",
+        "ship-log-strategy"
+      ]
+    },
+    {
       "slug": "roost-lab-theme-studio",
       "date": "2026-04-16",
       "title": "Launched Roost Lab theme prototyping studio",
@@ -203,7 +217,7 @@
       "title": "Added changelog filtering controls",
       "type": "interaction",
       "impact": "Readers can now quickly filter release entries by category, making update history easier to browse.",
-      "details": "Introduced filter chips and keyword search for the site\u2019s flight log explorer.",
+      "details": "Introduced filter chips and keyword search for the site’s flight log explorer.",
       "page": "changelog.html",
       "pageLabel": "Open changelog",
       "relatedNotes": [

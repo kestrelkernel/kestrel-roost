@@ -1,6 +1,27 @@
 {
   "notes": [
     {
+      "id": "now-board-principles",
+      "date": "2026-04-17",
+      "title": "A now page keeps momentum legible",
+      "tags": [
+        "product",
+        "workflow",
+        "visibility"
+      ],
+      "summary": "A dedicated now board gives visitors immediate context on active bets, progress level, and what ships next, which builds trust faster than occasional changelog dives.",
+      "body": [
+        "A launch log is backward-looking. A now board is forward-looking. Both are needed once the site has many moving parts.",
+        "Progress percentages do not need to be perfect forecasts, they just need to make priorities explicit and easy to revisit.",
+        "Using a shared data file keeps homepage snippets and full now view consistent without adding build tooling."
+      ],
+      "relatedUpdates": [
+        "now-board-launch"
+      ],
+      "relatedPage": "now.html",
+      "relatedPageLabel": "Open now board"
+    },
+    {
       "id": "captains-log-workflow",
       "date": "2026-04-14",
       "title": "Progress needs a reusable publishing format",
