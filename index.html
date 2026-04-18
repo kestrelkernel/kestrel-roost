@@ -194,6 +194,71 @@
       font-size:.95rem;
       color:#e8edff;
     }
+    .explorer-tools {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:10px;
+      align-items:center;
+    }
+    .explorer-input {
+      flex:1 1 280px;
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:10px 12px;
+    }
+    .explorer-input:focus-visible {
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+      border-color:#6f8dff;
+    }
+    .explorer-results {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:8px;
+    }
+    .explorer-item {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:12px;
+      display:grid;
+      gap:7px;
+    }
+    .explorer-item a {
+      color:#e6ecff;
+      text-decoration:none;
+      font-weight:700;
+    }
+    .explorer-item a:hover,
+    .explorer-item a:focus-visible {
+      color:#b9c8ff;
+      outline:none;
+    }
+    .explorer-copy {
+      font-size:.86rem;
+      color:#9fb0ff;
+      line-height:1.5;
+      margin:0;
+    }
+    .explorer-tags {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .explorer-tag {
+      border:1px dashed #415399;
+      border-radius:999px;
+      padding:2px 8px;
+      font-size:.74rem;
+      color:#b8c7ff;
+      background:#101d4d;
+    }
     .feed-meta {
       font-size:.76rem;
       color:#9fb0ff;
@@ -325,6 +390,17 @@
     </section>
 
     <section class="card">
+      <h2>roost explorer</h2>
+      <p class="tiny" style="margin-bottom:10px;">quick-find pages by intent. shortcut: press <kbd>/</kbd> to jump into search.</p>
+      <div class="explorer-tools">
+        <input id="siteSearch" class="explorer-input" type="search" placeholder="search pages (game, notes, wallpapers, lab...)" autocomplete="off" />
+        <button class="btn" id="clearSiteSearch">clear</button>
+        <button class="btn" id="randomPage">random jump</button>
+      </div>
+      <ul id="siteSearchResults" class="explorer-results" aria-live="polite"></ul>
+    </section>
+
+    <section class="card">
       <h2>fresh field notes</h2>
       <p class="tiny" style="margin-bottom:10px;">newest notes from the writing corner. jump straight into the archive or the page each note shaped.</p>
       <div class="feed-grid" id="latestNotes" aria-live="polite">
@@ -407,6 +483,150 @@
     const latestNotes = document.getElementById('latestNotes');
     const nowFocusGrid = document.getElementById('nowFocusGrid');
     const storageStatus = document.getElementById('storageStatus');
+    const siteSearchInput = document.getElementById('siteSearch');
+    const siteSearchResults = document.getElementById('siteSearchResults');
+    const clearSiteSearchBtn = document.getElementById('clearSiteSearch');
+    const randomPageBtn = document.getElementById('randomPage');
+
+    const roostPages = [
+      {
+        title: 'game',
+        href: 'game.html',
+        description: 'playable kestrel game loop with keyboard controls and score flow.',
+        tags: ['play', 'interactive', 'arcade']
+      },
+      {
+        title: 'gallery',
+        href: 'gallery.html',
+        description: 'art drop gallery with project visuals and experiments.',
+        tags: ['art', 'visual', 'collection']
+      },
+      {
+        title: 'wallpapers',
+        href: 'wallpapers.html',
+        description: 'download desktop + phone wallpaper packs with metadata.',
+        tags: ['download', 'assets', 'art']
+      },
+      {
+        title: 'now',
+        href: 'now.html',
+        description: 'live focus snapshot of what is being built right now.',
+        tags: ['status', 'roadmap', 'current']
+      },
+      {
+        title: 'quest forge',
+        href: 'quest-forge.html',
+        description: 'tune daily quest prompts and customize the quest pool.',
+        tags: ['tooling', 'productivity', 'quests']
+      },
+      {
+        title: 'flight deck',
+        href: 'flight-deck.html',
+        description: 'ship log timeline and release landing page for major updates.',
+        tags: ['releases', 'timeline', 'shipping']
+      },
+      {
+        title: 'field notes',
+        href: 'notes.html',
+        description: 'writing archive and note stream for ideas and postmortems.',
+        tags: ['writing', 'archive', 'journal']
+      },
+      {
+        title: 'signal board',
+        href: 'signal-board.html',
+        description: 'high-signal links and references worth revisiting.',
+        tags: ['links', 'references', 'curation']
+      },
+      {
+        title: 'release radar',
+        href: 'release-radar.html',
+        description: 'release watching board for interesting tools and builds.',
+        tags: ['watchlist', 'tools', 'updates']
+      },
+      {
+        title: 'roost atlas',
+        href: 'roost-atlas.html',
+        description: 'map of site sections, routes, and information architecture.',
+        tags: ['map', 'navigation', 'structure']
+      },
+      {
+        title: 'roost lab',
+        href: 'roost-lab.html',
+        description: 'prototype sandbox for styles, interactions, and experiments.',
+        tags: ['prototype', 'design', 'sandbox']
+      },
+      {
+        title: "captain's log",
+        href: 'captains-log.html',
+        description: 'digest view combining ship milestones and recent notes.',
+        tags: ['digest', 'history', 'summary']
+      },
+      {
+        title: 'changelog',
+        href: 'changelog.html',
+        description: 'full revision history and shipped deltas.',
+        tags: ['history', 'diffs', 'versions']
+      }
+    ];
+
+    const scorePage = (page, query) => {
+      const q = query.toLowerCase().trim();
+      if (!q) return 1;
+
+      const haystack = `${page.title} ${page.description} ${page.tags.join(' ')}`.toLowerCase();
+      if (!haystack.includes(q)) return 0;
+
+      let score = 2;
+      if (page.title.toLowerCase().startsWith(q)) score += 4;
+      if (page.title.toLowerCase().includes(q)) score += 2;
+      if (page.tags.some((tag) => tag.includes(q))) score += 2;
+      if (page.description.toLowerCase().includes(q)) score += 1;
+      return score;
+    };
+
+    const renderExplorer = (query = '') => {
+      const ranked = roostPages
+        .map((page) => ({ page, score: scorePage(page, query) }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title))
+        .slice(0, 8);
+
+      siteSearchResults.innerHTML = '';
+      if (ranked.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'empty-card';
+        empty.textContent = 'no direct match yet. try broader words like "art", "notes", or "releases".';
+        siteSearchResults.appendChild(empty);
+        return;
+      }
+
+      for (const { page } of ranked) {
+        const item = document.createElement('li');
+        item.className = 'explorer-item';
+
+        const link = document.createElement('a');
+        link.href = page.href;
+        link.textContent = page.title;
+
+        const copy = document.createElement('p');
+        copy.className = 'explorer-copy';
+        copy.textContent = page.description;
+
+        const tags = document.createElement('div');
+        tags.className = 'explorer-tags';
+        for (const tag of page.tags) {
+          const pill = document.createElement('span');
+          pill.className = 'explorer-tag';
+          pill.textContent = tag;
+          tags.appendChild(pill);
+        }
+
+        item.appendChild(link);
+        item.appendChild(copy);
+        item.appendChild(tags);
+        siteSearchResults.appendChild(item);
+      }
+    };
 
     const now = new Date();
     const stamp = now.toLocaleString('en-GB', { timeZone: 'UTC', hour12: false }) + ' UTC';
@@ -879,8 +1099,30 @@
       } else if (key === 'h') {
         event.preventDefault();
         clearHistoryBtn.click();
+      } else if (key === '/') {
+        event.preventDefault();
+        siteSearchInput.focus();
       }
     });
+
+    siteSearchInput.addEventListener('input', () => {
+      renderExplorer(siteSearchInput.value);
+    });
+
+    clearSiteSearchBtn.addEventListener('click', () => {
+      siteSearchInput.value = '';
+      renderExplorer('');
+      siteSearchInput.focus();
+    });
+
+    randomPageBtn.addEventListener('click', () => {
+      const pick = roostPages[Math.floor(Math.random() * roostPages.length)];
+      if (pick) {
+        window.location.href = pick.href;
+      }
+    });
+
+    renderExplorer('');
 
     rollQuestBtn.addEventListener('click', () => {
       const blocked = new Set(recentQuestIndexes);
