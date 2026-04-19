@@ -27,10 +27,12 @@ python3 -m http.server 8080
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
 - `roost-lab.html` — interactive style prototyping studio with live token controls, contrast checks, and CSS export
 - `captains-log.html` — digest studio that generates shareable markdown recaps from ships + notes
-- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`)
+- `timeline.html` — interactive milestone timeline with type filters, search, and impact summaries
+- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`)
 
 ## New in this iteration
 
+- **Timeline launch:** added `timeline.html` plus shared `assets/roost-milestones.json`, including searchable milestone cards, type filters, and quick project progression stats
 - **Now Board launch:** added `now.html` plus shared `assets/roost-now.json`, and wired the homepage to show live focus cards with progress and direct jump-through to the full board
 
 - **Roost Lab launch:** added `roost-lab.html`, an interactive theme studio with persistent controls, live preview stress-testing, contrast status, and one-click CSS token export

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A living timeline of Kestrel's Roost milestones" />
+  <title>Roost Timeline</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% -3%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 88% 108%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap { width:min(980px,92vw); margin:34px auto; display:grid; gap:14px; }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:20px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 10px; font-size:clamp(1.9rem, 5vw, 3rem); }
+    h2 { margin:0 0 10px; font-size:1rem; color:#c3d0ff; }
+    p { margin:0; line-height:1.55; color:var(--muted); }
+    .site-nav,.stats,.filters,.timeline { display:flex; gap:10px; flex-wrap:wrap; }
+    .site-nav { margin-top:10px; }
+    .nav-link,.pill,.event-type {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:6px 11px;
+      font-size:.82rem;
+      background:#0f1d4d;
+      cursor:pointer;
+      font:inherit;
+    }
+    .nav-link:hover,.pill:hover,.pill.active { border-color:#6f8dff; background:#132668; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); margin-top:14px; }
+    .metric {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:10px 12px;
+      display:grid;
+      gap:4px;
+    }
+    .metric b { font-size:1.2rem; color:#eaf0ff; }
+    .metric span { color:#9fb0ff; font-size:.8rem; }
+    .filters { align-items:center; margin-top:12px; }
+    .search {
+      flex:1 1 260px;
+      min-width:220px;
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:10px 12px;
+    }
+    .timeline { display:grid; gap:10px; margin-top:14px; }
+    .event {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .event-head { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .event-title { margin:0; font-size:1rem; color:#ecf1ff; }
+    .event-date { color:#b9c8ff; font-size:.82rem; }
+    .event-type { border-radius:8px; padding:2px 8px; cursor:default; border-style:dashed; }
+    .event-tags { display:flex; gap:6px; flex-wrap:wrap; }
+    .pill { padding:3px 9px; font-size:.72rem; border-style:dashed; cursor:default; }
+    .impact { color:var(--good); font-size:.85rem; }
+    .empty { color:#b9c8ff; font-size:.86rem; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>Roost Timeline</h1>
+      <p>A single place to track what shipped, why it mattered, and how the roost keeps evolving.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="roost-lab.html">roost lab</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="captains-log.html">captain's log</a>
+      </nav>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="card">
+      <h2>Filter flight path</h2>
+      <div class="filters" id="filters"></div>
+      <label for="search" class="event-date">Search milestones</label>
+      <input id="search" class="search" type="search" placeholder="Try: game, lab, timeline..." />
+      <div class="timeline" id="timeline"></div>
+      <p class="empty" id="empty" hidden>No milestones match this filter set yet.</p>
+    </section>
+  </main>
+
+  <script>
+    const state = { type: 'all', query: '' };
+    const timelineEl = document.getElementById('timeline');
+    const filtersEl = document.getElementById('filters');
+    const statsEl = document.getElementById('stats');
+    const searchEl = document.getElementById('search');
+    const emptyEl = document.getElementById('empty');
+
+    const formatDate = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
+
+    fetch('assets/roost-milestones.json')
+      .then((response) => response.json())
+      .then((entries) => {
+        const milestones = [...entries].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const types = ['all', ...new Set(milestones.map((item) => item.type))];
+
+        const renderFilters = () => {
+          filtersEl.innerHTML = types.map((type) => {
+            const active = state.type === type ? 'active' : '';
+            return `<button class="pill ${active}" data-type="${type}">${type}</button>`;
+          }).join('');
+        };
+
+        const renderStats = () => {
+          const first = milestones[milestones.length - 1];
+          const latest = milestones[0];
+          const years = new Set(milestones.map((item) => item.date.slice(0, 4))).size;
+          statsEl.innerHTML = `
+            <div class="metric"><b>${milestones.length}</b><span>total milestones</span></div>
+            <div class="metric"><b>${years}</b><span>years tracked</span></div>
+            <div class="metric"><b>${latest ? latest.date.slice(0, 4) : '--'}</b><span>latest ship window</span></div>
+            <div class="metric"><b>${first ? first.date.slice(0, 4) : '--'}</b><span>origin year</span></div>
+          `;
+        };
+
+        const renderTimeline = () => {
+          const query = state.query.trim().toLowerCase();
+          const filtered = milestones.filter((item) => {
+            const matchesType = state.type === 'all' || item.type === state.type;
+            const haystack = [item.title, item.summary, item.impact, ...(item.tags || [])].join(' ').toLowerCase();
+            const matchesQuery = !query || haystack.includes(query);
+            return matchesType && matchesQuery;
+          });
+
+          timelineEl.innerHTML = filtered.map((item) => `
+            <article class="event">
+              <div class="event-head">
+                <h3 class="event-title">${item.title}</h3>
+                <span class="event-date">${formatDate(item.date)}</span>
+              </div>
+              <div><span class="event-type">${item.type}</span></div>
+              <p>${item.summary}</p>
+              <div class="event-tags">
+                ${(item.tags || []).map((tag) => `<span class="pill">${tag}</span>`).join('')}
+              </div>
+              <p class="impact">Why it mattered: ${item.impact}</p>
+            </article>
+          `).join('');
+
+          emptyEl.hidden = filtered.length > 0;
+        };
+
+        filtersEl.addEventListener('click', (event) => {
+          const btn = event.target.closest('button[data-type]');
+          if (!btn) return;
+          state.type = btn.dataset.type;
+          renderFilters();
+          renderTimeline();
+        });
+
+        searchEl.addEventListener('input', (event) => {
+          state.query = event.target.value;
+          renderTimeline();
+        });
+
+        renderStats();
+        renderFilters();
+        renderTimeline();
+      })
+      .catch(() => {
+        timelineEl.innerHTML = '';
+        emptyEl.hidden = false;
+        emptyEl.textContent = 'Timeline data unavailable right now.';
+      });
+  </script>
+</body>
+</html>

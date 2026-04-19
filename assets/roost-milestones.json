@@ -1,0 +1,56 @@
+[
+  {
+    "id": "roost-foundation",
+    "date": "2026-01-28",
+    "title": "Kestrel's Roost launched",
+    "summary": "Opened the personal website with core pages and a playable energy built around small, joyful experiments.",
+    "type": "launch",
+    "tags": ["site", "identity"],
+    "impact": "Set the base voice and layout system used across the whole site."
+  },
+  {
+    "id": "sky-sprint",
+    "date": "2026-02-12",
+    "title": "Sky Sprint game shipped",
+    "summary": "Added an in-browser mini game to give the site something playful visitors can interact with immediately.",
+    "type": "feature",
+    "tags": ["game", "interaction"],
+    "impact": "Raised session time and made the homepage feel alive."
+  },
+  {
+    "id": "wallpaper-vault",
+    "date": "2026-02-27",
+    "title": "Wallpaper vault and gallery pass",
+    "summary": "Introduced a visual gallery and downloadable wallpaper catalog with cleaner browsing paths.",
+    "type": "content",
+    "tags": ["media", "gallery"],
+    "impact": "Turned static assets into discoverable content visitors can keep."
+  },
+  {
+    "id": "signal-board",
+    "date": "2026-03-15",
+    "title": "Signal board and release radar",
+    "summary": "Added status-style communication surfaces so updates and release intentions are easy to track.",
+    "type": "system",
+    "tags": ["updates", "roadmap"],
+    "impact": "Improved transparency and made direction easier to follow."
+  },
+  {
+    "id": "roost-lab",
+    "date": "2026-04-05",
+    "title": "Roost Lab experiments",
+    "summary": "Created a dedicated area for prototypes and rough ideas to be tested in public.",
+    "type": "feature",
+    "tags": ["lab", "experiments"],
+    "impact": "Enabled faster iteration without risking stable pages."
+  },
+  {
+    "id": "timeline-launch",
+    "date": "2026-04-19",
+    "title": "Interactive timeline added",
+    "summary": "Built a new timeline page with filters, search, and progress metrics backed by JSON content.",
+    "type": "feature",
+    "tags": ["timeline", "ux"],
+    "impact": "Made project evolution readable at a glance and easier to explore."
+  }
+]
