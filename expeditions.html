@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kestrel Roost - Expeditions</title>
+  <style>
+    :root {
+      --bg:#070b17;
+      --panel:#111938;
+      --line:#33457f;
+      --text:#eaf0ff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --ok:#76e7c7;
+      --warn:#ffd479;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans;
+      background: radial-gradient(circle at top, #15265f 0%, var(--bg) 58%);
+      color:var(--text);
+      line-height:1.5;
+    }
+    .wrap { width:min(1080px, 92vw); margin:28px auto 40px; display:grid; gap:16px; }
+    .card {
+      background:linear-gradient(180deg, rgba(26,38,84,.95), rgba(17,25,56,.95));
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 12px 34px rgba(0,0,0,.28);
+    }
+    h1, h2, h3 { margin:0 0 10px; line-height:1.2; }
+    p { margin:0; color:#d3deff; }
+    .tiny { color:var(--muted); font-size:.9rem; }
+    .site-nav { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .nav-link, .btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid #4962ad;
+      color:#dbe4ff;
+      background:#18285d;
+      text-decoration:none;
+      font-size:.9rem;
+      cursor:pointer;
+    }
+    .btn:hover, .nav-link:hover, .btn:focus-visible, .nav-link:focus-visible {
+      outline:none;
+      border-color:var(--accent);
+      background:#203477;
+      color:white;
+    }
+    .top-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .stat {
+      border:1px solid #3f5295;
+      border-radius:12px;
+      padding:12px;
+      background:#111b42;
+    }
+    .stat-value { font-size:1.5rem; font-weight:700; margin-bottom:2px; }
+    .controls { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .search {
+      flex:1 1 280px;
+      background:#0e1738;
+      border:1px solid #405295;
+      border-radius:10px;
+      color:var(--text);
+      padding:9px 11px;
+      font-size:.95rem;
+      min-width:240px;
+    }
+    .search:focus-visible { outline:2px solid #6f95ff; outline-offset:2px; }
+    .pill-group { display:flex; flex-wrap:wrap; gap:8px; }
+    .pill {
+      border:1px solid #465ca5;
+      border-radius:999px;
+      padding:7px 10px;
+      background:#101e49;
+      color:#d7e0ff;
+      cursor:pointer;
+      font-size:.88rem;
+    }
+    .pill.active {
+      border-color:#7ea4ff;
+      background:#223a7e;
+      color:white;
+    }
+    .expedition-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+      gap:12px;
+    }
+    .expedition {
+      border:1px solid #3a4f91;
+      border-radius:12px;
+      padding:12px;
+      background:#0f183b;
+      display:grid;
+      gap:10px;
+    }
+    .meta { display:flex; flex-wrap:wrap; gap:7px; font-size:.78rem; color:#adc0ff; }
+    .badge {
+      border:1px solid #4b64b5;
+      border-radius:999px;
+      padding:2px 9px;
+      background:#18275f;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+    .status-active { color:var(--ok); border-color:#4cb79c; background:#102f2a; }
+    .status-planned { color:var(--warn); border-color:#c8a352; background:#33250c; }
+    .status-shipped { color:#95b9ff; border-color:#6888d7; background:#162a58; }
+    .progress-track {
+      height:9px;
+      background:#0a1025;
+      border:1px solid #2f427a;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .progress-fill { height:100%; background:linear-gradient(90deg,#6f94ff,#8b72ff); }
+    ul { margin:0; padding-left:18px; }
+    li { margin:4px 0; color:#d8e2ff; }
+    .done { color:#86ecce; }
+    .empty {
+      border:1px dashed #485fa7;
+      border-radius:12px;
+      padding:16px;
+      color:var(--muted);
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>expeditions</h1>
+      <p>product-level missions for where the roost is heading next, with current status and checklists.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="timeline.html">timeline</a>
+        <a class="nav-link" href="now.html">now board</a>
+        <a class="nav-link" href="signal-board.html">signal board</a>
+      </nav>
+    </section>
+
+    <section class="card top-grid" id="stats" aria-live="polite">
+      <div class="stat">
+        <div class="stat-value" id="statTotal">--</div>
+        <div class="tiny">total expeditions</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="statActive">--</div>
+        <div class="tiny">active right now</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="statShipped">--</div>
+        <div class="tiny">fully shipped</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="statAvg">--</div>
+        <div class="tiny">average completion</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>filter + focus</h2>
+      <p class="tiny">search name/summary/theme and filter by status.</p>
+      <div class="controls">
+        <input id="search" class="search" type="search" placeholder="search expeditions..." autocomplete="off" />
+        <button class="btn" id="clearSearch">clear</button>
+      </div>
+      <div class="pill-group" style="margin-top:10px;" role="tablist" aria-label="Status filter">
+        <button class="pill active" data-status="all">all</button>
+        <button class="pill" data-status="active">active</button>
+        <button class="pill" data-status="planned">planned</button>
+        <button class="pill" data-status="shipped">shipped</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>mission board</h2>
+      <div id="expeditionGrid" class="expedition-grid" aria-live="polite">
+        <div class="empty">loading expedition data…</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const searchInput = document.getElementById('search');
+    const clearSearchBtn = document.getElementById('clearSearch');
+    const pills = [...document.querySelectorAll('.pill')];
+    const grid = document.getElementById('expeditionGrid');
+
+    const statTotal = document.getElementById('statTotal');
+    const statActive = document.getElementById('statActive');
+    const statShipped = document.getElementById('statShipped');
+    const statAvg = document.getElementById('statAvg');
+
+    let expeditions = [];
+    let activeStatus = 'all';
+
+    const statusClass = (status) => {
+      if (status === 'active') return 'status-active';
+      if (status === 'planned') return 'status-planned';
+      return 'status-shipped';
+    };
+
+    const updateStats = (items) => {
+      const total = items.length;
+      const active = items.filter((item) => item.status === 'active').length;
+      const shipped = items.filter((item) => item.status === 'shipped').length;
+      const avg = total === 0 ? 0 : Math.round(items.reduce((sum, item) => sum + (Number(item.progress) || 0), 0) / total);
+
+      statTotal.textContent = total;
+      statActive.textContent = active;
+      statShipped.textContent = shipped;
+      statAvg.textContent = `${avg}%`;
+    };
+
+    const matchesQuery = (item, query) => {
+      if (!query) return true;
+      const hay = `${item.name} ${item.summary} ${item.theme} ${(item.shipTarget || '')}`.toLowerCase();
+      return hay.includes(query.toLowerCase().trim());
+    };
+
+    const render = () => {
+      const query = searchInput.value;
+      const visible = expeditions
+        .filter((item) => activeStatus === 'all' || item.status === activeStatus)
+        .filter((item) => matchesQuery(item, query))
+        .sort((a, b) => (b.progress || 0) - (a.progress || 0));
+
+      grid.innerHTML = '';
+
+      if (visible.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'no expedition matches that filter yet.';
+        grid.appendChild(empty);
+        updateStats(expeditions);
+        return;
+      }
+
+      for (const item of visible) {
+        const card = document.createElement('article');
+        card.className = 'expedition';
+
+        const title = document.createElement('h3');
+        title.textContent = item.name;
+
+        const summary = document.createElement('p');
+        summary.textContent = item.summary;
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.innerHTML = `
+          <span class="badge ${statusClass(item.status)}">${item.status}</span>
+          <span class="badge">theme: ${item.theme}</span>
+          <span class="badge">target: ${item.shipTarget || 'tbd'}</span>
+        `;
+
+        const progressLabel = document.createElement('p');
+        progressLabel.className = 'tiny';
+        progressLabel.textContent = `completion ${item.progress || 0}%`;
+
+        const progress = document.createElement('div');
+        progress.className = 'progress-track';
+        const fill = document.createElement('div');
+        fill.className = 'progress-fill';
+        fill.style.width = `${Math.max(0, Math.min(100, Number(item.progress) || 0))}%`;
+        progress.appendChild(fill);
+
+        const milestoneList = document.createElement('ul');
+        for (const milestone of item.milestones || []) {
+          const li = document.createElement('li');
+          li.textContent = milestone.done ? `✅ ${milestone.title}` : `⬜ ${milestone.title}`;
+          if (milestone.done) li.className = 'done';
+          milestoneList.appendChild(li);
+        }
+
+        const links = document.createElement('div');
+        links.className = 'site-nav';
+        for (const link of item.links || []) {
+          const anchor = document.createElement('a');
+          anchor.className = 'nav-link';
+          anchor.href = link.href;
+          anchor.textContent = link.label;
+          links.appendChild(anchor);
+        }
+
+        card.append(title, summary, meta, progressLabel, progress, milestoneList, links);
+        grid.appendChild(card);
+      }
+
+      updateStats(expeditions);
+    };
+
+    const loadExpeditions = async () => {
+      try {
+        const response = await fetch('assets/roost-expeditions.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`failed (${response.status})`);
+        const data = await response.json();
+        expeditions = Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error(error);
+        grid.innerHTML = '<div class="empty">failed to load expeditions data. check assets/roost-expeditions.json.</div>';
+        expeditions = [];
+      }
+      render();
+    };
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        activeStatus = pill.dataset.status || 'all';
+        pills.forEach((entry) => entry.classList.toggle('active', entry === pill));
+        render();
+      });
+    });
+
+    searchInput.addEventListener('input', render);
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      searchInput.focus();
+      render();
+    });
+
+    loadExpeditions();
+  </script>
+</body>
+</html>

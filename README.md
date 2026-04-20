@@ -28,9 +28,13 @@ python3 -m http.server 8080
 - `roost-lab.html` — interactive style prototyping studio with live token controls, contrast checks, and CSS export
 - `captains-log.html` — digest studio that generates shareable markdown recaps from ships + notes
 - `timeline.html` — interactive milestone timeline with type filters, search, and impact summaries
-- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`)
+- `expeditions.html` — mission board for active/planned/shipped product expeditions with progress tracking
+- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`)
 
 ## New in this iteration
+
+- **Expeditions board launch:** added `expeditions.html` and `assets/roost-expeditions.json`, introducing a dedicated mission board with status filters, search, completion tracking, milestone checklists, and deep links into related pages
+- **Homepage launchpad update:** wired `index.html` navigation, quick links, and explorer search to include the new Expeditions surface
 
 - **Timeline launch:** added `timeline.html` plus shared `assets/roost-milestones.json`, including searchable milestone cards, type filters, and quick project progression stats
 - **Now Board launch:** added `now.html` plus shared `assets/roost-now.json`, and wired the homepage to show live focus cards with progress and direct jump-through to the full board

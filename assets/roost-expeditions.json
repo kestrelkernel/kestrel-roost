@@ -1,0 +1,113 @@
+[
+  {
+    "id": "exp-command-deck",
+    "name": "Command Deck",
+    "status": "active",
+    "theme": "navigation",
+    "summary": "Create a keyboard-first command surface that can open any major page in under two interactions.",
+    "progress": 55,
+    "shipTarget": "2026-05",
+    "links": [
+      { "label": "Roost explorer", "href": "index.html#siteSearchResults" },
+      { "label": "Roost atlas", "href": "roost-atlas.html" }
+    ],
+    "milestones": [
+      { "title": "Search scoring tuned for intent", "done": true },
+      { "title": "Keyboard command palette prototype", "done": false },
+      { "title": "Cross-page quick open", "done": false }
+    ]
+  },
+  {
+    "id": "exp-daily-rituals",
+    "name": "Daily Rituals",
+    "status": "active",
+    "theme": "retention",
+    "summary": "Bundle streak-aware loops so returning visitors always have one clear thing to do.",
+    "progress": 70,
+    "shipTarget": "2026-04",
+    "links": [
+      { "label": "Daily quest", "href": "index.html#questOutput" },
+      { "label": "Quest forge", "href": "quest-forge.html" },
+      { "label": "Sky Sprint", "href": "game.html" }
+    ],
+    "milestones": [
+      { "title": "UTC-safe streak model", "done": true },
+      { "title": "Quest history restore", "done": true },
+      { "title": "Cross-loop rewards", "done": false }
+    ]
+  },
+  {
+    "id": "exp-story-graph",
+    "name": "Story Graph",
+    "status": "planned",
+    "theme": "content",
+    "summary": "Turn release + note metadata into storyline arcs readers can follow from problem to shipped page.",
+    "progress": 25,
+    "shipTarget": "2026-06",
+    "links": [
+      { "label": "Signal board", "href": "signal-board.html" },
+      { "label": "Captain's log", "href": "captains-log.html" },
+      { "label": "Timeline", "href": "timeline.html" }
+    ],
+    "milestones": [
+      { "title": "Shared relationship keys in JSON", "done": true },
+      { "title": "Arc view for one feature line", "done": false },
+      { "title": "Story highlights in homepage spotlight", "done": false }
+    ]
+  },
+  {
+    "id": "exp-asset-cargo",
+    "name": "Asset Cargo",
+    "status": "planned",
+    "theme": "media",
+    "summary": "Build a proper content system for art drops, wallpapers, and downloadable packs with release notes.",
+    "progress": 35,
+    "shipTarget": "2026-05",
+    "links": [
+      { "label": "Gallery", "href": "gallery.html" },
+      { "label": "Wallpapers", "href": "wallpapers.html" }
+    ],
+    "milestones": [
+      { "title": "Wallpaper metadata model", "done": true },
+      { "title": "Art drop schema", "done": false },
+      { "title": "One-click pack download index", "done": false }
+    ]
+  },
+  {
+    "id": "exp-lab-to-live",
+    "name": "Lab to Live",
+    "status": "active",
+    "theme": "design",
+    "summary": "Shorten the path from style experiments in Roost Lab to shipped tokens in production pages.",
+    "progress": 45,
+    "shipTarget": "2026-05",
+    "links": [
+      { "label": "Roost lab", "href": "roost-lab.html" },
+      { "label": "Homepage", "href": "index.html" }
+    ],
+    "milestones": [
+      { "title": "Persistent lab controls", "done": true },
+      { "title": "Token diff export", "done": true },
+      { "title": "Apply export to page templates", "done": false }
+    ]
+  },
+  {
+    "id": "exp-roost-mobile",
+    "name": "Roost Mobile Pass",
+    "status": "shipped",
+    "theme": "ux",
+    "summary": "Harden mobile reading and interaction so all major tools feel first-class on narrow screens.",
+    "progress": 100,
+    "shipTarget": "2026-04",
+    "links": [
+      { "label": "Now board", "href": "now.html" },
+      { "label": "Notes", "href": "notes.html" },
+      { "label": "Release radar", "href": "release-radar.html" }
+    ],
+    "milestones": [
+      { "title": "Card layout breakpoints", "done": true },
+      { "title": "Button spacing + touch targets", "done": true },
+      { "title": "Readable mobile type scale", "done": true }
+    ]
+  }
+]
