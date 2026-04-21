@@ -29,12 +29,14 @@ python3 -m http.server 8080
 - `captains-log.html` — digest studio that generates shareable markdown recaps from ships + notes
 - `timeline.html` — interactive milestone timeline with type filters, search, and impact summaries
 - `expeditions.html` — mission board for active/planned/shipped product expeditions with progress tracking
+- `command-center.html` — unified dashboard for momentum, active focus, and searchable cross-feed activity
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`)
 
 ## New in this iteration
 
+- **Command Center launch:** added `command-center.html`, a live dashboard that blends updates, notes, milestones, expedition health, and now-board focus into one searchable command surface
+- **Homepage launchpad update:** wired `index.html` navigation, quick links, and explorer search to include the new Command Center surface
 - **Expeditions board launch:** added `expeditions.html` and `assets/roost-expeditions.json`, introducing a dedicated mission board with status filters, search, completion tracking, milestone checklists, and deep links into related pages
-- **Homepage launchpad update:** wired `index.html` navigation, quick links, and explorer search to include the new Expeditions surface
 
 - **Timeline launch:** added `timeline.html` plus shared `assets/roost-milestones.json`, including searchable milestone cards, type filters, and quick project progression stats
 - **Now Board launch:** added `now.html` plus shared `assets/roost-now.json`, and wired the homepage to show live focus cards with progress and direct jump-through to the full board

@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost command center dashboard" />
+  <title>Roost Command Center</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+      --warn:#ffd479;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 15% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 105%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+    }
+    .wrap {
+      width:min(1100px, 94vw);
+      margin:30px auto;
+      display:grid;
+      gap:12px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:18px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1, h2, h3 { margin:0; }
+    h1 { font-size:clamp(1.8rem, 4vw, 2.8rem); }
+    h2 { font-size:1rem; color:#c4d1ff; margin-bottom:10px; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .site-nav,
+    .links,
+    .chips,
+    .meta,
+    .kpis,
+    .grid {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .nav-link,
+    .btn,
+    .chip {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:6px 11px;
+      background:#0f1d4d;
+      font:inherit;
+      font-size:.82rem;
+      cursor:pointer;
+    }
+    .btn { border-radius:10px; padding:9px 12px; }
+    .nav-link:hover,
+    .btn:hover,
+    .chip:hover,
+    .nav-link:focus-visible,
+    .btn:focus-visible,
+    .chip:focus-visible {
+      border-color:#6f8dff;
+      background:#132668;
+      outline:none;
+    }
+    .input,
+    .select {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:9px 10px;
+    }
+    .input { min-width:240px; flex:1; }
+    .kpi {
+      border:1px solid #3550a8;
+      border-radius:12px;
+      background:#0c173f;
+      padding:12px;
+      display:grid;
+      gap:6px;
+    }
+    .kpi strong { font-size:1.4rem; color:#ecf1ff; }
+    .kpi span { font-size:.82rem; color:#9fb0ff; }
+    .bar-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap:8px;
+    }
+    .bar {
+      border:1px solid #304285;
+      border-radius:10px;
+      padding:8px;
+      background:#0a1333;
+      display:grid;
+      gap:6px;
+      min-height:116px;
+      align-content:end;
+    }
+    .bar-meter {
+      width:100%;
+      border-radius:8px;
+      background:linear-gradient(180deg, #7aa2ff, #4f6fcc);
+      min-height:6px;
+    }
+    .stream {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:8px;
+    }
+    .item {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:12px;
+      display:grid;
+      gap:7px;
+    }
+    .item a { color:#e6ecff; text-decoration:none; font-weight:700; }
+    .item a:hover, .item a:focus-visible { color:#bfd0ff; outline:none; }
+    .tiny { font-size:.78rem; color:#9ab0ff; }
+    .empty { border:1px dashed #415399; border-radius:12px; padding:14px; color:#9fb0ff; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost command center</h1>
+      <p>one glance dashboard for momentum, focus, and what shipped recently.</p>
+      <nav class="site-nav" aria-label="Site sections" style="margin-top:10px;">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="now.html">now</a>
+        <a class="nav-link" href="timeline.html">timeline</a>
+        <a class="nav-link" href="expeditions.html">expeditions</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+      </nav>
+    </section>
+
+    <section class="grid kpis" id="kpiGrid" aria-live="polite">
+      <article class="kpi"><span>loading</span><strong>…</strong></article>
+    </section>
+
+    <section class="card">
+      <h2>momentum by month</h2>
+      <p class="tiny" style="margin-bottom:10px;">combined note + ship + milestone activity over the last 6 months.</p>
+      <div class="bar-grid" id="momentumBars" aria-live="polite"></div>
+    </section>
+
+    <section class="card" id="focusDeck" aria-live="polite">
+      <h2>active focus snapshot</h2>
+      <div class="empty">loading focus…</div>
+    </section>
+
+    <section class="card">
+      <h2>activity stream</h2>
+      <div class="links" style="margin-bottom:10px;">
+        <input id="search" class="input" type="search" placeholder="search updates, notes, milestones" autocomplete="off" />
+        <select id="source" class="select">
+          <option value="all">all sources</option>
+          <option value="update">ships</option>
+          <option value="note">notes</option>
+          <option value="milestone">milestones</option>
+        </select>
+        <button class="btn" id="clearFilters">clear</button>
+      </div>
+      <ul id="stream" class="stream" aria-live="polite"></ul>
+    </section>
+  </main>
+
+  <script>
+    const kpiGrid = document.getElementById('kpiGrid');
+    const momentumBars = document.getElementById('momentumBars');
+    const focusDeck = document.getElementById('focusDeck');
+    const stream = document.getElementById('stream');
+    const searchInput = document.getElementById('search');
+    const sourceSelect = document.getElementById('source');
+    const clearBtn = document.getElementById('clearFilters');
+
+    const loadJson = async (path, fallback) => {
+      try {
+        const response = await fetch(path, { cache: 'no-store' });
+        if (!response.ok) throw new Error(path);
+        return await response.json();
+      } catch {
+        return fallback;
+      }
+    };
+
+    const fmtDate = (value) => {
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    };
+
+    const monthKey = (date) => {
+      const d = new Date(date);
+      if (Number.isNaN(d.getTime())) return null;
+      return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+    };
+
+    const monthLabel = (key) => {
+      const [year, month] = key.split('-').map(Number);
+      return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+    };
+
+    const createKpi = (label, value, hint) => {
+      const card = document.createElement('article');
+      card.className = 'kpi';
+      card.innerHTML = `<span>${label}</span><strong>${value}</strong><span>${hint}</span>`;
+      return card;
+    };
+
+    const buildMomentum = (events) => {
+      const now = new Date();
+      const months = [];
+      for (let i = 5; i >= 0; i -= 1) {
+        const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+        months.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
+      }
+      const counts = Object.fromEntries(months.map((m) => [m, 0]));
+      events.forEach((entry) => {
+        const key = monthKey(entry.date);
+        if (key && key in counts) counts[key] += 1;
+      });
+      const max = Math.max(1, ...Object.values(counts));
+
+      momentumBars.innerHTML = '';
+      months.forEach((key) => {
+        const value = counts[key];
+        const bar = document.createElement('article');
+        bar.className = 'bar';
+        const pct = Math.round((value / max) * 100);
+        bar.innerHTML = `
+          <div class="tiny">${monthLabel(key)}</div>
+          <div class="bar-meter" style="height:${Math.max(6, pct)}px;"></div>
+          <div><strong>${value}</strong> events</div>
+        `;
+        momentumBars.appendChild(bar);
+      });
+    };
+
+    const normalizeEvents = (updates, notes, milestones) => {
+      const updateEvents = (updates?.updates || []).map((entry) => ({
+        kind: 'update',
+        date: entry.date,
+        title: entry.title,
+        summary: entry.details || entry.impact || '',
+        href: entry.page || 'flight-deck.html',
+        tags: [entry.type, 'ship'].filter(Boolean)
+      }));
+
+      const noteEvents = (notes?.notes || []).map((entry) => ({
+        kind: 'note',
+        date: entry.date,
+        title: entry.title,
+        summary: entry.summary || '',
+        href: entry.relatedPage || 'notes.html',
+        tags: [...(entry.tags || []), 'note']
+      }));
+
+      const milestoneEvents = (milestones || []).map((entry) => ({
+        kind: 'milestone',
+        date: entry.date,
+        title: entry.title,
+        summary: entry.summary || entry.impact || '',
+        href: 'timeline.html',
+        tags: [...(entry.tags || []), entry.type || 'milestone']
+      }));
+
+      return [...updateEvents, ...noteEvents, ...milestoneEvents]
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+    };
+
+    const renderStream = (events) => {
+      const q = searchInput.value.trim().toLowerCase();
+      const source = sourceSelect.value;
+      const filtered = events
+        .filter((entry) => source === 'all' || entry.kind === source)
+        .filter((entry) => {
+          if (!q) return true;
+          const hay = `${entry.title} ${entry.summary} ${(entry.tags || []).join(' ')}`.toLowerCase();
+          return hay.includes(q);
+        })
+        .slice(0, 24);
+
+      stream.innerHTML = '';
+      if (!filtered.length) {
+        const empty = document.createElement('li');
+        empty.className = 'empty';
+        empty.textContent = 'no activity matches this filter yet.';
+        stream.appendChild(empty);
+        return;
+      }
+
+      filtered.forEach((entry) => {
+        const item = document.createElement('li');
+        item.className = 'item';
+        const chips = (entry.tags || [])
+          .slice(0, 4)
+          .map((tag) => `<span class="chip">${tag}</span>`)
+          .join('');
+        item.innerHTML = `
+          <div class="meta tiny">${entry.kind} · ${fmtDate(entry.date)}</div>
+          <a href="${entry.href}">${entry.title}</a>
+          <p>${entry.summary}</p>
+          <div class="chips">${chips}</div>
+        `;
+        stream.appendChild(item);
+      });
+    };
+
+    const renderFocus = (nowData) => {
+      const focus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [];
+      if (!focus.length) {
+        focusDeck.innerHTML = '<h2>active focus snapshot</h2><div class="empty">no focus cards found.</div>';
+        return;
+      }
+
+      const cards = focus.map((entry) => `
+        <article class="item">
+          <div class="meta tiny">${entry.horizon || 'active focus'} · ${entry.progress || 0}%</div>
+          <h3>${entry.title || 'untitled focus'}</h3>
+          <p>${entry.summary || ''}</p>
+          <div class="chips">${(entry.targets || []).slice(0, 3).map((target) => `<span class="chip">${target}</span>`).join('')}</div>
+        </article>
+      `).join('');
+
+      focusDeck.innerHTML = `
+        <h2>active focus snapshot</h2>
+        <p class="tiny" style="margin-bottom:10px;">${nowData.headline || 'current priorities'} · updated ${fmtDate(nowData.updatedAt || new Date().toISOString())}</p>
+        <div class="grid">${cards}</div>
+      `;
+    };
+
+    const init = async () => {
+      const [updates, notes, milestones, expeditions, nowData] = await Promise.all([
+        loadJson('assets/roost-updates.json', { updates: [] }),
+        loadJson('assets/roost-notes.json', { notes: [] }),
+        loadJson('assets/roost-milestones.json', []),
+        loadJson('assets/roost-expeditions.json', []),
+        loadJson('assets/roost-now.json', {})
+      ]);
+
+      const events = normalizeEvents(updates, notes, milestones);
+      const activeExpeditions = expeditions.filter((entry) => entry.status === 'active').length;
+      const avgProgress = expeditions.length
+        ? Math.round(expeditions.reduce((sum, entry) => sum + (Number(entry.progress) || 0), 0) / expeditions.length)
+        : 0;
+
+      kpiGrid.innerHTML = '';
+      kpiGrid.append(
+        createKpi('ships logged', (updates.updates || []).length, 'from the flight deck feed'),
+        createKpi('field notes', (notes.notes || []).length, 'captured learnings + postmortems'),
+        createKpi('active expeditions', activeExpeditions, 'missions currently in motion'),
+        createKpi('expedition avg progress', `${avgProgress}%`, 'cross-mission completion health'),
+        createKpi('milestones', milestones.length, 'timeline anchors currently tracked')
+      );
+
+      buildMomentum(events);
+      renderFocus(nowData);
+      renderStream(events);
+
+      searchInput.addEventListener('input', () => renderStream(events));
+      sourceSelect.addEventListener('change', () => renderStream(events));
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        sourceSelect.value = 'all';
+        renderStream(events);
+        searchInput.focus();
+      });
+    };
+
+    init();
+  </script>
+</body>
+</html>
