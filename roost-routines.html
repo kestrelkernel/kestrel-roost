@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kestrel Roost routines cockpit" />
+  <title>Roost Routines</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+      --warn:#ffd479;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background: var(--bg); }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background: transparent;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 20% -10%, #22397d 0%, transparent 42%),
+        radial-gradient(circle at 80% 110%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap { width:min(1050px, 92vw); margin:28px auto; display:grid; gap:14px; }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:18px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.8rem, 4vw, 2.8rem); }
+    h2 { margin:0 0 10px; font-size:1rem; color:#c3d0ff; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .nav { display:flex; flex-wrap:wrap; gap:9px; margin-top:10px; }
+    .nav a,
+    .btn {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:7px 12px;
+      font:inherit;
+      font-size:.82rem;
+      background:#0f1d4d;
+      cursor:pointer;
+    }
+    .btn:hover,
+    .nav a:hover,
+    .btn:focus-visible,
+    .nav a:focus-visible { border-color:#6f8dff; background:#132668; outline:none; }
+    .grid { display:grid; gap:12px; grid-template-columns: 1.15fr .85fr; }
+    @media (max-width: 920px) { .grid { grid-template-columns:1fr; } }
+    .status-grid { display:grid; gap:10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .stat {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:12px;
+    }
+    .stat b { color:#e7edff; font-size:1.25rem; display:block; margin-bottom:5px; }
+    .tiny { font-size:.8rem; color:#95a8ed; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .input,
+    select,
+    textarea {
+      width:100%;
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:10px 11px;
+    }
+    .input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible { outline:2px solid #9ab4ff; outline-offset:2px; }
+    label { display:grid; gap:6px; font-size:.85rem; color:#c7d4ff; }
+    .form-grid { display:grid; gap:10px; grid-template-columns: 1.2fr .9fr .9fr auto; align-items:end; }
+    @media (max-width: 920px) { .form-grid { grid-template-columns:1fr; } }
+    .list { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+    .item {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:10px 12px;
+      display:grid;
+      gap:8px;
+    }
+    .item-head { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+    .name { display:flex; align-items:center; gap:9px; color:#e6ecff; }
+    .name input { width:16px; height:16px; accent-color:#7aa2ff; }
+    .pill {
+      border:1px dashed #415399;
+      border-radius:999px;
+      padding:2px 8px;
+      font-size:.74rem;
+      color:#b8c7ff;
+      background:#101d4d;
+      white-space:nowrap;
+    }
+    .meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .danger { border-color:#8f3d4f; background:#2a1020; }
+    .danger:hover,
+    .danger:focus-visible { border-color:#b14f66; background:#40162a; }
+    textarea { min-height:120px; resize:vertical; }
+    .ok { color:var(--good); }
+    .warn { color:var(--warn); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost routines</h1>
+      <p>daily cockpit for repeatable work. track checklists, protect streaks, and adjust your ops rhythm.</p>
+      <nav class="nav" aria-label="Site sections">
+        <a href="index.html">home</a>
+        <a href="now.html">now</a>
+        <a href="expeditions.html">expeditions</a>
+        <a href="command-center.html">command center</a>
+        <a href="captains-log.html">captain's log</a>
+      </nav>
+    </section>
+
+    <section class="card grid">
+      <div>
+        <h2>mission day</h2>
+        <div class="row" style="margin-bottom:10px;">
+          <label style="max-width:220px;">
+            active date
+            <input class="input" id="activeDate" type="date" />
+          </label>
+          <button class="btn" id="todayBtn" type="button">jump to today</button>
+        </div>
+        <ul id="routineList" class="list" aria-live="polite"></ul>
+      </div>
+
+      <div>
+        <h2>scoreboard</h2>
+        <div class="status-grid">
+          <div class="stat"><b id="doneCount">0/0</b><span class="tiny">completed today</span></div>
+          <div class="stat"><b id="completionRate">0%</b><span class="tiny">completion rate</span></div>
+          <div class="stat"><b id="bestStreak">0</b><span class="tiny">best live streak</span></div>
+          <div class="stat"><b id="routineCount">0</b><span class="tiny">active routines</span></div>
+        </div>
+        <p id="statusLine" class="tiny" style="margin-top:10px;">Storage status: checking…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>add routine</h2>
+      <form id="routineForm" class="form-grid">
+        <label>
+          routine name
+          <input class="input" id="routineName" maxlength="72" placeholder="Ship one user-visible change" required />
+        </label>
+        <label>
+          category
+          <input class="input" id="routineCategory" maxlength="32" placeholder="build" required />
+        </label>
+        <label>
+          cadence
+          <select id="routineCadence">
+            <option value="daily">daily</option>
+            <option value="weekdays">weekdays</option>
+            <option value="weekly">weekly</option>
+          </select>
+        </label>
+        <button class="btn" type="submit">add</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>backup + transfer</h2>
+      <p class="tiny" style="margin-bottom:10px;">export all routines/checkpoints to JSON, then import on another device.</p>
+      <div class="row" style="margin-bottom:10px;">
+        <button class="btn" id="exportBtn" type="button">export JSON</button>
+        <button class="btn" id="importBtn" type="button">import JSON</button>
+        <button class="btn danger" id="resetBtn" type="button">reset all data</button>
+      </div>
+      <textarea id="backupField" placeholder="JSON appears here when exporting..."></textarea>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'roostRoutines.v1';
+    const activeDateInput = document.getElementById('activeDate');
+    const todayBtn = document.getElementById('todayBtn');
+    const routineList = document.getElementById('routineList');
+    const routineForm = document.getElementById('routineForm');
+    const routineName = document.getElementById('routineName');
+    const routineCategory = document.getElementById('routineCategory');
+    const routineCadence = document.getElementById('routineCadence');
+    const doneCount = document.getElementById('doneCount');
+    const completionRate = document.getElementById('completionRate');
+    const bestStreak = document.getElementById('bestStreak');
+    const routineCount = document.getElementById('routineCount');
+    const statusLine = document.getElementById('statusLine');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const backupField = document.getElementById('backupField');
+
+    const storage = (() => {
+      const probe = '__roost_routines_probe__';
+      try {
+        localStorage.setItem(probe, '1');
+        localStorage.removeItem(probe);
+      } catch {
+        statusLine.textContent = 'Storage status: localStorage blocked, progress will reset after refresh.';
+        statusLine.className = 'tiny warn';
+        return { get: () => null, set: () => {}, remove: () => {} };
+      }
+      statusLine.textContent = 'Storage status: synced to this browser.';
+      statusLine.className = 'tiny ok';
+      return {
+        get: (key) => localStorage.getItem(key),
+        set: (key, value) => localStorage.setItem(key, value),
+        remove: (key) => localStorage.removeItem(key)
+      };
+    })();
+
+    const defaults = {
+      routines: [
+        { id:'ship-change', name:'Ship one user-visible change', category:'build', cadence:'daily', createdAt:new Date().toISOString() },
+        { id:'log-wins', name:'Log one concrete win', category:'reflect', cadence:'daily', createdAt:new Date().toISOString() },
+        { id:'triage-inbox', name:'Triage high-priority inbox', category:'ops', cadence:'weekdays', createdAt:new Date().toISOString() }
+      ],
+      checksByDate: {}
+    };
+
+    const todayIso = () => new Date().toISOString().slice(0, 10);
+    const dayOfWeek = (iso) => new Date(iso + 'T00:00:00Z').getUTCDay();
+    const isWeekday = (iso) => {
+      const day = dayOfWeek(iso);
+      return day >= 1 && day <= 5;
+    };
+
+    const cadenceMatch = (cadence, iso) => {
+      if (cadence === 'daily') return true;
+      if (cadence === 'weekdays') return isWeekday(iso);
+      if (cadence === 'weekly') return dayOfWeek(iso) === 1;
+      return true;
+    };
+
+    const safeParse = (value, fallback) => {
+      try {
+        const parsed = JSON.parse(value);
+        if (!parsed || typeof parsed !== 'object') return fallback;
+        return parsed;
+      } catch {
+        return fallback;
+      }
+    };
+
+    let state = safeParse(storage.get(STORAGE_KEY), defaults);
+    state.routines = Array.isArray(state.routines) ? state.routines : [];
+    state.checksByDate = state.checksByDate && typeof state.checksByDate === 'object' ? state.checksByDate : {};
+
+    if (state.routines.length === 0) {
+      state = structuredClone(defaults);
+      save();
+    }
+
+    function save() {
+      storage.set(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getChecks(iso) {
+      const checks = state.checksByDate[iso];
+      return checks && typeof checks === 'object' ? checks : {};
+    }
+
+    function setCheck(iso, id, checked) {
+      const checks = { ...getChecks(iso) };
+      if (checked) checks[id] = true;
+      else delete checks[id];
+      state.checksByDate[iso] = checks;
+      save();
+    }
+
+    function computeStreak(id, upToIso = todayIso()) {
+      const cursor = new Date(upToIso + 'T00:00:00Z');
+      let streak = 0;
+      for (let i = 0; i < 365; i += 1) {
+        const iso = cursor.toISOString().slice(0, 10);
+        const routine = state.routines.find((entry) => entry.id === id);
+        if (!routine || !cadenceMatch(routine.cadence, iso)) {
+          cursor.setUTCDate(cursor.getUTCDate() - 1);
+          continue;
+        }
+        const checks = getChecks(iso);
+        if (!checks[id]) break;
+        streak += 1;
+        cursor.setUTCDate(cursor.getUTCDate() - 1);
+      }
+      return streak;
+    }
+
+    function render() {
+      const date = activeDateInput.value || todayIso();
+      const checks = getChecks(date);
+      const active = state.routines.filter((routine) => cadenceMatch(routine.cadence, date));
+
+      routineList.innerHTML = '';
+      if (active.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'item';
+        empty.innerHTML = '<p class="tiny">No routines scheduled for this day.</p>';
+        routineList.appendChild(empty);
+      }
+
+      active.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+      for (const routine of active) {
+        const item = document.createElement('li');
+        item.className = 'item';
+
+        const head = document.createElement('div');
+        head.className = 'item-head';
+
+        const name = document.createElement('label');
+        name.className = 'name';
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.checked = Boolean(checks[routine.id]);
+        box.addEventListener('change', () => {
+          setCheck(date, routine.id, box.checked);
+          render();
+        });
+
+        const text = document.createElement('span');
+        text.textContent = routine.name;
+
+        name.appendChild(box);
+        name.appendChild(text);
+
+        const category = document.createElement('span');
+        category.className = 'pill';
+        category.textContent = routine.category;
+
+        head.appendChild(name);
+        head.appendChild(category);
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const cadence = document.createElement('span');
+        cadence.className = 'pill';
+        cadence.textContent = routine.cadence;
+
+        const streak = document.createElement('span');
+        streak.className = 'pill';
+        streak.textContent = `streak ${computeStreak(routine.id)} day${computeStreak(routine.id) === 1 ? '' : 's'}`;
+
+        const remove = document.createElement('button');
+        remove.className = 'btn danger';
+        remove.type = 'button';
+        remove.textContent = 'remove';
+        remove.addEventListener('click', () => {
+          state.routines = state.routines.filter((entry) => entry.id !== routine.id);
+          for (const key of Object.keys(state.checksByDate)) {
+            if (state.checksByDate[key]?.[routine.id]) delete state.checksByDate[key][routine.id];
+          }
+          save();
+          render();
+        });
+
+        meta.appendChild(cadence);
+        meta.appendChild(streak);
+        meta.appendChild(remove);
+
+        item.appendChild(head);
+        item.appendChild(meta);
+        routineList.appendChild(item);
+      }
+
+      const done = active.filter((routine) => checks[routine.id]).length;
+      doneCount.textContent = `${done}/${active.length}`;
+      completionRate.textContent = active.length ? `${Math.round((done / active.length) * 100)}%` : '0%';
+      const streaks = state.routines.map((routine) => computeStreak(routine.id));
+      bestStreak.textContent = streaks.length ? String(Math.max(...streaks)) : '0';
+      routineCount.textContent = String(state.routines.length);
+    }
+
+    activeDateInput.value = todayIso();
+    todayBtn.addEventListener('click', () => {
+      activeDateInput.value = todayIso();
+      render();
+    });
+    activeDateInput.addEventListener('change', render);
+
+    routineForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = routineName.value.trim();
+      const category = routineCategory.value.trim();
+      const cadence = routineCadence.value;
+      if (!name || !category) return;
+      const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+      state.routines.push({ id, name, category, cadence, createdAt: new Date().toISOString() });
+      routineName.value = '';
+      routineCategory.value = '';
+      routineCadence.value = 'daily';
+      save();
+      render();
+    });
+
+    exportBtn.addEventListener('click', () => {
+      backupField.value = JSON.stringify(state, null, 2);
+      backupField.focus();
+      backupField.select();
+    });
+
+    importBtn.addEventListener('click', () => {
+      const next = safeParse(backupField.value, null);
+      if (!next || !Array.isArray(next.routines) || typeof next.checksByDate !== 'object') {
+        statusLine.textContent = 'Import failed: invalid JSON payload.';
+        statusLine.className = 'tiny warn';
+        return;
+      }
+      state = {
+        routines: next.routines.filter((entry) => entry && entry.id && entry.name && entry.category && entry.cadence),
+        checksByDate: next.checksByDate
+      };
+      save();
+      statusLine.textContent = 'Import complete.';
+      statusLine.className = 'tiny ok';
+      render();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      const ok = confirm('Reset all routines and check history? This cannot be undone.');
+      if (!ok) return;
+      state = structuredClone(defaults);
+      save();
+      backupField.value = '';
+      render();
+      statusLine.textContent = 'All routine data reset to defaults.';
+      statusLine.className = 'tiny warn';
+    });
+
+    render();
+  </script>
+</body>
+</html>
