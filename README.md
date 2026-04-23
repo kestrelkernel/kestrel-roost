@@ -35,6 +35,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Roost Routines analytics upgrade:** expanded `roost-routines.html` with a month heatmap, weekly completion spark bars, and a 30-day routine leaderboard so consistency trends are visible at a glance
 - **Roost Routines launch:** added `roost-routines.html`, a new routines cockpit with cadence-aware checklist rendering, streak tracking, per-day drilldown, and full JSON backup/import for portability
 - **Homepage launchpad update:** wired `index.html` navigation, quick links, and explorer search to include the Roost Routines surface
 - **Command Center launch:** added `command-center.html`, a live dashboard that blends updates, notes, milestones, expedition health, and now-board focus into one searchable command surface
