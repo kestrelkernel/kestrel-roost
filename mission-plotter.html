@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Plan your next missions with the Kestrel Roost mission plotter." />
+  <title>Mission Plotter | Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --accent:#7aa2ff;
+      --card:#0d1530cc;
+      --line:#2b3a7a;
+      --good:#8fffcd;
+      --warn:#ffd479;
+      --danger:#ff9bb1;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 15% -5%, #22397d 0%, transparent 40%),
+        radial-gradient(circle at 85% 105%, #1a2758 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+    }
+    .wrap {
+      width:min(1140px, 94vw);
+      margin:30px auto;
+      display:grid;
+      gap:12px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:18px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1, h2, h3 { margin:0; }
+    h1 { font-size:clamp(1.8rem, 4vw, 2.8rem); }
+    h2 { font-size:1rem; color:#c4d1ff; margin-bottom:10px; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .site-nav,
+    .row,
+    .lane-head,
+    .tag-row,
+    .lane-list,
+    .composer,
+    .controls,
+    .grid {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      align-items:start;
+    }
+    .nav-link,
+    .btn,
+    .chip,
+    .small-btn {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:6px 11px;
+      background:#0f1d4d;
+      font:inherit;
+      font-size:.82rem;
+      cursor:pointer;
+    }
+    .btn,
+    .small-btn { border-radius:10px; }
+    .btn { padding:9px 12px; }
+    .small-btn { padding:6px 8px; font-size:.75rem; }
+    .nav-link:hover,
+    .btn:hover,
+    .chip:hover,
+    .small-btn:hover,
+    .nav-link:focus-visible,
+    .btn:focus-visible,
+    .chip:focus-visible,
+    .small-btn:focus-visible {
+      border-color:#6f8dff;
+      background:#132668;
+      outline:none;
+    }
+    .input,
+    .select,
+    .textarea {
+      width:100%;
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:10px;
+    }
+    .input:focus-visible,
+    .select:focus-visible,
+    .textarea:focus-visible {
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+      border-color:#6f8dff;
+    }
+    .textarea { min-height:72px; resize:vertical; }
+    .composer {
+      display:grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap:10px;
+      align-items:stretch;
+    }
+    .composer > div { display:grid; gap:10px; }
+    .lane {
+      border:1px solid #3550a8;
+      border-radius:14px;
+      background:#0a1333;
+      padding:12px;
+      min-height:320px;
+      display:grid;
+      gap:10px;
+      align-content:start;
+    }
+    .lane-list {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:8px;
+    }
+    .task {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0f1d4d;
+      padding:10px;
+      display:grid;
+      gap:8px;
+      cursor:grab;
+    }
+    .task.dragging { opacity:.45; }
+    .task h3 { font-size:.9rem; color:#ecf1ff; }
+    .task p { font-size:.8rem; color:#b8c7ff; }
+    .tag {
+      border:1px dashed #5573cf;
+      border-radius:999px;
+      padding:2px 8px;
+      font-size:.72rem;
+      color:#cdddff;
+    }
+    .empty {
+      border:1px dashed #415399;
+      border-radius:10px;
+      padding:12px;
+      color:#9fb0ff;
+      font-size:.84rem;
+    }
+    .kpi strong { font-size:1.55rem; color:#ecf1ff; }
+    .kpi span { font-size:.78rem; color:#9fb0ff; display:block; }
+    .hint { font-size:.78rem; color:#9fb0ff; }
+    .success { color:var(--good); }
+    .warn { color:var(--warn); }
+    .danger { color:var(--danger); }
+    .lane.drop { border-color:#89a8ff; box-shadow: inset 0 0 0 1px #89a8ff; }
+
+    @media (max-width: 760px) {
+      .composer { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>mission plotter</h1>
+      <p>shape today, queue next, and keep long range ideas from leaking out of your head.</p>
+      <nav class="site-nav" aria-label="Site sections" style="margin-top:10px;">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="command-center.html">command center</a>
+        <a class="nav-link" href="roost-routines.html">roost routines</a>
+        <a class="nav-link" href="captains-log.html">captain's log</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>compose mission</h2>
+      <div class="composer">
+        <div>
+          <label>
+            <span class="hint">title</span>
+            <input id="titleInput" class="input" type="text" maxlength="90" placeholder="ship responsive gallery filters" />
+          </label>
+          <label>
+            <span class="hint">details</span>
+            <textarea id="detailsInput" class="textarea" maxlength="400" placeholder="outline what done looks like"></textarea>
+          </label>
+        </div>
+        <div>
+          <label>
+            <span class="hint">priority</span>
+            <select id="priorityInput" class="select">
+              <option value="high">high focus</option>
+              <option value="normal" selected>normal</option>
+              <option value="low">low</option>
+            </select>
+          </label>
+          <label>
+            <span class="hint">start lane</span>
+            <select id="laneInput" class="select">
+              <option value="today">today</option>
+              <option value="next">next</option>
+              <option value="later">later</option>
+            </select>
+          </label>
+          <button id="addTask" class="btn">add mission</button>
+          <div id="saveState" class="hint" aria-live="polite">local autosave active</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" aria-live="polite">
+      <article class="card kpi"><strong id="totalCount">0</strong><span>total missions in board</span></article>
+      <article class="card kpi"><strong id="todayCount">0</strong><span>queued for today</span></article>
+      <article class="card kpi"><strong id="highCount">0</strong><span>high focus missions</span></article>
+      <article class="card kpi"><strong id="completionRate">0%</strong><span>done this session</span></article>
+    </section>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between; align-items:flex-end; margin-bottom:10px;">
+        <div>
+          <h2>drag and steer missions</h2>
+          <p class="hint">drag a mission between lanes. mark complete when shipped.</p>
+        </div>
+        <div class="controls">
+          <button id="seedBtn" class="chip">load example missions</button>
+          <button id="resetBtn" class="chip">clear board</button>
+          <button id="exportBtn" class="chip">export json</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="lane" data-lane="today">
+          <div class="lane-head"><h3>today</h3><span class="hint" id="todayMeta">0 missions</span></div>
+          <ul class="lane-list" id="todayLane"></ul>
+        </section>
+        <section class="lane" data-lane="next">
+          <div class="lane-head"><h3>next</h3><span class="hint" id="nextMeta">0 missions</span></div>
+          <ul class="lane-list" id="nextLane"></ul>
+        </section>
+        <section class="lane" data-lane="later">
+          <div class="lane-head"><h3>later</h3><span class="hint" id="laterMeta">0 missions</span></div>
+          <ul class="lane-list" id="laterLane"></ul>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'kestrel-roost-mission-plotter-v1';
+
+    const els = {
+      titleInput: document.getElementById('titleInput'),
+      detailsInput: document.getElementById('detailsInput'),
+      priorityInput: document.getElementById('priorityInput'),
+      laneInput: document.getElementById('laneInput'),
+      addTask: document.getElementById('addTask'),
+      saveState: document.getElementById('saveState'),
+      totalCount: document.getElementById('totalCount'),
+      todayCount: document.getElementById('todayCount'),
+      highCount: document.getElementById('highCount'),
+      completionRate: document.getElementById('completionRate'),
+      todayLane: document.getElementById('todayLane'),
+      nextLane: document.getElementById('nextLane'),
+      laterLane: document.getElementById('laterLane'),
+      todayMeta: document.getElementById('todayMeta'),
+      nextMeta: document.getElementById('nextMeta'),
+      laterMeta: document.getElementById('laterMeta'),
+      seedBtn: document.getElementById('seedBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      exportBtn: document.getElementById('exportBtn')
+    };
+
+    const laneNames = {
+      today: 'today',
+      next: 'next',
+      later: 'later'
+    };
+
+    const state = {
+      completed: 0,
+      tasks: []
+    };
+
+    const makeId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const save = () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        els.saveState.textContent = `saved ${new Date().toLocaleTimeString()}`;
+        els.saveState.className = 'hint success';
+      } catch {
+        els.saveState.textContent = 'save failed: storage unavailable';
+        els.saveState.className = 'hint danger';
+      }
+    };
+
+    const load = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed.tasks)) return;
+        state.tasks = parsed.tasks.filter((task) => laneNames[task.lane]).map((task) => ({
+          id: task.id || makeId(),
+          title: String(task.title || 'untitled mission').slice(0, 90),
+          details: String(task.details || '').slice(0, 400),
+          priority: ['high', 'normal', 'low'].includes(task.priority) ? task.priority : 'normal',
+          lane: laneNames[task.lane] ? task.lane : 'later',
+          createdAt: task.createdAt || new Date().toISOString()
+        }));
+        state.completed = Number(parsed.completed) || 0;
+      } catch {
+        els.saveState.textContent = 'load skipped: invalid saved state';
+        els.saveState.className = 'hint warn';
+      }
+    };
+
+    const laneMeta = () => {
+      const counts = { today: 0, next: 0, later: 0 };
+      state.tasks.forEach((task) => {
+        counts[task.lane] += 1;
+      });
+      els.todayMeta.textContent = `${counts.today} missions`;
+      els.nextMeta.textContent = `${counts.next} missions`;
+      els.laterMeta.textContent = `${counts.later} missions`;
+      els.todayCount.textContent = counts.today;
+      return counts;
+    };
+
+    const updateKpis = () => {
+      const counts = laneMeta();
+      const total = state.tasks.length;
+      const high = state.tasks.filter((task) => task.priority === 'high').length;
+      const doneTotal = state.completed + total;
+      const rate = doneTotal ? Math.round((state.completed / doneTotal) * 100) : 0;
+      els.totalCount.textContent = total;
+      els.highCount.textContent = high;
+      els.completionRate.textContent = `${rate}%`;
+    };
+
+    const escapeHtml = (value) => value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+
+    const priorityTag = (priority) => {
+      if (priority === 'high') return '<span class="tag danger">high</span>';
+      if (priority === 'low') return '<span class="tag">low</span>';
+      return '<span class="tag warn">normal</span>';
+    };
+
+    const renderLane = (lane, element) => {
+      const tasks = state.tasks.filter((task) => task.lane === lane);
+      if (!tasks.length) {
+        element.innerHTML = `<li class="empty">no missions in ${lane}. drag one here or add a new mission.</li>`;
+        return;
+      }
+      element.innerHTML = tasks.map((task) => `
+        <li class="task" draggable="true" data-id="${task.id}">
+          <h3>${escapeHtml(task.title)}</h3>
+          ${task.details ? `<p>${escapeHtml(task.details)}</p>` : ''}
+          <div class="tag-row">
+            ${priorityTag(task.priority)}
+            <span class="tag">${new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+          </div>
+          <div class="controls">
+            <button class="small-btn" data-action="cycle" data-id="${task.id}">move</button>
+            <button class="small-btn" data-action="complete" data-id="${task.id}">complete</button>
+            <button class="small-btn" data-action="delete" data-id="${task.id}">delete</button>
+          </div>
+        </li>
+      `).join('');
+    };
+
+    const render = () => {
+      renderLane('today', els.todayLane);
+      renderLane('next', els.nextLane);
+      renderLane('later', els.laterLane);
+      updateKpis();
+      bindTaskButtons();
+      bindDrag();
+    };
+
+    const addTask = () => {
+      const title = els.titleInput.value.trim();
+      if (!title) {
+        els.saveState.textContent = 'mission title required';
+        els.saveState.className = 'hint warn';
+        return;
+      }
+      state.tasks.unshift({
+        id: makeId(),
+        title: title.slice(0, 90),
+        details: els.detailsInput.value.trim().slice(0, 400),
+        priority: els.priorityInput.value,
+        lane: els.laneInput.value,
+        createdAt: new Date().toISOString()
+      });
+      els.titleInput.value = '';
+      els.detailsInput.value = '';
+      render();
+      save();
+      els.titleInput.focus();
+    };
+
+    const removeTask = (id) => {
+      state.tasks = state.tasks.filter((task) => task.id !== id);
+      render();
+      save();
+    };
+
+    const cycleTask = (id) => {
+      const task = state.tasks.find((entry) => entry.id === id);
+      if (!task) return;
+      task.lane = task.lane === 'today' ? 'next' : task.lane === 'next' ? 'later' : 'today';
+      render();
+      save();
+    };
+
+    const completeTask = (id) => {
+      const exists = state.tasks.some((task) => task.id === id);
+      if (!exists) return;
+      state.completed += 1;
+      state.tasks = state.tasks.filter((task) => task.id !== id);
+      render();
+      save();
+      els.saveState.textContent = 'mission completed and archived';
+      els.saveState.className = 'hint success';
+    };
+
+    const bindTaskButtons = () => {
+      document.querySelectorAll('[data-action="delete"]').forEach((button) => {
+        button.onclick = () => removeTask(button.dataset.id);
+      });
+      document.querySelectorAll('[data-action="cycle"]').forEach((button) => {
+        button.onclick = () => cycleTask(button.dataset.id);
+      });
+      document.querySelectorAll('[data-action="complete"]').forEach((button) => {
+        button.onclick = () => completeTask(button.dataset.id);
+      });
+    };
+
+    const bindDrag = () => {
+      const tasks = document.querySelectorAll('.task');
+      const laneCards = document.querySelectorAll('.lane');
+      tasks.forEach((task) => {
+        task.addEventListener('dragstart', (event) => {
+          task.classList.add('dragging');
+          event.dataTransfer.setData('text/plain', task.dataset.id);
+        });
+        task.addEventListener('dragend', () => {
+          task.classList.remove('dragging');
+        });
+      });
+
+      laneCards.forEach((lane) => {
+        lane.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          lane.classList.add('drop');
+        });
+        lane.addEventListener('dragleave', () => lane.classList.remove('drop'));
+        lane.addEventListener('drop', (event) => {
+          event.preventDefault();
+          lane.classList.remove('drop');
+          const id = event.dataTransfer.getData('text/plain');
+          const task = state.tasks.find((entry) => entry.id === id);
+          if (!task) return;
+          task.lane = lane.dataset.lane;
+          render();
+          save();
+        });
+      });
+    };
+
+    const seed = () => {
+      if (state.tasks.length > 0) {
+        els.saveState.textContent = 'board already has missions';
+        els.saveState.className = 'hint warn';
+        return;
+      }
+      state.tasks = [
+        {
+          id: makeId(),
+          title: 'Ship mobile nav upgrades for atlas',
+          details: 'Audit touch targets and smooth section jumps.',
+          priority: 'high',
+          lane: 'today',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: makeId(),
+          title: 'Draft May release radar picks',
+          details: 'Capture 5 launches and link source pages.',
+          priority: 'normal',
+          lane: 'next',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: makeId(),
+          title: 'Prototype badge system for expeditions',
+          details: 'Map bronze/silver/gold criteria and reward copy.',
+          priority: 'low',
+          lane: 'later',
+          createdAt: new Date().toISOString()
+        }
+      ];
+      render();
+      save();
+    };
+
+    const reset = () => {
+      if (!window.confirm('Clear every mission from this board?')) return;
+      state.tasks = [];
+      state.completed = 0;
+      render();
+      save();
+      els.saveState.textContent = 'board reset';
+      els.saveState.className = 'hint success';
+    };
+
+    const exportBoard = () => {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        completed: state.completed,
+        tasks: state.tasks
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `mission-plotter-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      els.saveState.textContent = 'board exported';
+      els.saveState.className = 'hint success';
+    };
+
+    els.addTask.addEventListener('click', addTask);
+    els.titleInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        addTask();
+      }
+    });
+    els.seedBtn.addEventListener('click', seed);
+    els.resetBtn.addEventListener('click', reset);
+    els.exportBtn.addEventListener('click', exportBoard);
+
+    load();
+    render();
+  </script>
+</body>
+</html>

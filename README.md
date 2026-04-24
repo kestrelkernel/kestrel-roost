@@ -30,11 +30,14 @@ python3 -m http.server 8080
 - `timeline.html` — interactive milestone timeline with type filters, search, and impact summaries
 - `expeditions.html` — mission board for active/planned/shipped product expeditions with progress tracking
 - `command-center.html` — unified dashboard for momentum, active focus, and searchable cross-feed activity
+- `mission-plotter.html` — drag-and-drop planning board with local autosave, completion tracking, and JSON export
 - `roost-routines.html` — cadence-aware routines cockpit with streaks, daily checklists, and JSON import/export backup
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`)
 
 ## New in this iteration
 
+- **Mission Plotter launch:** added `mission-plotter.html`, a drag-and-drop planning board with lane cycling, completion tracking, local autosave, sample seeding, and JSON export snapshots
+- **Navigation and dashboard wiring:** linked Mission Plotter from `index.html` and added a planning deck callout inside `command-center.html` for faster access
 - **Roost Routines analytics upgrade:** expanded `roost-routines.html` with a month heatmap, weekly completion spark bars, and a 30-day routine leaderboard so consistency trends are visible at a glance
 - **Roost Routines launch:** added `roost-routines.html`, a new routines cockpit with cadence-aware checklist rendering, streak tracking, per-day drilldown, and full JSON backup/import for portability
 - **Homepage launchpad update:** wired `index.html` navigation, quick links, and explorer search to include the Roost Routines surface
