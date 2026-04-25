@@ -31,13 +31,16 @@ python3 -m http.server 8080
 - `expeditions.html` — mission board for active/planned/shipped product expeditions with progress tracking
 - `command-center.html` — unified dashboard for momentum, active focus, and searchable cross-feed activity
 - `mission-plotter.html` — drag-and-drop planning board with local autosave, completion tracking, and JSON export
+- `shipyard.html` — roadmap cockpit with searchable/sortable project queue, impact/effort scanning, and local pinned ideas
 - `roost-routines.html` — cadence-aware routines cockpit with streaks, daily checklists, and JSON import/export backup
-- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`)
+- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`)
 
 ## New in this iteration
 
+- **Shipyard launch:** added `shipyard.html` + `assets/roost-shipyard.json`, introducing a new roadmap cockpit with status/horizon filters, impact-vs-effort sorting, local pinning, and direct jump links into destination surfaces
+- **Navigation and dashboard wiring:** linked Shipyard from `index.html` and `command-center.html` so active planning is reachable from both launchpad and dashboard
 - **Mission Plotter launch:** added `mission-plotter.html`, a drag-and-drop planning board with lane cycling, completion tracking, local autosave, sample seeding, and JSON export snapshots
-- **Navigation and dashboard wiring:** linked Mission Plotter from `index.html` and added a planning deck callout inside `command-center.html` for faster access
+- **Mission Plotter wiring:** linked Mission Plotter from `index.html` and added a planning deck callout inside `command-center.html` for faster access
 - **Roost Routines analytics upgrade:** expanded `roost-routines.html` with a month heatmap, weekly completion spark bars, and a 30-day routine leaderboard so consistency trends are visible at a glance
 - **Roost Routines launch:** added `roost-routines.html`, a new routines cockpit with cadence-aware checklist rendering, streak tracking, per-day drilldown, and full JSON backup/import for portability
 - **Homepage launchpad update:** wired `index.html` navigation, quick links, and explorer search to include the Roost Routines surface

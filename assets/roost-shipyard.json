@@ -1,0 +1,112 @@
+[
+  {
+    "id": "mission-replays",
+    "title": "Mission Plotter Replays",
+    "status": "building",
+    "horizon": "near",
+    "impact": 5,
+    "effort": 4,
+    "summary": "Replay timeline slider for each mission lane so visitors can scrub how plans changed over time.",
+    "tags": ["mission-plotter", "interaction", "history"],
+    "link": "mission-plotter.html"
+  },
+  {
+    "id": "wallpaper-remix",
+    "title": "Wallpaper Remix Lab",
+    "status": "prototype",
+    "horizon": "near",
+    "impact": 4,
+    "effort": 3,
+    "summary": "Let visitors remix wallpaper palettes live and export a custom SVG set.",
+    "tags": ["wallpapers", "generator", "design"],
+    "link": "wallpapers.html"
+  },
+  {
+    "id": "captain-audio",
+    "title": "Captain's Log Audio Dispatch",
+    "status": "planned",
+    "horizon": "mid",
+    "impact": 4,
+    "effort": 2,
+    "summary": "One-click spoken digest output so logs can be consumed while walking or commuting.",
+    "tags": ["captains-log", "audio", "accessibility"],
+    "link": "captains-log.html"
+  },
+  {
+    "id": "atlas-constellation",
+    "title": "Atlas Constellation Mode",
+    "status": "prototype",
+    "horizon": "mid",
+    "impact": 5,
+    "effort": 5,
+    "summary": "Animated graph mode that clusters related pages into constellations with guided tours.",
+    "tags": ["roost-atlas", "visualization", "ux"],
+    "link": "roost-atlas.html"
+  },
+  {
+    "id": "routine-bosses",
+    "title": "Routine Boss Fights",
+    "status": "building",
+    "horizon": "near",
+    "impact": 3,
+    "effort": 2,
+    "summary": "Gamified weekly challenge layer with escalating checklists and completion badges.",
+    "tags": ["roost-routines", "gamification", "habits"],
+    "link": "roost-routines.html"
+  },
+  {
+    "id": "now-share-cards",
+    "title": "Now Board Share Cards",
+    "status": "planned",
+    "horizon": "near",
+    "impact": 3,
+    "effort": 1,
+    "summary": "Generate compact social-safe cards from active focus slots for quick sharing.",
+    "tags": ["now", "sharing", "content"],
+    "link": "now.html"
+  },
+  {
+    "id": "release-predictions",
+    "title": "Release Radar Prediction Lane",
+    "status": "prototype",
+    "horizon": "mid",
+    "impact": 4,
+    "effort": 3,
+    "summary": "Track likely release windows and confidence scores based on past cadence.",
+    "tags": ["release-radar", "forecasting", "data"],
+    "link": "release-radar.html"
+  },
+  {
+    "id": "field-notes-map",
+    "title": "Field Notes Geographic Layer",
+    "status": "planned",
+    "horizon": "far",
+    "impact": 2,
+    "effort": 4,
+    "summary": "Optional location metadata with map clustering for travel-heavy note sessions.",
+    "tags": ["notes", "map", "discovery"],
+    "link": "notes.html"
+  },
+  {
+    "id": "command-center-tv",
+    "title": "Command Center TV Mode",
+    "status": "building",
+    "horizon": "near",
+    "impact": 4,
+    "effort": 2,
+    "summary": "Hands-free auto-rotating dashboard view tuned for wall displays and second monitors.",
+    "tags": ["command-center", "dashboard", "display"],
+    "link": "command-center.html"
+  },
+  {
+    "id": "expedition-difficulty",
+    "title": "Expedition Difficulty Curves",
+    "status": "planned",
+    "horizon": "mid",
+    "impact": 3,
+    "effort": 3,
+    "summary": "Visual pace line for each expedition showing risk spikes and buffer windows.",
+    "tags": ["expeditions", "planning", "risk"],
+    "link": "expeditions.html"
+  }
+]

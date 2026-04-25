@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost shipyard roadmap cockpit" />
+  <title>Roost Shipyard</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --line:#2b3a7a;
+      --card:#0d1530cc;
+      --good:#8fffcd;
+      --warn:#ffd479;
+      --chip:#0f1d4d;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 10% -10%, #273f86 0%, transparent 42%),
+        radial-gradient(circle at 80% 110%, #1b295b 0%, transparent 40%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1080px, 94vw);
+      margin:28px auto;
+      display:grid;
+      gap:12px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:18px;
+      backdrop-filter:blur(4px);
+    }
+    h1, h2, h3 { margin:0; }
+    h1 { font-size:clamp(1.9rem, 4vw, 2.8rem); }
+    h2 { font-size:1rem; color:#c3d0ff; margin-bottom:10px; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .site-nav,
+    .controls,
+    .chips,
+    .meta,
+    .stats,
+    .links {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .grid {
+      display:grid;
+      gap:12px;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    .nav-link,
+    .btn,
+    .chip,
+    .project-link {
+      text-decoration:none;
+      color:#dbe4ff;
+      border:1px solid #4660be;
+      background:var(--chip);
+      border-radius:999px;
+      padding:6px 11px;
+      font:inherit;
+      font-size:.82rem;
+      cursor:pointer;
+    }
+    .btn { border-radius:10px; padding:9px 12px; }
+    .nav-link:hover,
+    .btn:hover,
+    .chip:hover,
+    .project-link:hover,
+    .nav-link:focus-visible,
+    .btn:focus-visible,
+    .chip:focus-visible,
+    .project-link:focus-visible {
+      background:#132668;
+      border-color:#6f8dff;
+      outline:none;
+    }
+    .input,
+    .select {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:9px 10px;
+    }
+    .input { flex:1 1 240px; min-width:220px; }
+    .stat {
+      border:1px solid #3550a8;
+      border-radius:12px;
+      background:#0c173f;
+      padding:12px;
+      display:grid;
+      gap:5px;
+      min-width:160px;
+    }
+    .stat strong { font-size:1.3rem; color:#edf2ff; }
+    .stat span { font-size:.8rem; color:#9fb0ff; }
+    .project {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .project h3 { font-size:1rem; color:#f1f4ff; }
+    .tiny { font-size:.8rem; color:#9fb0ff; }
+    .summary { color:#c7d4ff; font-size:.9rem; }
+    .tag {
+      border:1px dashed #415399;
+      border-radius:999px;
+      padding:2px 8px;
+      font-size:.72rem;
+      color:#b8c7ff;
+      background:#101d4d;
+    }
+    .status {
+      border-radius:999px;
+      padding:2px 8px;
+      font-size:.74rem;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      border:1px solid #4460ba;
+      background:#152864;
+      color:#d9e3ff;
+    }
+    .status.building { border-color:#5f7dff; color:#dbe5ff; }
+    .status.prototype { border-color:#6f8dff; color:#cfdcff; }
+    .status.planned { border-color:#8b5bff; color:#e1d4ff; }
+    .meter {
+      position:relative;
+      border-radius:8px;
+      overflow:hidden;
+      border:1px solid #33498f;
+      background:#101d4a;
+      height:8px;
+    }
+    .meter > span {
+      display:block;
+      height:100%;
+      background:linear-gradient(90deg, #6a8fff, #9ab3ff);
+    }
+    .empty {
+      border:1px dashed #415399;
+      border-radius:12px;
+      padding:14px;
+      color:#9fb0ff;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost shipyard</h1>
+      <p>roadmap cockpit for what gets prototyped, built, and shipped next.</p>
+      <nav class="site-nav" aria-label="Site sections" style="margin-top:10px;">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="expeditions.html">expeditions</a>
+        <a class="nav-link" href="command-center.html">command center</a>
+        <a class="nav-link" href="mission-plotter.html">mission plotter</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>shipyard controls</h2>
+      <div class="controls">
+        <input id="search" class="input" type="search" placeholder="search projects, tags, or summaries" autocomplete="off" />
+        <select id="status" class="select">
+          <option value="all">all statuses</option>
+          <option value="building">building</option>
+          <option value="prototype">prototype</option>
+          <option value="planned">planned</option>
+        </select>
+        <select id="horizon" class="select">
+          <option value="all">all horizons</option>
+          <option value="near">near</option>
+          <option value="mid">mid</option>
+          <option value="far">far</option>
+        </select>
+        <select id="sort" class="select">
+          <option value="impact">sort: impact</option>
+          <option value="effort">sort: effort</option>
+          <option value="title">sort: title</option>
+        </select>
+        <button id="clear" class="btn">clear</button>
+      </div>
+      <p class="tiny" style="margin-top:10px;">star projects to pin them in your cockpit. pins stay in this browser.</p>
+    </section>
+
+    <section class="grid stats" id="stats" aria-live="polite"></section>
+
+    <section class="card">
+      <h2>project queue</h2>
+      <div id="projects" class="grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    const searchInput = document.getElementById('search');
+    const statusSelect = document.getElementById('status');
+    const horizonSelect = document.getElementById('horizon');
+    const sortSelect = document.getElementById('sort');
+    const clearBtn = document.getElementById('clear');
+    const statsNode = document.getElementById('stats');
+    const projectsNode = document.getElementById('projects');
+
+    const PIN_KEY = 'roost:shipyard:pins';
+
+    const loadPins = () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(PIN_KEY) || '[]');
+        return new Set(Array.isArray(parsed) ? parsed : []);
+      } catch {
+        return new Set();
+      }
+    };
+
+    const savePins = (pins) => {
+      try {
+        localStorage.setItem(PIN_KEY, JSON.stringify(Array.from(pins)));
+      } catch {}
+    };
+
+    const loadProjects = async () => {
+      try {
+        const response = await fetch('assets/roost-shipyard.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('load failed');
+        return await response.json();
+      } catch {
+        return [];
+      }
+    };
+
+    const getFilters = () => ({
+      query: searchInput.value.trim().toLowerCase(),
+      status: statusSelect.value,
+      horizon: horizonSelect.value,
+      sort: sortSelect.value
+    });
+
+    const scoreForSort = (project, sort) => {
+      if (sort === 'effort') return project.effort;
+      if (sort === 'title') return project.title.toLowerCase();
+      return project.impact;
+    };
+
+    const renderStats = (projects, visible, pins) => {
+      const avgImpact = visible.length
+        ? (visible.reduce((sum, p) => sum + p.impact, 0) / visible.length).toFixed(1)
+        : '0.0';
+      const building = visible.filter((p) => p.status === 'building').length;
+
+      statsNode.innerHTML = '';
+      [
+        { label: 'visible projects', value: String(visible.length) },
+        { label: 'building now', value: String(building) },
+        { label: 'avg impact', value: avgImpact },
+        { label: 'pinned', value: String(pins.size) }
+      ].forEach((stat) => {
+        const card = document.createElement('article');
+        card.className = 'stat';
+        const value = document.createElement('strong');
+        value.textContent = stat.value;
+        const label = document.createElement('span');
+        label.textContent = stat.label;
+        card.append(value, label);
+        statsNode.appendChild(card);
+      });
+    };
+
+    const renderProjects = (projects, pins, filters) => {
+      const visible = projects
+        .filter((project) => {
+          if (filters.status !== 'all' && project.status !== filters.status) return false;
+          if (filters.horizon !== 'all' && project.horizon !== filters.horizon) return false;
+          if (!filters.query) return true;
+          const haystack = `${project.title} ${project.summary} ${project.tags.join(' ')}`.toLowerCase();
+          return haystack.includes(filters.query);
+        })
+        .sort((a, b) => {
+          const av = scoreForSort(a, filters.sort);
+          const bv = scoreForSort(b, filters.sort);
+          if (filters.sort === 'title') return av.localeCompare(bv);
+          return bv - av || a.title.localeCompare(b.title);
+        });
+
+      renderStats(projects, visible, pins);
+      projectsNode.innerHTML = '';
+
+      if (!visible.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'no matching projects yet. clear filters or search broader terms.';
+        projectsNode.appendChild(empty);
+        return;
+      }
+
+      visible.forEach((project) => {
+        const card = document.createElement('article');
+        card.className = 'project';
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+
+        const status = document.createElement('span');
+        status.className = `status ${project.status}`;
+        status.textContent = project.status;
+
+        const horizon = document.createElement('span');
+        horizon.className = 'tag';
+        horizon.textContent = `${project.horizon} horizon`;
+
+        const pin = document.createElement('button');
+        pin.className = 'chip';
+        pin.type = 'button';
+        pin.textContent = pins.has(project.id) ? '★ pinned' : '☆ pin';
+        pin.addEventListener('click', () => {
+          if (pins.has(project.id)) pins.delete(project.id);
+          else pins.add(project.id);
+          savePins(pins);
+          renderProjects(projects, pins, getFilters());
+        });
+
+        meta.append(status, horizon, pin);
+
+        const title = document.createElement('h3');
+        title.textContent = project.title;
+
+        const summary = document.createElement('p');
+        summary.className = 'summary';
+        summary.textContent = project.summary;
+
+        const impactLabel = document.createElement('p');
+        impactLabel.className = 'tiny';
+        impactLabel.textContent = `impact ${project.impact}/5 • effort ${project.effort}/5`;
+
+        const meter = document.createElement('div');
+        meter.className = 'meter';
+        const fill = document.createElement('span');
+        fill.style.width = `${Math.max(8, project.impact * 20)}%`;
+        meter.appendChild(fill);
+
+        const tags = document.createElement('div');
+        tags.className = 'chips';
+        project.tags.forEach((tag) => {
+          const chip = document.createElement('span');
+          chip.className = 'tag';
+          chip.textContent = tag;
+          tags.appendChild(chip);
+        });
+
+        const links = document.createElement('div');
+        links.className = 'links';
+        const open = document.createElement('a');
+        open.className = 'project-link';
+        open.href = project.link;
+        open.textContent = 'open surface';
+        links.appendChild(open);
+
+        card.append(meta, title, summary, impactLabel, meter, tags, links);
+        projectsNode.appendChild(card);
+      });
+    };
+
+    const boot = async () => {
+      const projects = await loadProjects();
+      const pins = loadPins();
+      renderProjects(projects, pins, getFilters());
+
+      [searchInput, statusSelect, horizonSelect, sortSelect].forEach((node) => {
+        node.addEventListener('input', () => renderProjects(projects, pins, getFilters()));
+        node.addEventListener('change', () => renderProjects(projects, pins, getFilters()));
+      });
+
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        statusSelect.value = 'all';
+        horizonSelect.value = 'all';
+        sortSelect.value = 'impact';
+        renderProjects(projects, pins, getFilters());
+      });
+    };
+
+    boot();
+  </script>
+</body>
+</html>
