@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Compass board for balancing build, learn, maintain, and play work." />
+  <title>Roost Compass</title>
+  <style>
+    :root {
+      --bg:#070d22;
+      --bg2:#0e1c45;
+      --fg:#e8eeff;
+      --muted:#a5b6ee;
+      --line:#2f448f;
+      --card:#0c1638d9;
+      --north:#79b8ff;
+      --east:#7df0d1;
+      --south:#ffcd7a;
+      --west:#c9a8ff;
+      --danger:#ff8f9d;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      color:var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background:
+        radial-gradient(circle at 12% -8%, #203a83 0%, transparent 45%),
+        radial-gradient(circle at 88% 110%, #1a275f 0%, transparent 42%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1080px, 92vw);
+      margin:32px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px;
+      background:var(--card);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 24px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.9rem, 4vw, 2.8rem); }
+    h2 { margin:0 0 10px; font-size:1rem; color:#c9d5ff; }
+    p { margin:0; color:var(--muted); line-height:1.45; }
+    .row, .links, .chips { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap:12px;
+    }
+    .btn, a.nav {
+      border:1px solid #4261bf;
+      border-radius:10px;
+      background:#12255d;
+      color:#dce6ff;
+      font:inherit;
+      text-decoration:none;
+      cursor:pointer;
+      padding:8px 12px;
+      transition:.15s ease;
+    }
+    .btn:hover, .btn:focus-visible, a.nav:hover, a.nav:focus-visible {
+      transform: translateY(-1px);
+      border-color:#7090ff;
+      background:#173172;
+      outline:none;
+    }
+    .btn.danger {
+      border-color:#90405e;
+      background:#3c1225;
+      color:#ffd5dc;
+    }
+    label { font-size:.82rem; color:#b8c7ff; display:grid; gap:6px; }
+    input[type="text"], textarea, select {
+      width:100%;
+      border-radius:10px;
+      border:1px solid #3f57a8;
+      background:#0a153a;
+      color:#e7eeff;
+      font:inherit;
+      padding:10px 11px;
+    }
+    textarea { min-height:74px; resize:vertical; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+      border-color:#7190ff;
+    }
+    .split {
+      display:grid;
+      gap:10px;
+      grid-template-columns: 1.4fr 1fr;
+    }
+    .chip {
+      border:1px dashed #4a62af;
+      border-radius:999px;
+      padding:3px 10px;
+      font-size:.76rem;
+      background:#111f4f;
+      color:#c8d4ff;
+    }
+    .chip.north { border-color:#4f79cc; color:#cfe2ff; }
+    .chip.east { border-color:#3ca28b; color:#d2fff4; }
+    .chip.south { border-color:#bb8c3b; color:#ffe7b8; }
+    .chip.west { border-color:#8d66c4; color:#eadbff; }
+    .compass {
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .meter {
+      border:1px solid #314588;
+      border-radius:999px;
+      overflow:hidden;
+      height:12px;
+      background:#08102b;
+    }
+    .fill { height:100%; width:0; transition:.25s ease; }
+    .fill.north { background:linear-gradient(90deg, #5f8cff, #9cc5ff); }
+    .fill.east { background:linear-gradient(90deg, #3acaa7, #89f2dd); }
+    .fill.south { background:linear-gradient(90deg, #d79a36, #ffe29b); }
+    .fill.west { background:linear-gradient(90deg, #8e68d1, #d4bcff); }
+    .list {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:8px;
+      max-height:520px;
+      overflow:auto;
+    }
+    .item {
+      border:1px solid #324686;
+      border-radius:12px;
+      background:#0a1333;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .item strong { color:#eaf0ff; }
+    .meta { font-size:.8rem; color:#b3c2f5; }
+    .tiny { font-size:.8rem; color:#9baeea; }
+    .empty {
+      border:1px dashed #4a5ca1;
+      border-radius:12px;
+      padding:14px;
+      color:#a6b8ef;
+    }
+    .status { min-height:1.1em; font-size:.82rem; color:#b5c6ff; }
+    @media (max-width: 780px) {
+      .split { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost compass</h1>
+      <p>balance the week across four directions: <strong style="color:#cfe2ff;">build</strong>, <strong style="color:#d2fff4;">learn</strong>, <strong style="color:#ffe7b8;">maintain</strong>, and <strong style="color:#eadbff;">play</strong>.</p>
+      <div class="links" style="margin-top:12px;">
+        <a class="nav" href="index.html">← home</a>
+        <a class="nav" href="command-center.html">command center</a>
+        <a class="nav" href="shipyard.html">shipyard</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>add heading</h2>
+        <form id="entryForm" class="split">
+          <div class="row" style="display:grid; gap:10px;">
+            <label>
+              task
+              <input id="taskInput" name="task" type="text" maxlength="140" required placeholder="ship compass page + smooth keyboard flows" />
+            </label>
+            <label>
+              notes
+              <textarea id="noteInput" name="note" maxlength="280" placeholder="optional detail, constraint, or next action"></textarea>
+            </label>
+          </div>
+          <div class="row" style="display:grid; gap:10px; align-content:start;">
+            <label>
+              direction
+              <select id="directionInput" name="direction">
+                <option value="north">north · build</option>
+                <option value="east">east · learn</option>
+                <option value="south">south · maintain</option>
+                <option value="west">west · play</option>
+              </select>
+            </label>
+            <label>
+              energy (1 calm → 5 full send)
+              <input id="energyInput" name="energy" type="range" min="1" max="5" step="1" value="3" />
+            </label>
+            <p class="tiny">energy level: <span id="energyLabel">3</span>/5</p>
+            <button class="btn" type="submit">add heading</button>
+          </div>
+        </form>
+        <p id="status" class="status" aria-live="polite"></p>
+      </article>
+
+      <article class="card">
+        <h2>compass loadout</h2>
+        <div class="chips" id="totalsChips"></div>
+        <div class="compass" aria-live="polite">
+          <div>
+            <p class="tiny">north · build <span id="northScore">0</span></p>
+            <div class="meter"><div class="fill north" id="northFill"></div></div>
+          </div>
+          <div>
+            <p class="tiny">east · learn <span id="eastScore">0</span></p>
+            <div class="meter"><div class="fill east" id="eastFill"></div></div>
+          </div>
+          <div>
+            <p class="tiny">south · maintain <span id="southScore">0</span></p>
+            <div class="meter"><div class="fill south" id="southFill"></div></div>
+          </div>
+          <div>
+            <p class="tiny">west · play <span id="westScore">0</span></p>
+            <div class="meter"><div class="fill west" id="westFill"></div></div>
+          </div>
+        </div>
+        <p class="tiny" style="margin-top:10px;">dominant direction: <strong id="dominant">none yet</strong></p>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>filter + manage</h2>
+      <div class="row" style="margin-bottom:12px;">
+        <label style="min-width:190px;">
+          direction filter
+          <select id="filterDirection">
+            <option value="all">all directions</option>
+            <option value="north">north · build</option>
+            <option value="east">east · learn</option>
+            <option value="south">south · maintain</option>
+            <option value="west">west · play</option>
+          </select>
+        </label>
+        <label style="min-width:190px;">
+          min energy
+          <select id="filterEnergy">
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+            <option value="4">4+</option>
+            <option value="5">5 only</option>
+          </select>
+        </label>
+        <button class="btn" id="seedBtn" type="button">add sample pack</button>
+        <button class="btn" id="exportBtn" type="button">export json</button>
+        <label class="btn" for="importFile" style="display:inline-flex; align-items:center;">import json</label>
+        <input id="importFile" type="file" accept="application/json" style="display:none;" />
+        <button class="btn danger" id="clearBtn" type="button">clear all</button>
+      </div>
+      <ul id="entryList" class="list" aria-live="polite"></ul>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'roostCompassStateV1';
+    const DIRECTIONS = {
+      north: { label: 'north · build', chip: 'north' },
+      east: { label: 'east · learn', chip: 'east' },
+      south: { label: 'south · maintain', chip: 'south' },
+      west: { label: 'west · play', chip: 'west' }
+    };
+
+    const form = document.getElementById('entryForm');
+    const taskInput = document.getElementById('taskInput');
+    const noteInput = document.getElementById('noteInput');
+    const directionInput = document.getElementById('directionInput');
+    const energyInput = document.getElementById('energyInput');
+    const energyLabel = document.getElementById('energyLabel');
+    const entryList = document.getElementById('entryList');
+    const statusEl = document.getElementById('status');
+    const totalsChips = document.getElementById('totalsChips');
+    const filterDirection = document.getElementById('filterDirection');
+    const filterEnergy = document.getElementById('filterEnergy');
+    const seedBtn = document.getElementById('seedBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importFile = document.getElementById('importFile');
+    const clearBtn = document.getElementById('clearBtn');
+    const dominantEl = document.getElementById('dominant');
+
+    const meterEls = {
+      north: { fill: document.getElementById('northFill'), score: document.getElementById('northScore') },
+      east: { fill: document.getElementById('eastFill'), score: document.getElementById('eastScore') },
+      south: { fill: document.getElementById('southFill'), score: document.getElementById('southScore') },
+      west: { fill: document.getElementById('westFill'), score: document.getElementById('westScore') }
+    };
+
+    const nowIso = () => new Date().toISOString();
+
+    const normalizeEntry = (entry) => ({
+      id: String(entry.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`),
+      task: String(entry.task || '').trim().slice(0, 140),
+      note: String(entry.note || '').trim().slice(0, 280),
+      direction: DIRECTIONS[entry.direction] ? entry.direction : 'north',
+      energy: Math.min(5, Math.max(1, Number(entry.energy) || 1)),
+      createdAt: String(entry.createdAt || nowIso())
+    });
+
+    const loadState = () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (!parsed || !Array.isArray(parsed.entries)) return [];
+        return parsed.entries.map(normalizeEntry).filter((entry) => entry.task);
+      } catch {
+        return [];
+      }
+    };
+
+    let entries = loadState();
+
+    const saveState = () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ entries }));
+    };
+
+    const setStatus = (text) => {
+      statusEl.textContent = text;
+    };
+
+    const getFilteredEntries = () => {
+      const direction = filterDirection.value;
+      const minEnergy = Number(filterEnergy.value || 1);
+      return entries.filter((entry) => {
+        if (direction !== 'all' && entry.direction !== direction) return false;
+        return entry.energy >= minEnergy;
+      });
+    };
+
+    const directionTotals = (list = entries) => {
+      const totals = { north: 0, east: 0, south: 0, west: 0 };
+      for (const entry of list) totals[entry.direction] += entry.energy;
+      return totals;
+    };
+
+    const renderCompass = () => {
+      const totals = directionTotals(entries);
+      const values = Object.values(totals);
+      const max = Math.max(1, ...values);
+
+      for (const [direction, value] of Object.entries(totals)) {
+        meterEls[direction].score.textContent = String(value);
+        meterEls[direction].fill.style.width = `${Math.round((value / max) * 100)}%`;
+      }
+
+      const ranked = Object.entries(totals)
+        .sort((a, b) => b[1] - a[1]);
+
+      if (ranked[0][1] === 0) {
+        dominantEl.textContent = 'none yet';
+      } else {
+        dominantEl.textContent = `${DIRECTIONS[ranked[0][0]].label} (${ranked[0][1]} energy)`;
+      }
+
+      totalsChips.innerHTML = '';
+      for (const [direction, value] of Object.entries(totals)) {
+        const chip = document.createElement('span');
+        chip.className = `chip ${DIRECTIONS[direction].chip}`;
+        chip.textContent = `${DIRECTIONS[direction].label}: ${value}`;
+        totalsChips.appendChild(chip);
+      }
+    };
+
+    const renderEntries = () => {
+      const filtered = getFilteredEntries();
+      entryList.innerHTML = '';
+
+      if (filtered.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'empty';
+        empty.textContent = 'no headings match this filter yet. widen the filter or add a new direction.';
+        entryList.appendChild(empty);
+        renderCompass();
+        return;
+      }
+
+      const sorted = [...filtered].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      for (const entry of sorted) {
+        const item = document.createElement('li');
+        item.className = 'item';
+
+        const title = document.createElement('strong');
+        title.textContent = entry.task;
+
+        const meta = document.createElement('p');
+        meta.className = 'meta';
+        const created = new Date(entry.createdAt);
+        meta.textContent = `${DIRECTIONS[entry.direction].label} · energy ${entry.energy}/5 · ${created.toLocaleString()}`;
+
+        const chips = document.createElement('div');
+        chips.className = 'chips';
+        const directionChip = document.createElement('span');
+        directionChip.className = `chip ${entry.direction}`;
+        directionChip.textContent = DIRECTIONS[entry.direction].label;
+        chips.appendChild(directionChip);
+
+        if (entry.note) {
+          const note = document.createElement('p');
+          note.className = 'tiny';
+          note.textContent = entry.note;
+          item.appendChild(note);
+        }
+
+        const controls = document.createElement('div');
+        controls.className = 'links';
+        const up = document.createElement('button');
+        up.className = 'btn';
+        up.type = 'button';
+        up.textContent = '+energy';
+        up.addEventListener('click', () => {
+          entry.energy = Math.min(5, entry.energy + 1);
+          saveState();
+          renderEntries();
+          setStatus(`boosted "${entry.task}" to ${entry.energy}/5`);
+        });
+
+        const down = document.createElement('button');
+        down.className = 'btn';
+        down.type = 'button';
+        down.textContent = '-energy';
+        down.addEventListener('click', () => {
+          entry.energy = Math.max(1, entry.energy - 1);
+          saveState();
+          renderEntries();
+          setStatus(`lowered "${entry.task}" to ${entry.energy}/5`);
+        });
+
+        const remove = document.createElement('button');
+        remove.className = 'btn danger';
+        remove.type = 'button';
+        remove.textContent = 'remove';
+        remove.addEventListener('click', () => {
+          entries = entries.filter((candidate) => candidate.id !== entry.id);
+          saveState();
+          renderEntries();
+          setStatus(`removed "${entry.task}".`);
+        });
+
+        controls.appendChild(up);
+        controls.appendChild(down);
+        controls.appendChild(remove);
+
+        item.appendChild(title);
+        item.appendChild(meta);
+        item.appendChild(chips);
+        item.appendChild(controls);
+        entryList.appendChild(item);
+      }
+
+      renderCompass();
+    };
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const task = taskInput.value.trim();
+      if (!task) {
+        setStatus('task text is required.');
+        return;
+      }
+
+      const entry = normalizeEntry({
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        task,
+        note: noteInput.value,
+        direction: directionInput.value,
+        energy: Number(energyInput.value),
+        createdAt: nowIso()
+      });
+
+      entries.unshift(entry);
+      saveState();
+      renderEntries();
+      form.reset();
+      energyInput.value = '3';
+      energyLabel.textContent = '3';
+      directionInput.value = entry.direction;
+      taskInput.focus();
+      setStatus(`added ${DIRECTIONS[entry.direction].label} heading.`);
+    });
+
+    energyInput.addEventListener('input', () => {
+      energyLabel.textContent = String(energyInput.value);
+    });
+
+    filterDirection.addEventListener('change', renderEntries);
+    filterEnergy.addEventListener('change', renderEntries);
+
+    seedBtn.addEventListener('click', () => {
+      const seeds = [
+        { task: 'ship one tiny interaction that feels premium', direction: 'north', energy: 4, note: 'animated focus ring + keyboard shortcut' },
+        { task: 'watch one accessibility talk and apply one lesson', direction: 'east', energy: 3, note: 'use visible focus and contrast checks' },
+        { task: 'archive stale TODO notes into one clean issue list', direction: 'south', energy: 2, note: 'remove duplicate plans' },
+        { task: 'draw a weird mascot variant just for fun', direction: 'west', energy: 2, note: 'no shipping pressure' }
+      ].map((seed) => normalizeEntry({ ...seed, id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, createdAt: nowIso() }));
+
+      entries = [...seeds, ...entries];
+      saveState();
+      renderEntries();
+      setStatus('sample pack added. tweak or delete anything you do not need.');
+    });
+
+    exportBtn.addEventListener('click', () => {
+      const payload = JSON.stringify({ entries, exportedAt: nowIso() }, null, 2);
+      const blob = new Blob([payload], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `roost-compass-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setStatus('exported compass snapshot.');
+    });
+
+    importFile.addEventListener('change', async () => {
+      const file = importFile.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if (!parsed || !Array.isArray(parsed.entries)) {
+          throw new Error('Invalid file format');
+        }
+        entries = parsed.entries.map(normalizeEntry).filter((entry) => entry.task);
+        saveState();
+        renderEntries();
+        setStatus(`imported ${entries.length} headings.`);
+      } catch {
+        setStatus('import failed: expected a compass export json file.');
+      } finally {
+        importFile.value = '';
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (!window.confirm('clear all compass headings? this cannot be undone.')) return;
+      entries = [];
+      saveState();
+      renderEntries();
+      setStatus('cleared all compass headings.');
+    });
+
+    renderEntries();
+  </script>
+</body>
+</html>
