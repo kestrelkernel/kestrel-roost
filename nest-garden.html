@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Creative session planner for Kestrel's Roost" />
+  <title>Nest Garden · Kestrel's Roost</title>
+  <style>
+    :root { --bg:#08142f; --card:#0e1f47dd; --line:#334f9a; --fg:#e6ecff; --muted:#adc0ff; --accent:#86a8ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: ui-monospace, Menlo, Consolas, monospace; color:var(--fg); background:radial-gradient(circle at 20% 0%, #163779 0, transparent 45%), linear-gradient(180deg, #0f1e45, #08142f); min-height:100vh; }
+    .wrap { width:min(980px,92vw); margin:32px auto; display:grid; gap:14px; }
+    .card { border:1px solid var(--line); background:var(--card); border-radius:16px; padding:18px; }
+    h1,h2,h3,p { margin:0; }
+    p { color:var(--muted); line-height:1.55; }
+    .nav,.controls,.chips,.cards { display:flex; flex-wrap:wrap; gap:10px; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); }
+    .pill,.btn,a { color:#dce5ff; border:1px solid #4968be; border-radius:999px; padding:7px 11px; background:#132965; text-decoration:none; font:inherit; }
+    .pill[aria-pressed="true"] { background:#28478f; border-color:#87a6ff; }
+    button { cursor:pointer; }
+    .task { border:1px solid #314f96; border-radius:12px; padding:12px; background:#0b1738; display:grid; gap:8px; }
+    .meta { font-size:.82rem; color:#bdd0ff; display:flex; gap:8px; flex-wrap:wrap; }
+    .focus { border:1px dashed #6787dd; border-radius:12px; padding:12px; background:#0c1d4a; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>nest garden</h1>
+      <p>pick a creative block by energy and time, then ship one focused move.</p>
+      <nav class="nav" style="margin-top:10px">
+        <a href="index.html">home</a><a href="shipyard.html">shipyard</a><a href="roost-compass.html">roost compass</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>filter your session</h2>
+      <div class="controls" style="margin-top:10px">
+        <div class="chips" id="typeChips"></div>
+        <div class="chips" id="energyChips"></div>
+        <button class="btn" id="randomPick">random pick</button>
+      </div>
+    </section>
+
+    <section class="card focus" id="focusTask" aria-live="polite">
+      <h3>focus suggestion</h3>
+      <p>loading…</p>
+    </section>
+
+    <section class="card">
+      <h2>session options</h2>
+      <div class="cards" id="taskGrid"><p>loading tasks…</p></div>
+    </section>
+  </main>
+
+  <script>
+    const taskGrid = document.getElementById('taskGrid');
+    const focusTask = document.getElementById('focusTask');
+    const typeChips = document.getElementById('typeChips');
+    const energyChips = document.getElementById('energyChips');
+    const randomPick = document.getElementById('randomPick');
+
+    const state = { type: 'all', energy: 'all', tasks: [] };
+
+    const makeChip = (value, active, onClick) => {
+      const btn = document.createElement('button');
+      btn.className = 'pill';
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      btn.textContent = value;
+      btn.addEventListener('click', onClick);
+      return btn;
+    };
+
+    const renderFocus = (task) => {
+      if (!task) {
+        focusTask.innerHTML = '<h3>focus suggestion</h3><p>no tasks match these filters yet.</p>';
+        return;
+      }
+      focusTask.innerHTML = `<h3>${task.title}</h3><p>${task.prompt}</p><p class="meta"><span>${task.type}</span><span>${task.energy} energy</span><span>${task.duration}</span></p>`;
+    };
+
+    const filteredTasks = () => state.tasks.filter((task) =>
+      (state.type === 'all' || task.type === state.type) &&
+      (state.energy === 'all' || task.energy === state.energy)
+    );
+
+    const render = () => {
+      const tasks = filteredTasks();
+      taskGrid.innerHTML = tasks.length ? '' : '<p>no tasks match this combo. try another filter.</p>';
+      tasks.forEach((task) => {
+        const card = document.createElement('article');
+        card.className = 'task';
+        card.innerHTML = `<h3>${task.title}</h3><p>${task.prompt}</p><p class="meta"><span>${task.type}</span><span>${task.energy} energy</span><span>${task.duration}</span></p>`;
+        card.addEventListener('click', () => renderFocus(task));
+        taskGrid.appendChild(card);
+      });
+      renderFocus(tasks[0]);
+
+      const types = ['all', ...new Set(state.tasks.map((task) => task.type))];
+      typeChips.innerHTML = '';
+      types.forEach((value) => typeChips.appendChild(makeChip(value, value === state.type, () => { state.type = value; render(); })));
+
+      const energies = ['all', ...new Set(state.tasks.map((task) => task.energy))];
+      energyChips.innerHTML = '';
+      energies.forEach((value) => energyChips.appendChild(makeChip(value, value === state.energy, () => { state.energy = value; render(); })));
+    };
+
+    randomPick.addEventListener('click', () => {
+      const tasks = filteredTasks();
+      if (!tasks.length) return renderFocus(null);
+      const pick = tasks[Math.floor(Math.random() * tasks.length)];
+      renderFocus(pick);
+    });
+
+    fetch('assets/roost-garden.json')
+      .then((res) => res.json())
+      .then((tasks) => { state.tasks = tasks; render(); })
+      .catch(() => {
+        taskGrid.innerHTML = '<p>could not load garden tasks.</p>';
+        focusTask.innerHTML = '<h3>focus suggestion</h3><p>task feed unavailable.</p>';
+      });
+  </script>
+</body>
+</html>

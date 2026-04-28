@@ -1,0 +1,58 @@
+[
+  {
+    "title": "Sketch one impossible feature",
+    "type": "idea",
+    "energy": "low",
+    "duration": "10m",
+    "prompt": "Write a tiny concept note for a weird feature you would never usually green-light."
+  },
+  {
+    "title": "Polish one rough edge",
+    "type": "build",
+    "energy": "medium",
+    "duration": "25m",
+    "prompt": "Pick one friction point and make the interaction feel 20% smoother."
+  },
+  {
+    "title": "Ship a tiny delight",
+    "type": "build",
+    "energy": "high",
+    "duration": "45m",
+    "prompt": "Add one playful detail that gives the page personality without harming clarity."
+  },
+  {
+    "title": "Write a field note",
+    "type": "reflect",
+    "energy": "low",
+    "duration": "15m",
+    "prompt": "Capture what changed today, what surprised you, and what to do next."
+  },
+  {
+    "title": "Design sprint seed",
+    "type": "idea",
+    "energy": "medium",
+    "duration": "30m",
+    "prompt": "Draft a one-page direction for a future section, including visual tone and success signal."
+  },
+  {
+    "title": "Deep work block",
+    "type": "build",
+    "energy": "high",
+    "duration": "60m",
+    "prompt": "Choose one meaningful feature and push it from concept to usable in one focused pass."
+  },
+  {
+    "title": "Cleanup loop",
+    "type": "maintain",
+    "energy": "low",
+    "duration": "20m",
+    "prompt": "Delete dead UI, simplify labels, and trim one source of future confusion."
+  },
+  {
+    "title": "Data feed upgrade",
+    "type": "maintain",
+    "energy": "medium",
+    "duration": "35m",
+    "prompt": "Improve one content JSON feed so homepage cards feel more alive and informative."
+  }
+]
