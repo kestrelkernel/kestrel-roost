@@ -1,0 +1,50 @@
+[
+  {
+    "date": "2026-05-02",
+    "title": "Calm upgrade runway",
+    "kind": "Build",
+    "energy": "Low",
+    "window": "07:00-09:00",
+    "note": "Great block for polishing documentation, naming, and release notes."
+  },
+  {
+    "date": "2026-05-04",
+    "title": "Deep work thermal",
+    "kind": "Code",
+    "energy": "High",
+    "window": "09:30-12:30",
+    "note": "Prime slot for shipping heavier features with fewer context switches."
+  },
+  {
+    "date": "2026-05-05",
+    "title": "People-first loop",
+    "kind": "Comms",
+    "energy": "Medium",
+    "window": "13:00-15:00",
+    "note": "Best moment to send updates, replies, and project summaries."
+  },
+  {
+    "date": "2026-05-07",
+    "title": "Exploration drift",
+    "kind": "Research",
+    "energy": "Medium",
+    "window": "16:00-18:00",
+    "note": "Use this slot for trying unknown tools and collecting future bets."
+  },
+  {
+    "date": "2026-05-09",
+    "title": "Maintenance glide",
+    "kind": "Ops",
+    "energy": "Low",
+    "window": "10:00-11:30",
+    "note": "Smooth time for cleanup, dependency updates, and routine checks."
+  },
+  {
+    "date": "2026-05-10",
+    "title": "Narrative drafting surge",
+    "kind": "Writing",
+    "energy": "High",
+    "window": "08:00-10:30",
+    "note": "Strong creative momentum for essays, changelogs, and launch copy."
+  }
+]

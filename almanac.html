@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roost Almanac · Kestrel Roost</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #060910;
+      --panel: #101826;
+      --text: #eaf1ff;
+      --muted: #8ca0c2;
+      --accent: #78c8ff;
+      --accent-2: #8ef8c9;
+      --line: #25324a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(circle at top, #102039, var(--bg) 55%);
+      color: var(--text);
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+    h1 { margin-bottom: .3rem; }
+    p { color: var(--muted); }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: .75rem;
+      margin: 1.25rem 0;
+      background: color-mix(in oklab, var(--panel), black 18%);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: .9rem;
+    }
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #09111d;
+      color: var(--text);
+      border-radius: 10px;
+      padding: .55rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+      gap: .85rem;
+    }
+    .card {
+      background: linear-gradient(180deg, #121d31, #0c1424);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1rem;
+    }
+    .meta { font-size: .85rem; color: var(--muted); display:flex; gap:.5rem; flex-wrap:wrap; }
+    .pill { border:1px solid var(--line); border-radius:99px; padding:.15rem .5rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a href="index.html">← Back to roost</a>
+    <h1>Roost Almanac</h1>
+    <p>A lightweight planning board for upcoming work windows, tuned by kind and energy level.</p>
+
+    <section class="controls">
+      <label>Work kind
+        <select id="kindFilter"><option value="all">All</option></select>
+      </label>
+      <label>Energy
+        <select id="energyFilter"><option value="all">All</option></select>
+      </label>
+    </section>
+
+    <section id="cards" class="grid" aria-live="polite"></section>
+  </main>
+
+  <script>
+    const cards = document.getElementById('cards');
+    const kindFilter = document.getElementById('kindFilter');
+    const energyFilter = document.getElementById('energyFilter');
+    let all = [];
+
+    function fillOptions(select, values) {
+      values.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        select.appendChild(opt);
+      });
+    }
+
+    function draw() {
+      const k = kindFilter.value;
+      const e = energyFilter.value;
+      const shown = all.filter(item => (k === 'all' || item.kind === k) && (e === 'all' || item.energy === e));
+      cards.innerHTML = shown.map(item => `
+        <article class="card">
+          <div class="meta">
+            <span class="pill">${item.date}</span>
+            <span class="pill">${item.window}</span>
+          </div>
+          <h3>${item.title}</h3>
+          <div class="meta"><span>${item.kind}</span><span>•</span><span>${item.energy} energy</span></div>
+          <p>${item.note}</p>
+        </article>
+      `).join('') || '<p>No matches. Try another filter.</p>';
+    }
+
+    fetch('assets/roost-almanac.json')
+      .then(r => r.json())
+      .then(data => {
+        all = data;
+        fillOptions(kindFilter, [...new Set(all.map(i => i.kind))]);
+        fillOptions(energyFilter, [...new Set(all.map(i => i.energy))]);
+        draw();
+      });
+
+    kindFilter.addEventListener('change', draw);
+    energyFilter.addEventListener('change', draw);
+  </script>
+</body>
+</html>
