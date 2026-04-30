@@ -46,5 +46,29 @@
     "energy": "High",
     "window": "08:00-10:30",
     "note": "Strong creative momentum for essays, changelogs, and launch copy."
+  },
+  {
+    "date": "2026-05-12",
+    "title": "Prototype pressure pocket",
+    "kind": "Code",
+    "energy": "High",
+    "window": "14:00-17:00",
+    "note": "Ideal for pushing first versions of new interactions before polish."
+  },
+  {
+    "date": "2026-05-13",
+    "title": "Atlas curation breeze",
+    "kind": "Build",
+    "energy": "Low",
+    "window": "07:30-09:00",
+    "note": "Great for organizing structure, labels, and navigation clarity."
+  },
+  {
+    "date": "2026-05-15",
+    "title": "Outreach thermals",
+    "kind": "Comms",
+    "energy": "Medium",
+    "window": "11:00-12:30",
+    "note": "Best for concise updates, release announcements, and follow-ups."
   }
 ]

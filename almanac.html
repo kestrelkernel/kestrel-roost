@@ -14,6 +14,8 @@
       --accent: #78c8ff;
       --accent-2: #8ef8c9;
       --line: #25324a;
+      --hot: #8ef8c9;
+      --calm: #78c8ff;
     }
     * { box-sizing: border-box; }
     body {
@@ -22,14 +24,31 @@
       background: radial-gradient(circle at top, #102039, var(--bg) 55%);
       color: var(--text);
     }
-    .wrap { max-width: 980px; margin: 0 auto; padding: 2rem 1rem 4rem; }
-    h1 { margin-bottom: .3rem; }
+    .wrap { max-width: 1020px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+    h1 { margin-bottom: .25rem; }
     p { color: var(--muted); }
+    a { color: var(--accent); }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .8rem;
+      margin: 1rem 0 1.2rem;
+    }
+    .stat {
+      background: linear-gradient(180deg, #121d31, #0c1424);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: .8rem .9rem;
+    }
+    .stat .label { color: var(--muted); font-size: .82rem; }
+    .stat .value { font-size: 1.25rem; font-weight: 700; margin-top: .25rem; }
+
     .controls {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: .75rem;
-      margin: 1.25rem 0;
+      margin: 1rem 0;
       background: color-mix(in oklab, var(--panel), black 18%);
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -43,6 +62,29 @@
       border-radius: 10px;
       padding: .55rem;
     }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .7rem;
+      margin-bottom: 1rem;
+    }
+    .day {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: .65rem;
+      background: #0b1220;
+    }
+    .day h4 { margin: 0 0 .4rem; font-size: .9rem; }
+    .bar {
+      height: 8px;
+      border-radius: 99px;
+      background: #0e192a;
+      border: 1px solid #1c2a42;
+      overflow: hidden;
+    }
+    .fill { height: 100%; background: linear-gradient(90deg, var(--calm), var(--hot)); }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
@@ -56,14 +98,19 @@
     }
     .meta { font-size: .85rem; color: var(--muted); display:flex; gap:.5rem; flex-wrap:wrap; }
     .pill { border:1px solid var(--line); border-radius:99px; padding:.15rem .5rem; }
-    a { color: var(--accent); }
   </style>
 </head>
 <body>
   <main class="wrap">
     <a href="index.html">← Back to roost</a>
     <h1>Roost Almanac</h1>
-    <p>A lightweight planning board for upcoming work windows, tuned by kind and energy level.</p>
+    <p>Weather-style scheduling for creative output. Forecast the next strong work window, then fly into it.</p>
+
+    <section class="top-grid">
+      <article class="stat"><div class="label">Next window</div><div class="value" id="nextWindow">Loading…</div></article>
+      <article class="stat"><div class="label">Most frequent mode</div><div class="value" id="topKind">—</div></article>
+      <article class="stat"><div class="label">High-energy slots</div><div class="value" id="highEnergy">—</div></article>
+    </section>
 
     <section class="controls">
       <label>Work kind
@@ -72,15 +119,30 @@
       <label>Energy
         <select id="energyFilter"><option value="all">All</option></select>
       </label>
+      <label>Sort
+        <select id="sortBy">
+          <option value="date">Date (soonest)</option>
+          <option value="energy">Energy (high→low)</option>
+          <option value="kind">Kind (A→Z)</option>
+        </select>
+      </label>
     </section>
 
+    <section id="timeline" class="timeline" aria-label="7-day intensity outlook"></section>
     <section id="cards" class="grid" aria-live="polite"></section>
   </main>
 
   <script>
     const cards = document.getElementById('cards');
+    const timeline = document.getElementById('timeline');
     const kindFilter = document.getElementById('kindFilter');
     const energyFilter = document.getElementById('energyFilter');
+    const sortBy = document.getElementById('sortBy');
+    const nextWindow = document.getElementById('nextWindow');
+    const topKind = document.getElementById('topKind');
+    const highEnergy = document.getElementById('highEnergy');
+
+    const energyScore = { High: 3, Medium: 2, Low: 1 };
     let all = [];
 
     function fillOptions(select, values) {
@@ -92,10 +154,53 @@
       });
     }
 
+    function updateStats() {
+      const now = new Date();
+      const upcoming = [...all]
+        .map(item => ({ ...item, d: new Date(item.date + 'T00:00:00') }))
+        .filter(item => item.d >= now)
+        .sort((a, b) => a.d - b.d)[0];
+
+      nextWindow.textContent = upcoming ? `${upcoming.date} · ${upcoming.window}` : 'No upcoming slots';
+
+      const kindCounts = all.reduce((acc, item) => {
+        acc[item.kind] = (acc[item.kind] || 0) + 1;
+        return acc;
+      }, {});
+      const top = Object.entries(kindCounts).sort((a, b) => b[1] - a[1])[0];
+      topKind.textContent = top ? `${top[0]} (${top[1]})` : '—';
+
+      highEnergy.textContent = all.filter(item => item.energy === 'High').length;
+    }
+
+    function drawTimeline() {
+      const counts = all.reduce((acc, item) => {
+        acc[item.date] = (acc[item.date] || 0) + energyScore[item.energy];
+        return acc;
+      }, {});
+
+      const days = Object.entries(counts).sort((a, b) => a[0].localeCompare(b[0])).slice(0, 7);
+      const max = Math.max(...days.map(([, v]) => v), 1);
+
+      timeline.innerHTML = days.map(([date, val]) => {
+        const pct = Math.round((val / max) * 100);
+        return `<article class="day"><h4>${date}</h4><div class="bar"><div class="fill" style="width:${pct}%"></div></div></article>`;
+      }).join('');
+    }
+
     function draw() {
       const k = kindFilter.value;
       const e = energyFilter.value;
-      const shown = all.filter(item => (k === 'all' || item.kind === k) && (e === 'all' || item.energy === e));
+      const s = sortBy.value;
+
+      const shown = all
+        .filter(item => (k === 'all' || item.kind === k) && (e === 'all' || item.energy === e))
+        .sort((a, b) => {
+          if (s === 'energy') return energyScore[b.energy] - energyScore[a.energy];
+          if (s === 'kind') return a.kind.localeCompare(b.kind);
+          return a.date.localeCompare(b.date);
+        });
+
       cards.innerHTML = shown.map(item => `
         <article class="card">
           <div class="meta">
@@ -115,11 +220,14 @@
         all = data;
         fillOptions(kindFilter, [...new Set(all.map(i => i.kind))]);
         fillOptions(energyFilter, [...new Set(all.map(i => i.energy))]);
+        updateStats();
+        drawTimeline();
         draw();
       });
 
     kindFilter.addEventListener('change', draw);
     energyFilter.addEventListener('change', draw);
+    sortBy.addEventListener('change', draw);
   </script>
 </body>
 </html>
