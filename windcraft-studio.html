@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Design your ideal focus session with Kestrel's windcraft studio." />
+  <title>Windcraft Studio • Kestrel's Roost</title>
+  <style>
+    :root { --bg:#0a1025; --panel:#111c46d0; --line:#3a4f9f; --text:#e7edff; --muted:#a6b6ef; --accent:#86a9ff; --good:#8fffd2; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: ui-monospace, Menlo, Consolas, monospace; color:var(--text); background:radial-gradient(circle at 20% -10%, #203678 0%, transparent 35%), linear-gradient(180deg, #131f49, var(--bg)); }
+    .wrap { width:min(980px, 92vw); margin:28px auto; display:grid; gap:14px; }
+    .card { border:1px solid var(--line); border-radius:16px; background:var(--panel); padding:18px; }
+    h1 { margin:0 0 8px; font-size:clamp(1.8rem,4vw,2.8rem); }
+    h2 { margin:0 0 8px; font-size:1rem; color:#c5d1ff; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .nav { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    a, button { border:1px solid #4a62bc; background:#102058; color:#e6ecff; border-radius:999px; padding:8px 12px; text-decoration:none; font:inherit; cursor:pointer; }
+    a:hover, button:hover { transform:translateY(-1px); border-color:#7b96ff; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+    label { display:grid; gap:6px; font-size:.85rem; color:#b8c8ff; }
+    input[type="range"] { width:100%; accent-color: var(--accent); }
+    .value { color:#dce6ff; font-size:.95rem; }
+    .result { border:1px dashed #4d67c6; border-radius:12px; padding:14px; display:grid; gap:8px; background:#0b1538; }
+    .big { font-size:1.1rem; color:var(--good); }
+    ul { margin:0; padding-left:18px; color:#d4deff; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>Windcraft Studio</h1>
+      <p>Build a custom focus flight by tuning energy, weather appetite, and mission size. This turns your mood into a practical session plan.</p>
+      <nav class="nav" aria-label="Site links">
+        <a href="index.html">home</a>
+        <a href="roost-routines.html">roost routines</a>
+        <a href="mission-plotter.html">mission plotter</a>
+      </nav>
+    </section>
+
+    <section class="card">
+      <h2>Flight controls</h2>
+      <div class="grid">
+        <label>Energy level <span class="value" id="energyValue">6 / 10</span><input id="energy" type="range" min="1" max="10" value="6" /></label>
+        <label>Need for novelty <span class="value" id="noveltyValue">5 / 10</span><input id="novelty" type="range" min="1" max="10" value="5" /></label>
+        <label>Focus runway (minutes) <span class="value" id="timeValue">45</span><input id="time" type="range" min="20" max="120" step="5" value="45" /></label>
+      </div>
+      <div class="nav" style="margin-top:12px">
+        <button id="reroll">reroll pattern</button>
+      </div>
+    </section>
+
+    <section class="card result" aria-live="polite">
+      <div class="big" id="profile">Balanced glide profile</div>
+      <p id="summary">A steady sprint with one playful detour.</p>
+      <ul id="steps"></ul>
+    </section>
+  </main>
+
+  <script>
+    const controls = {
+      energy: document.getElementById('energy'),
+      novelty: document.getElementById('novelty'),
+      time: document.getElementById('time')
+    };
+    const values = {
+      energy: document.getElementById('energyValue'),
+      novelty: document.getElementById('noveltyValue'),
+      time: document.getElementById('timeValue')
+    };
+    const profileEl = document.getElementById('profile');
+    const summaryEl = document.getElementById('summary');
+    const stepsEl = document.getElementById('steps');
+
+    const patterns = [
+      { name:'Thermal Surge', summary:'Front-load hard work while energy is highest.', steps:['5m mission lock-in','30m deep build','10m stretch + notes','final pass and commit check'] },
+      { name:'Scout Loop', summary:'Alternating focus and discovery to avoid stalling.', steps:['10m scan + pick one target','20m implementation burst','10m inspiration walk/tab','repeat once, then close log'] },
+      { name:'Night Glide', summary:'Long calm runway with fewer context switches.', steps:['8m prep and cleanup','40m uninterrupted making','7m polish + screenshot','ship one visible change'] }
+    ];
+
+    function chooseProfile() {
+      const energy = Number(controls.energy.value);
+      const novelty = Number(controls.novelty.value);
+      const time = Number(controls.time.value);
+
+      values.energy.textContent = `${energy} / 10`;
+      values.novelty.textContent = `${novelty} / 10`;
+      values.time.textContent = `${time}`;
+
+      let pattern = patterns[0];
+      if (novelty >= 7) pattern = patterns[1];
+      if (energy <= 4 || time >= 85) pattern = patterns[2];
+
+      const intensity = energy >= 8 ? 'High-speed' : energy <= 3 ? 'Low-friction' : 'Balanced';
+      profileEl.textContent = `${intensity} ${pattern.name} profile`;
+      summaryEl.textContent = `${pattern.summary} Total runway: ${time} minutes.`;
+
+      const adjusted = pattern.steps.map((step, idx) => idx === 1 ? `${step} (${Math.max(15, Math.round(time * 0.5))}m target)` : step);
+      stepsEl.innerHTML = adjusted.map(step => `<li>${step}</li>`).join('');
+    }
+
+    Object.values(controls).forEach(input => input.addEventListener('input', chooseProfile));
+    document.getElementById('reroll').addEventListener('click', () => {
+      controls.novelty.value = String(Math.floor(Math.random() * 10) + 1);
+      controls.energy.value = String(Math.floor(Math.random() * 10) + 1);
+      chooseProfile();
+    });
+
+    chooseProfile();
+  </script>
+</body>
+</html>
