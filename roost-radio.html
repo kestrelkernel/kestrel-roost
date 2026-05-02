@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Radio: mood-picked tracks for focus, flow, and flight." />
+  <title>Roost Radio</title>
+  <style>
+    :root { --bg:#070b17; --bg2:#132447; --fg:#e9eeff; --muted:#a8b7ef; --line:#374c93; --card:#0c1736d8; --accent:#8cb2ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--fg); background:radial-gradient(circle at 15% 0,#1f326a 0,transparent 45%), linear-gradient(180deg,var(--bg2),var(--bg)); }
+    .wrap { width:min(980px,92vw); margin:30px auto; display:grid; gap:14px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; }
+    h1,h2 { margin:0 0 10px; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .row { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .pill,.link { padding:7px 12px; border-radius:999px; border:1px solid #4a67c8; background:#112150; color:#dee7ff; text-decoration:none; font:inherit; cursor:pointer; }
+    .pill.active { border-color:#90b3ff; background:#1a3478; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
+    .track { border:1px solid #3c5298; border-radius:12px; padding:12px; background:#0d1a3f; }
+    .meta { font-size:.82rem; color:#bdccff; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost radio</h1>
+      <p>Pick your session mood and pull up a hand-curated signal list.</p>
+      <div class="row">
+        <a class="link" href="index.html">← back home</a>
+        <button class="pill active" data-mood="all">all</button>
+        <button class="pill" data-mood="focus">focus</button>
+        <button class="pill" data-mood="flow">flow</button>
+        <button class="pill" data-mood="calm">calm</button>
+        <button class="pill" data-mood="energy">energy</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>live queue</h2>
+      <div id="trackGrid" class="grid"></div>
+    </section>
+  </main>
+
+  <script>
+    const grid = document.getElementById('trackGrid');
+    const pills = [...document.querySelectorAll('.pill')];
+    let tracks = [];
+
+    const render = (mood = 'all') => {
+      const filtered = mood === 'all' ? tracks : tracks.filter((t) => t.mood === mood);
+      grid.innerHTML = filtered.map((t) => `
+        <article class="track">
+          <strong>${t.title}</strong>
+          <div class="meta">${t.artist} · ${t.duration} · ${t.mood}</div>
+          <p>${t.note}</p>
+          <div class="row"><a class="link" href="${t.link}" target="_blank" rel="noreferrer">open signal</a></div>
+        </article>
+      `).join('') || '<p>No tracks for this mood yet.</p>';
+    };
+
+    pills.forEach((pill) => pill.addEventListener('click', () => {
+      pills.forEach((p) => p.classList.remove('active'));
+      pill.classList.add('active');
+      render(pill.dataset.mood);
+    }));
+
+    fetch('assets/roost-radio.json')
+      .then((res) => res.json())
+      .then((data) => { tracks = data; render('all'); })
+      .catch(() => { grid.innerHTML = '<p>Could not load radio queue.</p>'; });
+  </script>
+</body>
+</html>
