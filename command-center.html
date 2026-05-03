@@ -144,6 +144,29 @@
     .item a:hover, .item a:focus-visible { color:#bfd0ff; outline:none; }
     .tiny { font-size:.78rem; color:#9ab0ff; }
     .empty { border:1px dashed #415399; border-radius:12px; padding:14px; color:#9fb0ff; }
+    .planner-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    .planner-grid label {
+      display:grid;
+      gap:6px;
+      font-size:.82rem;
+      color:#c5d3ff;
+    }
+    .range { width:100%; }
+    .score {
+      margin-top:12px;
+      border:1px solid #3a50a0;
+      border-radius:12px;
+      background:#0a1333;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .score strong { font-size:1.6rem; }
   </style>
 </head>
 <body>
@@ -191,6 +214,26 @@
       <div class="empty">loading focus…</div>
     </section>
 
+    <section class="card" id="cadencePlanner">
+      <h2>weekly cadence planner</h2>
+      <p class="tiny">simulate how many visible ships you can land this week based on time, focus depth, and risk appetite. settings persist locally.</p>
+      <div class="planner-grid">
+        <label>deep work hours
+          <input id="hours" class="range" type="range" min="2" max="40" step="1" value="14" />
+          <span id="hoursVal" class="tiny">14h</span>
+        </label>
+        <label>focus quality
+          <input id="focus" class="range" type="range" min="1" max="10" step="1" value="7" />
+          <span id="focusVal" class="tiny">7 / 10</span>
+        </label>
+        <label>scope ambition
+          <input id="scope" class="range" type="range" min="1" max="10" step="1" value="6" />
+          <span id="scopeVal" class="tiny">6 / 10</span>
+        </label>
+      </div>
+      <div class="score" id="cadenceScore" aria-live="polite"></div>
+    </section>
+
     <section class="card">
       <h2>activity stream</h2>
       <div class="links" style="margin-bottom:10px;">
@@ -212,6 +255,13 @@
     const momentumBars = document.getElementById('momentumBars');
     const focusDeck = document.getElementById('focusDeck');
     const stream = document.getElementById('stream');
+    const hoursRange = document.getElementById('hours');
+    const focusRange = document.getElementById('focus');
+    const scopeRange = document.getElementById('scope');
+    const hoursVal = document.getElementById('hoursVal');
+    const focusVal = document.getElementById('focusVal');
+    const scopeVal = document.getElementById('scopeVal');
+    const cadenceScore = document.getElementById('cadenceScore');
     const searchInput = document.getElementById('search');
     const sourceSelect = document.getElementById('source');
     const clearBtn = document.getElementById('clearFilters');
@@ -372,6 +422,43 @@
       `;
     };
 
+    const cadenceKey = 'roost-command-center-cadence-v1';
+
+    const renderCadence = () => {
+      const hours = Number(hoursRange.value);
+      const focus = Number(focusRange.value);
+      const scope = Number(scopeRange.value);
+
+      const potential = Math.max(1, Math.round((hours * (focus / 10)) / (1 + scope / 8)));
+      const confidence = Math.max(35, Math.min(95, Math.round((focus * 8) - (scope * 2) + (hours / 2))));
+
+      hoursVal.textContent = `${hours}h`;
+      focusVal.textContent = `${focus} / 10`;
+      scopeVal.textContent = `${scope} / 10`;
+
+      cadenceScore.innerHTML = `
+        <div class="tiny">forecast</div>
+        <strong>${potential} meaningful ships</strong>
+        <div class="tiny">confidence: ${confidence}% · tune ambition until confidence stays above 70% for sustainable pace.</div>
+      `;
+
+      localStorage.setItem(cadenceKey, JSON.stringify({ hours, focus, scope }));
+    };
+
+    const initCadence = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(cadenceKey) || '{}');
+        if (saved.hours) hoursRange.value = saved.hours;
+        if (saved.focus) focusRange.value = saved.focus;
+        if (saved.scope) scopeRange.value = saved.scope;
+      } catch {}
+
+      [hoursRange, focusRange, scopeRange].forEach((el) => {
+        el.addEventListener('input', renderCadence);
+      });
+      renderCadence();
+    };
+
     const init = async () => {
       const [updates, notes, milestones, expeditions, nowData] = await Promise.all([
         loadJson('assets/roost-updates.json', { updates: [] }),
@@ -399,6 +486,7 @@
       buildMomentum(events);
       renderFocus(nowData);
       renderStream(events);
+      initCadence();
 
       searchInput.addEventListener('input', () => renderStream(events));
       sourceSelect.addEventListener('change', () => renderStream(events));
