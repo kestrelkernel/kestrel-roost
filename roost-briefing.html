@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roost Briefing</title>
+  <style>
+    :root { color-scheme: dark; --bg:#05070f; --card:#101729; --line:#2b3552; --text:#eaf0ff; --muted:#9eabc9; --accent:#8bb8ff; }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,sans-serif;background:radial-gradient(circle at top,#10172d 0%,var(--bg) 55%);color:var(--text)}
+    main{max-width:980px;margin:0 auto;padding:28px 16px 48px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+    .nav a{color:var(--muted);text-decoration:none;margin-right:12px}.nav a:hover{color:var(--accent)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}
+    .card{background:linear-gradient(180deg,#151f36,var(--card));border:1px solid var(--line);border-radius:14px;padding:14px}
+    h1{margin:0 0 6px} h2{margin:0 0 10px;font-size:1.02rem} p{margin:0 0 8px;color:var(--muted)}
+    ul{margin:0;padding-left:18px;color:#cdd7f4} li{margin:6px 0}
+    .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .pill{display:inline-block;border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:.75rem;color:#c5d5ff}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <div>
+        <h1>Roost Briefing</h1>
+        <p>One glance view of what is active, newly shipped, and worth doing next.</p>
+      </div>
+      <nav class="nav" aria-label="Site">
+        <a href="index.html">home</a>
+        <a href="command-center.html">command center</a>
+        <a href="now.html">now board</a>
+        <a href="flight-deck.html">flight deck</a>
+      </nav>
+    </div>
+
+    <section class="grid" id="briefingGrid"></section>
+  </main>
+
+  <script>
+    const q = (s, el=document) => el.querySelector(s);
+    const createCard = (title, body) => `<article class="card"><h2>${title}</h2>${body}</article>`;
+
+    async function loadJSON(path){ const r = await fetch(path); if(!r.ok) throw new Error(path); return r.json(); }
+
+    async function run(){
+      const [nowData, updatesData, expeditionsData, radioData] = await Promise.all([
+        loadJSON('assets/roost-now.json'),
+        loadJSON('assets/roost-updates.json'),
+        loadJSON('assets/roost-expeditions.json'),
+        loadJSON('assets/roost-radio.json')
+      ]);
+
+      const activeFocus = nowData.activeFocus?.slice(0,2) ?? [];
+      const latestUpdate = updatesData.updates?.[0];
+      const activeExpedition = (expeditionsData || []).find(x => x.status === 'active');
+      const focusTrack = (radioData || []).find(x => x.mood === 'focus') || radioData?.[0];
+
+      const cards = [];
+
+      cards.push(createCard('Today\'s focus', `
+        <p class="k">${nowData.updatedAt || 'Updated recently'}</p>
+        <ul>${activeFocus.map(item => `<li><strong>${item.title}</strong><br>${item.summary}</li>`).join('')}</ul>
+      `));
+
+      if (latestUpdate) cards.push(createCard('Latest ship', `
+        <p><span class="pill">${latestUpdate.type}</span> ${latestUpdate.date}</p>
+        <ul><li><strong>${latestUpdate.title}</strong></li><li>${latestUpdate.impact}</li></ul>
+        <p><a href="${latestUpdate.page}" style="color:var(--accent)">${latestUpdate.pageLabel || 'Open page'}</a></p>
+      `));
+
+      if (activeExpedition) cards.push(createCard('Active expedition', `
+        <p><span class="pill">${activeExpedition.theme}</span> target ${activeExpedition.shipTarget}</p>
+        <ul><li><strong>${activeExpedition.name}</strong></li><li>${activeExpedition.summary}</li><li>Progress: ${activeExpedition.progress}%</li></ul>
+      `));
+
+      if (focusTrack) cards.push(createCard('Focus track', `
+        <p>${focusTrack.title} · ${focusTrack.artist} · ${focusTrack.duration}</p>
+        <ul><li>${focusTrack.note}</li><li><a href="${focusTrack.link}" target="_blank" rel="noreferrer" style="color:var(--accent)">Play track</a></li></ul>
+      `));
+
+      cards.push(createCard('Next move queue', `
+        <ul>${(nowData.nextUp || []).slice(0,4).map(item => `<li>${item}</li>`).join('')}</ul>
+      `));
+
+      q('#briefingGrid').innerHTML = cards.join('');
+    }
+
+    run().catch(() => {
+      q('#briefingGrid').innerHTML = createCard('Briefing offline', '<p>Could not load one or more data feeds. Try refreshing in a moment.</p>');
+    });
+  </script>
+</body>
+</html>
