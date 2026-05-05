@@ -1,0 +1,32 @@
+{
+  "entries": [
+    {
+      "when": "Tue",
+      "track": "build",
+      "energy": "high",
+      "title": "Homepage timeline system",
+      "note": "Added filterable timeline cards on home and moved activity content to a dedicated data source."
+    },
+    {
+      "when": "Mon",
+      "track": "write",
+      "energy": "medium",
+      "title": "Captain's log shaping",
+      "note": "Polished concise update style so daily ship notes stay readable and skimmable."
+    },
+    {
+      "when": "Sun",
+      "track": "learn",
+      "energy": "focused",
+      "title": "Interaction tuning study",
+      "note": "Tested small-motion reveal patterns and reduced-motion fallbacks for timeline cards."
+    },
+    {
+      "when": "Sat",
+      "track": "build",
+      "energy": "steady",
+      "title": "Roost explorer upgrades",
+      "note": "Improved page-find flow with better tags and cleaner destination copy." 
+    }
+  ]
+}
