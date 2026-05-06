@@ -462,6 +462,18 @@
       <ul id="questHistory" aria-live="polite"></ul>
     </section>
 
+    <section class="card" id="missionBoard" aria-live="polite">
+      <h2>mission board</h2>
+      <p class="tiny" style="margin-bottom:10px;">build a focused day with one build, one care, and one spark mission. progress is saved locally.</p>
+      <div class="links" style="margin-bottom:10px;">
+        <button class="btn" id="rerollMissionBoard">reroll missions</button>
+        <button class="btn" id="resetMissionBoard">reset progress</button>
+      </div>
+      <ul id="missionBoardList" class="explorer-results">
+        <li class="empty-card">loading missions…</li>
+      </ul>
+    </section>
+
     <section class="card">
       <h2>latest ships</h2>
       <p class="tiny" style="margin-bottom:10px;">live from flight deck. each card now points somewhere useful.</p>
@@ -580,6 +592,80 @@
     };
 
     const normalizeQuestText = (value) => value.replace(/\s+/g, ' ').trim();
+
+    const missionBoardList = document.getElementById('missionBoardList');
+    const rerollMissionBoardBtn = document.getElementById('rerollMissionBoard');
+    const resetMissionBoardBtn = document.getElementById('resetMissionBoard');
+    const missionPools = {
+      build: [
+        'ship one visible UI improvement on any page.',
+        'add one new content block that makes the site feel more alive.',
+        'improve navigation flow between two frequently used pages.',
+        'add one delightful microinteraction with clear feedback.'
+      ],
+      care: [
+        'document one workflow so future-you can ship faster.',
+        'clean one repeated styling pattern into a reusable class.',
+        'tighten one section for mobile readability and spacing.',
+        'verify one data-fed section handles missing data gracefully.'
+      ],
+      spark: [
+        'add one playful line of copy that gives the page personality.',
+        'design a tiny visual motif and apply it to one section.',
+        'create one optional challenge prompt for visitors.',
+        'add one easter-egg hint hidden in plain sight.'
+      ]
+    };
+    let missionBoardState = null;
+
+    const createMissionBoard = () => ({
+      day: new Date().toISOString().slice(0, 10),
+      items: Object.entries(missionPools).map(([track, pool]) => ({
+        id: `${track}-${Math.random().toString(36).slice(2, 8)}`,
+        track,
+        text: pool[Math.floor(Math.random() * pool.length)],
+        done: false
+      }))
+    });
+
+    const renderMissionBoard = () => {
+      if (!missionBoardState || !Array.isArray(missionBoardState.items)) {
+        missionBoardList.innerHTML = '<li class="empty-card">mission board unavailable.</li>';
+        return;
+      }
+      missionBoardList.innerHTML = missionBoardState.items.map((item) => `
+        <li class="explorer-item">
+          <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+            <input type="checkbox" data-mission-id="${item.id}" ${item.done ? 'checked' : ''} style="margin-top:3px;" />
+            <span>
+              <strong style="text-transform:capitalize;">${item.track}</strong>
+              <p class="explorer-copy" style="text-decoration:${item.done ? 'line-through' : 'none'}; opacity:${item.done ? '0.72' : '1'};">${item.text}</p>
+            </span>
+          </label>
+        </li>
+      `).join('');
+    };
+
+    const saveMissionBoard = () => {
+      storage.set('roostMissionBoardState', JSON.stringify(missionBoardState));
+    };
+
+    const loadMissionBoard = () => {
+      let state = null;
+      try {
+        state = JSON.parse(storage.get('roostMissionBoardState') || 'null');
+      } catch {
+        state = null;
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      if (!state || state.day !== today || !Array.isArray(state.items) || state.items.length !== 3) {
+        missionBoardState = createMissionBoard();
+        saveMissionBoard();
+      } else {
+        missionBoardState = state;
+      }
+      renderMissionBoard();
+    };
 
     const loadQuestPool = () => {
       let state = null;
@@ -1330,6 +1416,36 @@
 
     renderExplorer('');
     loadNowTimeline();
+    loadMissionBoard();
+
+    missionBoardList.addEventListener('change', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement)) return;
+      const missionId = target.dataset.missionId;
+      const item = missionBoardState?.items?.find((entry) => entry.id === missionId);
+      if (!item) return;
+      item.done = target.checked;
+      saveMissionBoard();
+      renderMissionBoard();
+      if (missionBoardState.items.every((entry) => entry.done)) {
+        setActionStatus('mission board complete. clean sweep ✓', 'ok');
+      }
+    });
+
+    rerollMissionBoardBtn.addEventListener('click', () => {
+      missionBoardState = createMissionBoard();
+      saveMissionBoard();
+      renderMissionBoard();
+      setActionStatus('fresh mission board generated ✓', 'ok');
+    });
+
+    resetMissionBoardBtn.addEventListener('click', () => {
+      if (!missionBoardState?.items?.length) return;
+      missionBoardState.items.forEach((item) => { item.done = false; });
+      saveMissionBoard();
+      renderMissionBoard();
+      setActionStatus('mission progress reset.', 'info');
+    });
 
     rollQuestBtn.addEventListener('click', () => {
       const blocked = new Set(recentQuestIndexes);
