@@ -148,6 +148,27 @@
       gap:10px;
       align-content:start;
     }
+    .route-controls {
+      display:grid;
+      gap:8px;
+      margin-top:8px;
+    }
+    .route-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+    .route-grid label { display:grid; gap:4px; font-size:.78rem; color:#9fb0ff; }
+    .route-result {
+      border:1px solid #2f458d;
+      border-radius:10px;
+      background:#09143a;
+      padding:8px;
+      color:#cdd9ff;
+      font-size:.82rem;
+      line-height:1.5;
+      min-height:44px;
+    }
     .pill-row {
       display:flex;
       flex-wrap:wrap;
@@ -244,6 +265,23 @@
           <div class="stat-grid" id="stats"></div>
           <ul id="insights"></ul>
         </article>
+
+        <article class="card" style="padding:14px; margin:0;">
+          <h2>route planner</h2>
+          <p style="font-size:.82rem; margin-bottom:8px;">Pick any two nodes to reveal the shortest story path between them.</p>
+          <div class="route-controls">
+            <div class="route-grid">
+              <label>From
+                <select id="routeFrom"></select>
+              </label>
+              <label>To
+                <select id="routeTo"></select>
+              </label>
+            </div>
+            <button id="routeBtn" type="button">plot shortest route</button>
+            <div id="routeResult" class="route-result">Select two points to map a route.</div>
+          </div>
+        </article>
       </aside>
     </section>
   </main>
@@ -264,6 +302,10 @@
     const detailLinks = document.getElementById('detailLinks');
     const statsEl = document.getElementById('stats');
     const insightsEl = document.getElementById('insights');
+    const routeFrom = document.getElementById('routeFrom');
+    const routeTo = document.getElementById('routeTo');
+    const routeBtn = document.getElementById('routeBtn');
+    const routeResult = document.getElementById('routeResult');
 
     const TYPE_COLOR = {
       update: '#8ab0ff',
@@ -274,6 +316,7 @@
     let graph = { nodes: [], edges: [] };
     let selectedId = null;
     let hoveredId = null;
+    let routePathIds = [];
 
     let view = { x: 0, y: 0, zoom: 1 };
     let dragging = false;
@@ -475,9 +518,10 @@
         if (!from || !to) return;
         const a = worldToScreen(from.x, from.y);
         const b = worldToScreen(to.x, to.y);
-        const isHighlighted = selectedId && (edge.from === selectedId || edge.to === selectedId);
+        const onRoute = routePathIds.length > 1 && routePathIds.includes(edge.from) && routePathIds.includes(edge.to) && Math.abs(routePathIds.indexOf(edge.from) - routePathIds.indexOf(edge.to)) === 1;
+        const isHighlighted = onRoute || (selectedId && (edge.from === selectedId || edge.to === selectedId));
         ctx.strokeStyle = isHighlighted ? '#9fb5ff' : 'rgba(70, 95, 180, 0.62)';
-        ctx.lineWidth = isHighlighted ? 1.8 : 1;
+        ctx.lineWidth = onRoute ? 2.6 : isHighlighted ? 1.8 : 1;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
@@ -489,11 +533,12 @@
         const selected = node.id === selectedId;
         const hovered = node.id === hoveredId;
         const linked = linkedToSelected.has(node.id);
+        const inRoute = routePathIds.includes(node.id);
 
         ctx.beginPath();
         ctx.fillStyle = TYPE_COLOR[node.type] || '#b6c6ff';
-        ctx.globalAlpha = selected || hovered || !selectedId || linked ? 1 : 0.38;
-        ctx.arc(p.x, p.y, (node.r + (selected ? 3 : hovered ? 2 : 0)) * view.zoom, 0, Math.PI * 2);
+        ctx.globalAlpha = selected || hovered || inRoute || !selectedId || linked ? 1 : 0.38;
+        ctx.arc(p.x, p.y, (node.r + (inRoute ? 3 : selected ? 3 : hovered ? 2 : 0)) * view.zoom, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
 
@@ -620,6 +665,53 @@
       draw();
     }
 
+    function refreshRouteOptions() {
+      const options = graph.nodes
+        .slice()
+        .sort((a, b) => a.label.localeCompare(b.label))
+        .map((node) => `<option value="${node.id}">${node.label} [${node.type}]</option>`)
+        .join('');
+      routeFrom.innerHTML = options;
+      routeTo.innerHTML = options;
+      if (graph.nodes.length > 1) {
+        routeFrom.value = graph.nodes[0].id;
+        routeTo.value = graph.nodes[1].id;
+      }
+      routePathIds = [];
+      routeResult.textContent = 'Select two points to map a route.';
+    }
+
+    function shortestPath(fromId, toId) {
+      if (!fromId || !toId || fromId === toId) return [fromId].filter(Boolean);
+      const adjacency = new Map(graph.nodes.map((n) => [n.id, []]));
+      graph.edges.forEach((edge) => {
+        adjacency.get(edge.from)?.push(edge.to);
+        adjacency.get(edge.to)?.push(edge.from);
+      });
+
+      const queue = [fromId];
+      const visited = new Set([fromId]);
+      const prev = new Map();
+
+      while (queue.length) {
+        const cur = queue.shift();
+        if (cur === toId) break;
+        (adjacency.get(cur) || []).forEach((next) => {
+          if (visited.has(next)) return;
+          visited.add(next);
+          prev.set(next, cur);
+          queue.push(next);
+        });
+      }
+
+      if (!visited.has(toId)) return [];
+      const path = [toId];
+      while (path[0] !== fromId) {
+        path.unshift(prev.get(path[0]));
+      }
+      return path;
+    }
+
     async function loadData() {
       const [updatesRes, notesRes] = await Promise.all([
         fetch('assets/roost-updates.json', { cache: 'no-store' }),
@@ -636,10 +728,27 @@
       graph = buildGraph(updates, notes, scopeSelect.value);
       runLayout();
       selectedId = graph.nodes[0]?.id || null;
+      refreshRouteOptions();
       setDetails(graph.nodes[0] || null);
       updateStats();
       centerView();
     }
+
+    routeBtn.addEventListener('click', () => {
+      const fromId = routeFrom.value;
+      const toId = routeTo.value;
+      routePathIds = shortestPath(fromId, toId);
+      const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
+      if (!routePathIds.length) {
+        routeResult.textContent = 'No connected path found in this scope.';
+        draw();
+        return;
+      }
+      routeResult.textContent = routePathIds.map((id) => nodeById.get(id)?.label || id).join(' → ');
+      selectedId = routePathIds[0];
+      setDetails(nodeById.get(selectedId));
+      draw();
+    });
 
     scopeSelect.addEventListener('change', loadData);
     shuffleBtn.addEventListener('click', () => {
