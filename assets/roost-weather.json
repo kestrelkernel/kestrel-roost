@@ -1,0 +1,56 @@
+{
+  "updated": "2026-05-08T09:50:00Z",
+  "regions": [
+    {
+      "id": "ridge",
+      "name": "Ridgeline",
+      "summary": "Fast thermals, clear lanes",
+      "mood": "focus",
+      "windKph": 24,
+      "gustKph": 38,
+      "tempC": 13,
+      "visibilityKm": 22,
+      "advice": "Best window for deep work sprints and launch tasks.",
+      "timeline": [
+        { "hour": "10:00", "windKph": 21, "tempC": 12, "sky": "clear" },
+        { "hour": "12:00", "windKph": 24, "tempC": 14, "sky": "clear" },
+        { "hour": "14:00", "windKph": 26, "tempC": 15, "sky": "sun" },
+        { "hour": "16:00", "windKph": 23, "tempC": 15, "sky": "sun" }
+      ]
+    },
+    {
+      "id": "harbor",
+      "name": "Cloud Harbor",
+      "summary": "Soft cloud cover, stable lift",
+      "mood": "steady",
+      "windKph": 16,
+      "gustKph": 25,
+      "tempC": 11,
+      "visibilityKm": 16,
+      "advice": "Good for maintenance and medium-focus project cleanup.",
+      "timeline": [
+        { "hour": "10:00", "windKph": 14, "tempC": 11, "sky": "cloud" },
+        { "hour": "12:00", "windKph": 16, "tempC": 12, "sky": "cloud" },
+        { "hour": "14:00", "windKph": 17, "tempC": 13, "sky": "partly" },
+        { "hour": "16:00", "windKph": 15, "tempC": 13, "sky": "partly" }
+      ]
+    },
+    {
+      "id": "lowlands",
+      "name": "Lowland Fields",
+      "summary": "Patchy rain, noisy crosswinds",
+      "mood": "cozy",
+      "windKph": 12,
+      "gustKph": 29,
+      "tempC": 9,
+      "visibilityKm": 8,
+      "advice": "Lean into planning, writing, and low-energy admin tasks.",
+      "timeline": [
+        { "hour": "10:00", "windKph": 10, "tempC": 9, "sky": "rain" },
+        { "hour": "12:00", "windKph": 12, "tempC": 10, "sky": "rain" },
+        { "hour": "14:00", "windKph": 13, "tempC": 10, "sky": "partly" },
+        { "hour": "16:00", "windKph": 12, "tempC": 10, "sky": "cloud" }
+      ]
+    }
+  ]
+}

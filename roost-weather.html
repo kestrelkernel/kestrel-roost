@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Mood-based weather deck for Kestrel's Roost" />
+  <title>Roost Weather Deck</title>
+  <style>
+    :root { --bg:#0b1020; --card:#0f1b42cc; --line:#3753af; --fg:#e6ecff; --muted:#9fb0ff; --accent:#8db1ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color:var(--fg); background:radial-gradient(circle at 20% -10%, #2a438d 0, transparent 40%), linear-gradient(180deg,#111e45,#090f22); }
+    .wrap { width:min(980px,92vw); margin:32px auto; display:grid; gap:14px; }
+    .card { border:1px solid var(--line); border-radius:14px; background:var(--card); padding:18px; }
+    h1,h2,h3 { margin:0; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .row { display:flex; flex-wrap:wrap; gap:10px; }
+    .btn { border:1px solid #4f69c7; border-radius:999px; background:#142a6e; color:#dfe7ff; padding:7px 12px; cursor:pointer; font:inherit; }
+    .btn.active { background:#204095; border-color:#88a9ff; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+    .region { border:1px solid #324a9e; border-radius:12px; padding:12px; background:#0b1437; display:grid; gap:8px; }
+    .meta { font-size:.84rem; color:#bfd0ff; }
+    .timeline { display:grid; gap:6px; margin-top:6px; }
+    .slot { display:grid; grid-template-columns:58px 1fr auto auto; gap:8px; font-size:.83rem; color:#cdd9ff; }
+    .topline { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    a { color:#cfe0ff; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <div class="topline">
+        <h1>roost weather deck</h1>
+        <a href="index.html">← back home</a>
+      </div>
+      <p>Pick your flight mood and get a matching work-weather window.</p>
+      <div class="row" id="filters"></div>
+      <p class="meta" id="updated">loading...</p>
+    </section>
+
+    <section class="grid" id="regions"></section>
+  </main>
+
+  <script>
+    const filters = document.getElementById('filters');
+    const regionsEl = document.getElementById('regions');
+    const updatedEl = document.getElementById('updated');
+    let activeMood = 'all';
+    let regions = [];
+
+    const skyIcon = { clear:'☀️', sun:'🌤️', cloud:'☁️', partly:'⛅', rain:'🌧️' };
+
+    function renderFilters() {
+      const moods = ['all', ...new Set(regions.map(r => r.mood))];
+      filters.innerHTML = '';
+      moods.forEach((mood) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn' + (mood === activeMood ? ' active' : '');
+        btn.textContent = mood;
+        btn.addEventListener('click', () => {
+          activeMood = mood;
+          renderFilters();
+          renderRegions();
+        });
+        filters.appendChild(btn);
+      });
+    }
+
+    function renderRegions() {
+      const visible = activeMood === 'all' ? regions : regions.filter(r => r.mood === activeMood);
+      regionsEl.innerHTML = visible.map(region => `
+        <article class="region">
+          <h3>${region.name}</h3>
+          <p>${region.summary}</p>
+          <div class="meta">mood: ${region.mood} · temp: ${region.tempC}°C · wind: ${region.windKph} kph (gust ${region.gustKph}) · visibility: ${region.visibilityKm} km</div>
+          <p>${region.advice}</p>
+          <div class="timeline">
+            ${region.timeline.map(slot => `
+              <div class="slot">
+                <strong>${slot.hour}</strong>
+                <span>${skyIcon[slot.sky] || '•'} ${slot.sky}</span>
+                <span>${slot.tempC}°C</span>
+                <span>${slot.windKph}kph</span>
+              </div>
+            `).join('')}
+          </div>
+        </article>
+      `).join('');
+    }
+
+    async function init() {
+      const res = await fetch('assets/roost-weather.json', { cache: 'no-store' });
+      const data = await res.json();
+      regions = data.regions || [];
+      updatedEl.textContent = `updated: ${new Date(data.updated).toUTCString()} · ${regions.length} regions tracked`;
+      renderFilters();
+      renderRegions();
+    }
+
+    init().catch((error) => {
+      updatedEl.textContent = 'weather feed offline';
+      regionsEl.innerHTML = `<article class="region"><p>Could not load weather deck: ${error.message}</p></article>`;
+    });
+  </script>
+</body>
+</html>
