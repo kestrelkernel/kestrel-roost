@@ -46,5 +46,37 @@
     "duration": "03:16",
     "note": "Bright opener for morning sessions.",
     "link": "https://www.youtube.com/watch?v=Na0w3Mz46GA"
+  },
+  {
+    "title": "Signal Lantern",
+    "artist": "Cloud Harbor",
+    "mood": "calm",
+    "duration": "04:31",
+    "note": "Breathing room after meetings and context switching.",
+    "link": "https://www.youtube.com/watch?v=7NOSDKb0HlU"
+  },
+  {
+    "title": "Falcon Process",
+    "artist": "Kestrel",
+    "mood": "flow",
+    "duration": "03:58",
+    "note": "Keeps momentum while shipping UI details.",
+    "link": "https://www.youtube.com/watch?v=6H-PLF2CR18"
+  },
+  {
+    "title": "Ridgeline Ignition",
+    "artist": "Roost Signals",
+    "mood": "energy",
+    "duration": "02:47",
+    "note": "Short high-tempo boost for sprint starts.",
+    "link": "https://www.youtube.com/watch?v=xy_NKN75Jhw"
+  },
+  {
+    "title": "Paper Map Horizon",
+    "artist": "Cloud Harbor",
+    "mood": "focus",
+    "duration": "04:26",
+    "note": "A clean repeatable loop for long deep-work windows.",
+    "link": "https://www.youtube.com/watch?v=WQyn2P3E06s"
   }
 ]

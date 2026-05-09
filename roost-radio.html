@@ -3,29 +3,36 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Roost Radio: mood-picked tracks for focus, flow, and flight." />
+  <meta name="description" content="Roost Radio: adaptive queue with mood filters, favorites, and quick picks." />
   <title>Roost Radio</title>
   <style>
-    :root { --bg:#070b17; --bg2:#132447; --fg:#e9eeff; --muted:#a8b7ef; --line:#374c93; --card:#0c1736d8; --accent:#8cb2ff; }
+    :root { --bg:#060a15; --bg2:#122346; --fg:#e9eeff; --muted:#a9b8ef; --line:#32488f; --card:#0c1738d9; --accent:#8eb4ff; --good:#74e2b0; }
     * { box-sizing:border-box; }
-    body { margin:0; font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--fg); background:radial-gradient(circle at 15% 0,#1f326a 0,transparent 45%), linear-gradient(180deg,var(--bg2),var(--bg)); }
-    .wrap { width:min(980px,92vw); margin:30px auto; display:grid; gap:14px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; }
-    h1,h2 { margin:0 0 10px; }
+    body { margin:0; font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--fg); background:radial-gradient(circle at 12% 0,#233978 0,transparent 44%), linear-gradient(180deg,var(--bg2),var(--bg)); }
+    .wrap { width:min(1080px,92vw); margin:28px auto; display:grid; gap:12px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+    h1,h2,h3 { margin:0 0 10px; }
     p { margin:0; color:var(--muted); line-height:1.5; }
-    .row { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
-    .pill,.link { padding:7px 12px; border-radius:999px; border:1px solid #4a67c8; background:#112150; color:#dee7ff; text-decoration:none; font:inherit; cursor:pointer; }
-    .pill.active { border-color:#90b3ff; background:#1a3478; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; }
-    .track { border:1px solid #3c5298; border-radius:12px; padding:12px; background:#0d1a3f; }
-    .meta { font-size:.82rem; color:#bdccff; margin-top:6px; }
+    .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
+    .pill,.link,.btn { padding:7px 12px; border-radius:999px; border:1px solid #4966c6; background:#112150; color:#e2eaff; text-decoration:none; font:inherit; cursor:pointer; }
+    .pill.active { border-color:#95b8ff; background:#1a3478; }
+    .btn:hover,.pill:hover,.link:hover { filter:brightness(1.08); }
+    .input { border:1px solid #445ea8; background:#0f1d45; color:var(--fg); border-radius:10px; padding:9px 11px; font:inherit; min-width:220px; }
+    .split { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; margin-top:10px; }
+    .mini { border:1px solid #365090; background:#0d1a3f; border-radius:10px; padding:10px; }
+    .mini .num { font-size:1.45rem; color:#d6e3ff; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px; }
+    .track { border:1px solid #3c5298; border-radius:12px; padding:12px; background:#0d1a3f; display:grid; gap:7px; }
+    .meta { font-size:.82rem; color:#c0d0ff; }
+    .fav { color:var(--good); font-weight:700; }
+    .empty { color:#c3d1ff; }
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
       <h1>roost radio</h1>
-      <p>Pick your session mood and pull up a hand-curated signal list.</p>
+      <p>Adaptive signal queue for coding sessions. Filter, search, favorite, and roll a random flight pick.</p>
       <div class="row">
         <a class="link" href="index.html">← back home</a>
         <button class="pill active" data-mood="all">all</button>
@@ -34,6 +41,22 @@
         <button class="pill" data-mood="calm">calm</button>
         <button class="pill" data-mood="energy">energy</button>
       </div>
+      <div class="row">
+        <input id="searchInput" class="input" placeholder="search title, artist, or note" />
+        <select id="sortSelect" class="input">
+          <option value="title">sort: title</option>
+          <option value="duration">sort: duration</option>
+          <option value="mood">sort: mood</option>
+        </select>
+        <button id="favoritesOnlyBtn" class="btn">favorites only: off</button>
+        <button id="randomPickBtn" class="btn">random pick</button>
+      </div>
+      <p id="randomPick" style="margin-top:8px"></p>
+    </section>
+
+    <section class="card">
+      <h2>queue telemetry</h2>
+      <div id="stats" class="split"></div>
     </section>
 
     <section class="card">
@@ -44,31 +67,114 @@
 
   <script>
     const grid = document.getElementById('trackGrid');
+    const stats = document.getElementById('stats');
     const pills = [...document.querySelectorAll('.pill')];
-    let tracks = [];
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const favoritesOnlyBtn = document.getElementById('favoritesOnlyBtn');
+    const randomPickBtn = document.getElementById('randomPickBtn');
+    const randomPick = document.getElementById('randomPick');
 
-    const render = (mood = 'all') => {
-      const filtered = mood === 'all' ? tracks : tracks.filter((t) => t.mood === mood);
-      grid.innerHTML = filtered.map((t) => `
+    let tracks = [];
+    let mood = 'all';
+    let favoritesOnly = false;
+
+    const getFavorites = () => {
+      try { return new Set(JSON.parse(localStorage.getItem('roostRadioFavorites') || '[]')); }
+      catch { return new Set(); }
+    };
+
+    const setFavorites = (favoritesSet) => {
+      localStorage.setItem('roostRadioFavorites', JSON.stringify([...favoritesSet]));
+    };
+
+    const parseDuration = (value) => {
+      const [m, s] = value.split(':').map(Number);
+      return (m * 60) + s;
+    };
+
+    const render = () => {
+      const favorites = getFavorites();
+      const query = searchInput.value.trim().toLowerCase();
+      const sortBy = sortSelect.value;
+
+      let filtered = tracks.filter((t) => (mood === 'all' || t.mood === mood));
+      if (favoritesOnly) filtered = filtered.filter((t) => favorites.has(t.title));
+      if (query) {
+        filtered = filtered.filter((t) => `${t.title} ${t.artist} ${t.note}`.toLowerCase().includes(query));
+      }
+
+      filtered.sort((a, b) => {
+        if (sortBy === 'duration') return parseDuration(a.duration) - parseDuration(b.duration);
+        return a[sortBy].localeCompare(b[sortBy]);
+      });
+
+      const moodCounts = tracks.reduce((acc, t) => { acc[t.mood] = (acc[t.mood] || 0) + 1; return acc; }, {});
+      const totalSeconds = tracks.reduce((acc, t) => acc + parseDuration(t.duration), 0);
+
+      stats.innerHTML = `
+        <div class="mini"><h3>tracks</h3><div class="num">${tracks.length}</div></div>
+        <div class="mini"><h3>favorites</h3><div class="num">${favorites.size}</div></div>
+        <div class="mini"><h3>queue time</h3><div class="num">${Math.floor(totalSeconds/60)}m</div></div>
+        <div class="mini"><h3>mood spread</h3><p>${Object.entries(moodCounts).map(([k,v]) => `${k}:${v}`).join(' · ')}</p></div>
+      `;
+
+      grid.innerHTML = filtered.map((t) => {
+        const isFav = favorites.has(t.title);
+        return `
         <article class="track">
           <strong>${t.title}</strong>
           <div class="meta">${t.artist} · ${t.duration} · ${t.mood}</div>
           <p>${t.note}</p>
-          <div class="row"><a class="link" href="${t.link}" target="_blank" rel="noreferrer">open signal</a></div>
-        </article>
-      `).join('') || '<p>No tracks for this mood yet.</p>';
+          <div class="row">
+            <a class="link" href="${t.link}" target="_blank" rel="noreferrer">open signal</a>
+            <button class="btn fav-toggle" data-title="${t.title}">${isFav ? '★ favorited' : '☆ favorite'}</button>
+          </div>
+          ${isFav ? '<div class="meta fav">saved for quick relaunch</div>' : ''}
+        </article>`;
+      }).join('') || '<p class="empty">No tracks match this filter yet.</p>';
+
+      document.querySelectorAll('.fav-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const next = getFavorites();
+          const title = btn.dataset.title;
+          if (next.has(title)) next.delete(title); else next.add(title);
+          setFavorites(next);
+          render();
+        });
+      });
     };
 
     pills.forEach((pill) => pill.addEventListener('click', () => {
       pills.forEach((p) => p.classList.remove('active'));
       pill.classList.add('active');
-      render(pill.dataset.mood);
+      mood = pill.dataset.mood;
+      render();
     }));
+
+    searchInput.addEventListener('input', render);
+    sortSelect.addEventListener('change', render);
+
+    favoritesOnlyBtn.addEventListener('click', () => {
+      favoritesOnly = !favoritesOnly;
+      favoritesOnlyBtn.textContent = `favorites only: ${favoritesOnly ? 'on' : 'off'}`;
+      render();
+    });
+
+    randomPickBtn.addEventListener('click', () => {
+      const filteredCards = [...tracks.filter((t) => mood === 'all' || t.mood === mood)];
+      if (!filteredCards.length) {
+        randomPick.textContent = 'No tracks available for random pick.';
+        return;
+      }
+      const pick = filteredCards[Math.floor(Math.random() * filteredCards.length)];
+      randomPick.innerHTML = `Random pick: <strong>${pick.title}</strong> by ${pick.artist} (${pick.mood})`;
+    });
 
     fetch('assets/roost-radio.json')
       .then((res) => res.json())
-      .then((data) => { tracks = data; render('all'); })
-      .catch(() => { grid.innerHTML = '<p>Could not load radio queue.</p>'; });
+      .then((data) => { tracks = data; render(); })
+      .catch(() => { grid.innerHTML = '<p class="empty">Could not load radio queue.</p>'; });
   </script>
 </body>
 </html>
