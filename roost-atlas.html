@@ -103,6 +103,23 @@
       align-items:center;
       margin-bottom:10px;
     }
+    .search-wrap {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      min-width:min(320px, 100%);
+      flex:1;
+    }
+    #atlasSearch {
+      flex:1;
+      min-width:180px;
+      font:inherit;
+      color:#e3eaff;
+      border:1px solid #4962be;
+      border-radius:10px;
+      background:#112057;
+      padding:7px 10px;
+    }
     .legend {
       display:flex;
       flex-wrap:wrap;
@@ -238,6 +255,11 @@
             <option value="90">Last 90 days</option>
             <option value="30">Last 30 days</option>
           </select>
+          <div class="search-wrap">
+            <label for="atlasSearch">Find</label>
+            <input id="atlasSearch" type="search" placeholder="ship, note, or page" autocomplete="off" />
+            <button id="focusBtn" type="button">focus match</button>
+          </div>
           <button id="shuffleBtn" type="button">reshuffle map</button>
           <button id="centerBtn" type="button">center view</button>
           <div class="legend" aria-label="Node legend">
@@ -306,6 +328,8 @@
     const routeTo = document.getElementById('routeTo');
     const routeBtn = document.getElementById('routeBtn');
     const routeResult = document.getElementById('routeResult');
+    const atlasSearch = document.getElementById('atlasSearch');
+    const focusBtn = document.getElementById('focusBtn');
 
     const TYPE_COLOR = {
       update: '#8ab0ff',
@@ -317,6 +341,7 @@
     let selectedId = null;
     let hoveredId = null;
     let routePathIds = [];
+    let searchTerm = '';
 
     let view = { x: 0, y: 0, zoom: 1 };
     let dragging = false;
@@ -534,15 +559,17 @@
         const hovered = node.id === hoveredId;
         const linked = linkedToSelected.has(node.id);
         const inRoute = routePathIds.includes(node.id);
+        const matchesSearch = !searchTerm || [node.label, node.short, node.type].join(' ').toLowerCase().includes(searchTerm);
+        const shouldEmphasize = selected || hovered || inRoute || matchesSearch || !selectedId || linked;
 
         ctx.beginPath();
         ctx.fillStyle = TYPE_COLOR[node.type] || '#b6c6ff';
-        ctx.globalAlpha = selected || hovered || inRoute || !selectedId || linked ? 1 : 0.38;
+        ctx.globalAlpha = shouldEmphasize ? 1 : 0.18;
         ctx.arc(p.x, p.y, (node.r + (inRoute ? 3 : selected ? 3 : hovered ? 2 : 0)) * view.zoom, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
 
-        if (selected || hovered || view.zoom > 1.1) {
+        if (selected || hovered || matchesSearch || view.zoom > 1.1) {
           ctx.font = '12px ui-monospace, SFMono-Regular, Menlo, monospace';
           ctx.fillStyle = '#dce6ff';
           ctx.fillText(node.short.slice(0, 38), p.x + 10, p.y - 6);
@@ -665,6 +692,28 @@
       draw();
     }
 
+    function getSearchMatches() {
+      const term = searchTerm.trim();
+      if (!term) return [];
+      return graph.nodes.filter((node) => [node.label, node.short, node.type].join(' ').toLowerCase().includes(term));
+    }
+
+    function focusFirstMatch() {
+      const match = getSearchMatches()[0];
+      if (!match) {
+        routeResult.textContent = `No atlas match for "${searchTerm}" in this scope.`;
+        draw();
+        return;
+      }
+
+      selectedId = match.id;
+      setDetails(match);
+      view.x = CANVAS.width / 2 - match.x * view.zoom;
+      view.y = CANVAS.height / 2 - match.y * view.zoom;
+      routeResult.textContent = `Focused on: ${match.label}`;
+      draw();
+    }
+
     function refreshRouteOptions() {
       const options = graph.nodes
         .slice()
@@ -760,6 +809,17 @@
       draw();
     });
     centerBtn.addEventListener('click', centerView);
+    focusBtn.addEventListener('click', focusFirstMatch);
+    atlasSearch.addEventListener('input', () => {
+      searchTerm = atlasSearch.value.trim().toLowerCase();
+      draw();
+    });
+    atlasSearch.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        focusFirstMatch();
+      }
+    });
 
     CANVAS.addEventListener('mousedown', (event) => {
       dragging = true;
