@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Build a weekly focus board with weighted bets and launch criteria." />
+  <title>Roost Forgeboard</title>
+  <style>
+    :root {
+      --bg:#0b1020; --fg:#e6ecff; --muted:#a3b5ff; --line:#32478f; --card:#0f1a3fcc; --accent:#8db0ff;
+      --good:#8effcf; --warn:#ffd98c;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-monospace, monospace; background: radial-gradient(circle at 20% -10%, #233978 0, transparent 35%), linear-gradient(180deg, #101b3c, #0b1020); color:var(--fg); }
+    .wrap { width:min(1000px, 92vw); margin:28px auto; display:grid; gap:14px; }
+    .card { border:1px solid var(--line); background:var(--card); border-radius:14px; padding:16px; }
+    h1,h2,h3 { margin:0 0 10px; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .nav a,.btn { display:inline-block; text-decoration:none; color:#dce6ff; border:1px solid #4a64be; background:#13245f; border-radius:999px; padding:7px 11px; margin:0 8px 8px 0; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
+    label { display:block; font-size:.82rem; color:#c8d6ff; margin-bottom:6px; }
+    input,textarea,select { width:100%; background:#0a1438; color:#eaf0ff; border:1px solid #4259aa; border-radius:10px; padding:9px 10px; font:inherit; }
+    textarea { min-height:86px; resize:vertical; }
+    .list { display:grid; gap:10px; margin-top:10px; }
+    .bet { border:1px solid #3a4f99; border-radius:10px; padding:10px; background:#0b1538; }
+    .bet h3 { font-size:.95rem; }
+    .meta { font-size:.8rem; color:#adc0ff; display:flex; gap:10px; flex-wrap:wrap; }
+    .score { font-size:1.6rem; color:var(--good); }
+    .warn { color:var(--warn); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost forgeboard</h1>
+      <p>Turn rough ideas into a focused weekly flight plan. Add 3-5 bets, score them, and export your launch brief.</p>
+      <nav class="nav" aria-label="Site links">
+        <a href="index.html">home</a>
+        <a href="shipyard.html">shipyard</a>
+        <a href="roost-routines.html">routines</a>
+      </nav>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>add weekly bet</h2>
+        <label for="idea">idea</label><input id="idea" placeholder="ex: redesign roost atlas filters" />
+        <label for="impact">impact (1-5)</label><input id="impact" type="number" min="1" max="5" value="4" />
+        <label for="effort">effort (1-5)</label><input id="effort" type="number" min="1" max="5" value="3" />
+        <label for="risk">risk (1-5)</label><input id="risk" type="number" min="1" max="5" value="2" />
+        <label for="exit">done when…</label><textarea id="exit" placeholder="ex: keyboard nav works and mobile layout passes"></textarea>
+        <a href="#" class="btn" id="addBet">add to board</a>
+      </article>
+
+      <article class="card">
+        <h2>weekly score</h2>
+        <p>Total focus score: <span class="score" id="focusScore">0</span></p>
+        <p id="scoreHint" class="warn">Add bets to calculate momentum.</p>
+        <label for="weekTheme">week theme</label><input id="weekTheme" placeholder="ex: cleaner launch pad UX" />
+        <label for="commitment">commitment note</label><textarea id="commitment" placeholder="What are you intentionally not doing this week?"></textarea>
+        <a href="#" class="btn" id="exportBrief">copy launch brief</a>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>active bets</h2>
+      <div id="betList" class="list"></div>
+    </section>
+  </main>
+
+  <script>
+    const KEY = 'roostForgeboardV1';
+    const ui = {
+      idea: document.getElementById('idea'), impact: document.getElementById('impact'), effort: document.getElementById('effort'), risk: document.getElementById('risk'), exit: document.getElementById('exit'),
+      weekTheme: document.getElementById('weekTheme'), commitment: document.getElementById('commitment'),
+      list: document.getElementById('betList'), score: document.getElementById('focusScore'), hint: document.getElementById('scoreHint')
+    };
+    let state = { bets: [], weekTheme: '', commitment: '' };
+
+    function betScore(b) { return (b.impact * 2) - b.effort - Math.max(0, b.risk - 2); }
+    function totalScore() { return state.bets.reduce((s, b) => s + betScore(b), 0); }
+
+    function save() {
+      state.weekTheme = ui.weekTheme.value.trim();
+      state.commitment = ui.commitment.value.trim();
+      localStorage.setItem(KEY, JSON.stringify(state));
+    }
+
+    function render() {
+      ui.list.innerHTML = '';
+      state.bets.forEach((bet, i) => {
+        const card = document.createElement('article');
+        card.className = 'bet';
+        card.innerHTML = `<h3>${bet.idea}</h3><p>${bet.exit}</p><p class="meta"><span>impact ${bet.impact}</span><span>effort ${bet.effort}</span><span>risk ${bet.risk}</span><span>score ${betScore(bet)}</span></p><a href="#" class="btn" data-i="${i}">remove</a>`;
+        ui.list.append(card);
+      });
+      ui.score.textContent = String(totalScore());
+      ui.hint.textContent = state.bets.length ? 'Higher score means stronger upside for this week.' : 'Add bets to calculate momentum.';
+      ui.hint.className = state.bets.length >= 3 ? '' : 'warn';
+      save();
+    }
+
+    function addBet(e) {
+      e.preventDefault();
+      const idea = ui.idea.value.trim();
+      const exit = ui.exit.value.trim();
+      if (!idea || !exit) return;
+      state.bets.push({ idea, exit, impact:Number(ui.impact.value)||1, effort:Number(ui.effort.value)||1, risk:Number(ui.risk.value)||1 });
+      ui.idea.value = ''; ui.exit.value = '';
+      render();
+    }
+
+    function removeBet(e) {
+      const btn = e.target.closest('[data-i]');
+      if (!btn) return;
+      e.preventDefault();
+      state.bets.splice(Number(btn.dataset.i), 1);
+      render();
+    }
+
+    function exportBrief(e) {
+      e.preventDefault();
+      const lines = [
+        `Theme: ${ui.weekTheme.value.trim() || 'none set'}`,
+        `Commitment: ${ui.commitment.value.trim() || 'none set'}`,
+        `Total score: ${totalScore()}`,
+        '',
+        ...state.bets.map((b, i) => `${i+1}. ${b.idea} [score ${betScore(b)}]\n   done when: ${b.exit}`)
+      ];
+      navigator.clipboard.writeText(lines.join('\n')).then(() => { ui.hint.textContent = 'Launch brief copied to clipboard.'; });
+    }
+
+    document.getElementById('addBet').addEventListener('click', addBet);
+    document.getElementById('exportBrief').addEventListener('click', exportBrief);
+    ui.list.addEventListener('click', removeBet);
+    ui.weekTheme.addEventListener('input', save);
+    ui.commitment.addEventListener('input', save);
+
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEY) || '{}');
+      state = { bets: Array.isArray(raw.bets) ? raw.bets : [], weekTheme: raw.weekTheme || '', commitment: raw.commitment || '' };
+      ui.weekTheme.value = state.weekTheme;
+      ui.commitment.value = state.commitment;
+    } catch {}
+    render();
+  </script>
+</body>
+</html>
