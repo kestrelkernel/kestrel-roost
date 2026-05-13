@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Chronicle: timeline of launches, experiments, and milestones" />
+  <title>Roost Chronicle</title>
+  <style>
+    :root { --bg:#081024; --bg2:#12234f; --card:#0d1636cc; --line:#3553aa; --fg:#e8eeff; --muted:#a6b7f2; --accent:#8eb2ff; }
+    *{box-sizing:border-box} body{margin:0;font-family:ui-monospace,Consolas,monospace;color:var(--fg);background:radial-gradient(circle at 10% -10%,#253b7d 0,transparent 45%),radial-gradient(circle at 90% 110%,#1b2d67 0,transparent 45%),linear-gradient(180deg,var(--bg2),var(--bg));min-height:100vh}
+    .wrap{width:min(980px,92vw);margin:34px auto;display:grid;gap:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+    h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3rem)} h2{margin:0 0 8px;font-size:1rem;color:#c8d5ff} p{margin:0;color:var(--muted);line-height:1.5}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .btn{border:1px solid #4f6fd4;border-radius:999px;padding:7px 11px;background:#0f1f52;color:#dbe6ff;text-decoration:none;font:inherit;cursor:pointer}
+    .btn.active,.btn:hover{background:#163172;border-color:#7d9cff}
+    .grid{display:grid;gap:10px}
+    .entry{border:1px solid #30478f;border-radius:12px;background:#091230;padding:12px}
+    .meta{font-size:.8rem;color:#b2c2fa}
+    .chip{display:inline-block;margin-left:8px;padding:1px 8px;border:1px dashed #4f6fd4;border-radius:999px;color:#c7d5ff}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost chronicle</h1>
+      <p>A flight log of what shipped, what was tested, and what shifted the site forward.</p>
+      <div class="row">
+        <a class="btn" href="index.html">← back home</a>
+        <button class="btn active" data-filter="all">all</button>
+        <button class="btn" data-filter="launch">launches</button>
+        <button class="btn" data-filter="experiment">experiments</button>
+        <button class="btn" data-filter="ops">ops</button>
+      </div>
+    </section>
+    <section class="card">
+      <h2>timeline</h2>
+      <div id="entries" class="grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    const data = [
+      { date:'2026-05-12', title:'Forgeboard betting workflow launched', type:'launch', note:'Added weighted scoring and launch criteria to prioritize weekly bets.' },
+      { date:'2026-05-11', title:'Streak tracker added', type:'launch', note:'Shipped roost streaks for visible consistency tracking across creative routines.' },
+      { date:'2026-05-10', title:'Atlas route map expanded', type:'experiment', note:'Reworked roost atlas content to expose project routes and dependencies.' },
+      { date:'2026-05-09', title:'Roost radio vibes board', type:'experiment', note:'Introduced mood presets for faster context switching while building.' },
+      { date:'2026-05-08', title:'Weather deck for flight windows', type:'ops', note:'Added a weather-guided planning layer for better work timing decisions.' },
+      { date:'2026-05-04', title:'Command center refresh', type:'ops', note:'Streamlined command-center structure to reduce navigation friction.' }
+    ];
+
+    const entries = document.getElementById('entries');
+    const buttons = [...document.querySelectorAll('[data-filter]')];
+
+    function render(filter='all') {
+      const visible = filter === 'all' ? data : data.filter(item => item.type === filter);
+      entries.innerHTML = visible.map(item => `
+        <article class="entry">
+          <div class="meta">${item.date}<span class="chip">${item.type}</span></div>
+          <h3>${item.title}</h3>
+          <p>${item.note}</p>
+        </article>
+      `).join('');
+    }
+
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render(btn.dataset.filter);
+    }));
+
+    render();
+  </script>
+</body>
+</html>
