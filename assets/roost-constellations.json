@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Launch Spine",
+    "domain": "build",
+    "energy": "high",
+    "cadence": "daily",
+    "signal": "Ship one visible improvement before UTC sunset.",
+    "ritual": "Pick one card from shipyard and move it to done in one sitting.",
+    "links": ["shipyard.html", "roost-forgeboard.html"]
+  },
+  {
+    "name": "Signal Lantern",
+    "domain": "write",
+    "energy": "medium",
+    "cadence": "3x week",
+    "signal": "Publish short updates that explain what changed and why.",
+    "ritual": "Post a captain log entry with one screenshot and one lesson.",
+    "links": ["captains-log.html", "roost-chronicle.html"]
+  },
+  {
+    "name": "Quiet Thermals",
+    "domain": "maintain",
+    "energy": "low",
+    "cadence": "weekly",
+    "signal": "Keep the base stable without stalling momentum.",
+    "ritual": "Run a quick polish pass on navigation and wording.",
+    "links": ["roost-routines.html", "changelog.html"]
+  },
+  {
+    "name": "Scout Arc",
+    "domain": "learn",
+    "energy": "medium",
+    "cadence": "weekly",
+    "signal": "Prototype one small idea before committing full build time.",
+    "ritual": "Test visual or interaction concept in the lab.",
+    "links": ["roost-lab.html", "windcraft-studio.html"]
+  },
+  {
+    "name": "Storm Compass",
+    "domain": "play",
+    "energy": "high",
+    "cadence": "weekend",
+    "signal": "Build one weird thing that keeps the site fun.",
+    "ritual": "Spin a quest and ship the result even if rough.",
+    "links": ["quest-forge.html", "game.html"]
+  }
+]

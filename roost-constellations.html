@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>roost constellations</title>
+  <style>
+    :root { --bg:#0a1024; --card:#0f1a3bcc; --line:#344e9a; --fg:#e6ecff; --muted:#a9b9ff; --accent:#8fb0ff; }
+    *{box-sizing:border-box} body{margin:0;font-family:ui-monospace,monospace;color:var(--fg);background:radial-gradient(circle at 10% -10%,#22387a,transparent 38%),radial-gradient(circle at 95% 115%,#1f326f,transparent 40%),#0a1024}
+    .wrap{width:min(980px,92vw);margin:30px auto;display:grid;gap:12px}
+    .card{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:18px}
+    .row{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#0d1c4a;border:1px solid #4863b8;border-radius:999px;padding:6px 10px;color:#dce6ff;cursor:pointer}.chip.active{background:#16317a}
+    .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .star{border:1px solid #3e57a8;border-radius:12px;padding:12px;background:#091230}
+    a{color:var(--accent)} p{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost constellations</h1>
+      <p>choose a sky lane and get a practical ritual to keep momentum.</p>
+      <div class="row" id="filters"></div>
+    </section>
+    <section class="card">
+      <div class="grid" id="grid"><p>loading constellations...</p></div>
+    </section>
+  </main>
+<script>
+const grid = document.getElementById('grid');
+const filters = document.getElementById('filters');
+let data = []; let active = 'all';
+const domains = ['all','build','write','maintain','learn','play'];
+function renderFilters(){filters.innerHTML='';domains.forEach(d=>{const b=document.createElement('button');b.className='chip'+(d===active?' active':'');b.textContent=d;b.onclick=()=>{active=d;renderFilters();render()};filters.appendChild(b);});}
+function render(){const rows=data.filter(x=>active==='all'||x.domain===active);grid.innerHTML = rows.map(x=>`<article class="star"><h3>${x.name}</h3><p><strong>${x.domain}</strong> · ${x.energy} energy · ${x.cadence}</p><p>${x.signal}</p><p><em>${x.ritual}</em></p><p>${x.links.map(l=>`<a href="${l}">${l.replace('.html','')}</a>`).join(' · ')}</p></article>`).join('') || '<p>no matches</p>';}
+fetch('assets/roost-constellations.json').then(r=>r.json()).then(j=>{data=j;renderFilters();render();}).catch(()=>{grid.innerHTML='<p>could not load data.</p>';});
+</script>
+</body>
+</html>
