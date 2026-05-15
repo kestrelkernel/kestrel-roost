@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Pulse: live momentum dashboard for roadmap, focus, and recent wins." />
+  <title>Roost Pulse</title>
+  <style>
+    :root{--bg:#071024;--bg2:#11224d;--card:#0e1837d9;--line:#3858af;--fg:#eaf0ff;--muted:#a8baf3;--accent:#8db4ff;--good:#82e1b1}
+    *{box-sizing:border-box}body{margin:0;font-family:ui-monospace,Consolas,monospace;color:var(--fg);background:radial-gradient(circle at 10% -10%,#2a3f83 0,transparent 45%),radial-gradient(circle at 90% 110%,#1a2f66 0,transparent 45%),linear-gradient(180deg,var(--bg2),var(--bg));min-height:100vh}
+    .wrap{width:min(1040px,92vw);margin:32px auto;display:grid;gap:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+    h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3rem)}h2{margin:0 0 10px;color:#c9d6ff;font-size:1rem}p{margin:0;color:var(--muted);line-height:1.5}
+    .row{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid #5174d9;border-radius:999px;padding:7px 12px;background:#102258;color:#e1ebff;text-decoration:none}
+    .grid{display:grid;gap:10px}.triple{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .focus{border:1px solid #314a93;border-radius:12px;padding:12px;background:#091230}
+    .meter{height:8px;background:#1b2f6d;border-radius:999px;overflow:hidden;margin:8px 0}
+    .meter>span{display:block;height:100%;background:linear-gradient(90deg,#73dca7,#88acff)}
+    ul{margin:8px 0 0;padding-left:18px;color:var(--muted)}li{margin:4px 0}
+    .tag{font-size:.8rem;color:#ccdaff;border:1px dashed #4f6fd4;border-radius:999px;padding:2px 8px;display:inline-block}
+    .tiny{font-size:.82rem;color:#aec1ff}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost pulse</h1>
+      <p id="headline">Loading current pulse...</p>
+      <div class="row" style="margin-top:10px">
+        <a class="btn" href="index.html">← back home</a>
+        <a class="btn" href="flight-deck.html">open flight deck</a>
+        <a class="btn" href="roost-chronicle.html">open chronicle</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>active focus lanes</h2>
+      <div id="focus" class="grid triple" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2>roadmap pulse</h2>
+      <div class="grid triple">
+        <div><span class="tag">now</span><ul id="road-now"></ul></div>
+        <div><span class="tag">next</span><ul id="road-next"></ul></div>
+        <div><span class="tag">later</span><ul id="road-later"></ul></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>recent wins + milestones</h2>
+      <div class="grid triple">
+        <div><span class="tag">wins</span><ul id="wins"></ul></div>
+        <div><span class="tag">fresh ships</span><ul id="ships"></ul></div>
+        <div><span class="tag">milestones</span><ul id="milestones"></ul></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const byId = id => document.getElementById(id);
+    const list = (id, items) => byId(id).innerHTML = items.map(x => `<li>${x}</li>`).join('');
+
+    async function boot() {
+      const [nowRes, updateRes, mileRes] = await Promise.all([
+        fetch('assets/roost-now.json', { cache: 'no-store' }),
+        fetch('assets/roost-updates.json', { cache: 'no-store' }),
+        fetch('assets/roost-milestones.json', { cache: 'no-store' })
+      ]);
+
+      const now = await nowRes.json();
+      const updates = await updateRes.json();
+      const milestones = await mileRes.json();
+
+      byId('headline').textContent = `${now.headline} Updated ${now.updatedAt}.`;
+
+      byId('focus').innerHTML = now.activeFocus.map(item => `
+        <article class="focus">
+          <div class="tiny">${item.horizon}</div>
+          <h3>${item.title}</h3>
+          <p>${item.summary}</p>
+          <div class="meter"><span style="width:${item.progress}%"></span></div>
+          <div class="tiny">${item.progress}% complete</div>
+          <ul>${item.targets.map(t => `<li>${t}</li>`).join('')}</ul>
+        </article>
+      `).join('');
+
+      list('road-now', updates.roadmap.now);
+      list('road-next', updates.roadmap.next);
+      list('road-later', updates.roadmap.later);
+      list('wins', now.recentWins);
+      list('ships', updates.updates.slice(0, 5).map(u => `${u.date}: ${u.title}`));
+      list('milestones', milestones.slice(-5).reverse().map(m => `${m.date}: ${m.title}`));
+    }
+
+    boot().catch(() => {
+      byId('headline').textContent = 'Pulse data unavailable. Try reloading.';
+    });
+  </script>
+</body>
+</html>
