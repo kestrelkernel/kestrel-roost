@@ -33,6 +33,7 @@ python3 -m http.server 8080
 - `mission-plotter.html` — drag-and-drop planning board with local autosave, completion tracking, and JSON export
 - `shipyard.html` — roadmap cockpit with searchable/sortable project queue, impact/effort scanning, and local pinned ideas
 - `roost-routines.html` — cadence-aware routines cockpit with streaks, daily checklists, and JSON import/export backup
+- `weekly-review.html` — auto-generated weekly digest with KPI rollup across ships, notes, milestones, and expedition risk watch
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`)
 
 ## New in this iteration

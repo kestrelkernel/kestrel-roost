@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Weekly review generator for Kestrel Roost" />
+  <title>Roost Weekly Review</title>
+  <style>
+    :root { --bg:#0b1020; --fg:#e6ecff; --muted:#9fb0ff; --card:#0d1530cc; --line:#2b3a7a; }
+    body{margin:0;font-family:ui-monospace,monospace;color:var(--fg);background:linear-gradient(180deg,#101b3d,var(--bg));min-height:100vh}
+    .wrap{width:min(980px,94vw);margin:30px auto;display:grid;gap:12px}
+    .card{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:16px}
+    .btn,.nav{display:inline-block;text-decoration:none;color:#dbe4ff;border:1px solid #4660be;border-radius:10px;padding:8px 11px;background:#0f1d4d;font:inherit;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+    .kpi{border:1px solid #3550a8;border-radius:10px;background:#0c173f;padding:10px}
+    textarea{width:100%;min-height:220px;background:#0a1438;color:#e6ecff;border:1px solid #3f56a8;border-radius:10px;padding:10px;font:inherit}
+    p{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost weekly review</h1>
+      <p>auto-summarize this week across ships, notes, milestones, and expeditions.</p>
+      <a class="nav" href="index.html">home</a>
+      <a class="nav" href="command-center.html">command center</a>
+    </section>
+    <section class="card">
+      <button class="btn" id="generate">generate review</button>
+      <button class="btn" id="copy">copy markdown</button>
+    </section>
+    <section class="card grid" id="kpis"></section>
+    <section class="card">
+      <h2>markdown digest</h2>
+      <textarea id="digest"></textarea>
+    </section>
+  </main>
+<script>
+const kpis = document.getElementById('kpis');
+const digest = document.getElementById('digest');
+const weekAgo = new Date(Date.now()-7*24*60*60*1000);
+const fmt=(d)=>new Date(d).toISOString().slice(0,10);
+const inWeek=(d)=>{const x=new Date(d); return !Number.isNaN(x)&&x>=weekAgo};
+async function load(path,fallback){try{const r=await fetch(path,{cache:'no-store'});if(!r.ok)throw 0;return await r.json();}catch{return fallback;}}
+function top(list,key){const m=new Map();list.forEach(v=>(v[key]||[]).forEach(t=>m.set(t,(m.get(t)||0)+1)));return [...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);}
+async function generate(){
+  const [updates,notes,milestones,expeditions]=await Promise.all([
+    load('assets/roost-updates.json',{updates:[]}),
+    load('assets/roost-notes.json',{notes:[]}),
+    load('assets/roost-milestones.json',[]),
+    load('assets/roost-expeditions.json',[])
+  ]);
+  const wu=(updates.updates||[]).filter(x=>inWeek(x.date));
+  const wn=(notes.notes||[]).filter(x=>inWeek(x.date));
+  const wm=(milestones||[]).filter(x=>inWeek(x.date));
+  const active=(expeditions||[]).filter(x=>x.status==='active');
+  const avg=active.length?Math.round(active.reduce((s,e)=>s+(Number(e.progress)||0),0)/active.length):0;
+  kpis.innerHTML='';
+  [['ships this week',wu.length],['notes this week',wn.length],['milestones this week',wm.length],['active expeditions',active.length],['active avg progress',avg+'%']].forEach(([a,b])=>{const el=document.createElement('article');el.className='kpi';el.innerHTML=`<div>${a}</div><strong>${b}</strong>`;kpis.appendChild(el)});
+  const themes = top(wn,'tags');
+  const wins = wu.slice(0,4).map(x=>`- ${x.title}`);
+  const blockers = active.filter(x=>(x.risks||[]).length).flatMap(x=>x.risks.slice(0,1).map(r=>`- ${x.name||x.title}: ${r}`)).slice(0,3);
+  digest.value = `# Roost Weekly Review (${fmt(weekAgo)} to ${fmt(new Date())})\n\n## Highlights\n${wins.join('\n')||'- No ships logged this week yet.'}\n\n## Themes\n${themes.map(t=>`- ${t}`).join('\n')||'- No dominant note themes yet.'}\n\n## Risk Watch\n${blockers.join('\n')||'- No major risks logged.'}\n\n## Next Week Focus\n- Ship one high-leverage visible page improvement\n- Close one active expedition risk\n- Publish one synthesis note connecting ships to outcomes\n`;
+}
+document.getElementById('generate').addEventListener('click',generate);
+document.getElementById('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(digest.value);}catch{}});
+generate();
+</script>
+</body>
+</html>
