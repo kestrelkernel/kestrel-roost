@@ -167,6 +167,29 @@
       gap:8px;
     }
     .score strong { font-size:1.6rem; }
+    .risk-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    .risk-grid label {
+      display:grid;
+      gap:6px;
+      font-size:.82rem;
+      color:#c5d3ff;
+    }
+    .risk-tag {
+      display:inline-flex;
+      align-items:center;
+      width:max-content;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid #4d66c7;
+      background:#13245f;
+      font-size:.75rem;
+      color:#d9e2ff;
+    }
   </style>
 </head>
 <body>
@@ -237,6 +260,26 @@
       <div class="score" id="cadenceScore" aria-live="polite"></div>
     </section>
 
+    <section class="card" id="riskRadar">
+      <h2>mission risk radar</h2>
+      <p class="tiny">stress test this week's plan against interruption load, dependency risk, and quality bar. radar settings persist locally.</p>
+      <div class="risk-grid">
+        <label>interruptions / week
+          <input id="interruptions" class="range" type="range" min="0" max="20" step="1" value="6" />
+          <span id="interruptionsVal" class="tiny">6</span>
+        </label>
+        <label>dependency weight
+          <input id="dependencies" class="range" type="range" min="1" max="10" step="1" value="5" />
+          <span id="dependenciesVal" class="tiny">5 / 10</span>
+        </label>
+        <label>quality strictness
+          <input id="quality" class="range" type="range" min="1" max="10" step="1" value="7" />
+          <span id="qualityVal" class="tiny">7 / 10</span>
+        </label>
+      </div>
+      <div class="score" id="riskScore" aria-live="polite"></div>
+    </section>
+
     <section class="card">
       <h2>activity stream</h2>
       <div class="links" style="margin-bottom:10px;">
@@ -265,6 +308,13 @@
     const focusVal = document.getElementById('focusVal');
     const scopeVal = document.getElementById('scopeVal');
     const cadenceScore = document.getElementById('cadenceScore');
+    const interruptionsRange = document.getElementById('interruptions');
+    const dependenciesRange = document.getElementById('dependencies');
+    const qualityRange = document.getElementById('quality');
+    const interruptionsVal = document.getElementById('interruptionsVal');
+    const dependenciesVal = document.getElementById('dependenciesVal');
+    const qualityVal = document.getElementById('qualityVal');
+    const riskScore = document.getElementById('riskScore');
     const searchInput = document.getElementById('search');
     const sourceSelect = document.getElementById('source');
     const clearBtn = document.getElementById('clearFilters');
@@ -462,6 +512,57 @@
       renderCadence();
     };
 
+    const riskKey = 'roost-command-center-risk-v1';
+
+    const renderRisk = (telemetry) => {
+      const interruptions = Number(interruptionsRange.value);
+      const dependencies = Number(dependenciesRange.value);
+      const quality = Number(qualityRange.value);
+
+      interruptionsVal.textContent = `${interruptions}`;
+      dependenciesVal.textContent = `${dependencies} / 10`;
+      qualityVal.textContent = `${quality} / 10`;
+
+      const activeExpeditions = telemetry.activeExpeditions || 0;
+      const avgProgress = telemetry.avgProgress || 0;
+      const base = (interruptions * 3) + (dependencies * 4) + (quality * 2) + (activeExpeditions * 2) - Math.round(avgProgress / 8);
+      const risk = Math.max(5, Math.min(95, Math.round(base)));
+      const readiness = Math.max(0, Math.min(100, 100 - risk));
+
+      let label = 'stable';
+      let guidance = 'current plan can hold. keep scopes tight and ship in small slices.';
+      if (risk >= 70) {
+        label = 'high risk';
+        guidance = 'too many collision points. cut one dependency-heavy mission before adding scope.';
+      } else if (risk >= 45) {
+        label = 'watchlist';
+        guidance = 'delivery is possible, but interruptions could break momentum. pre-plan fallback tasks.';
+      }
+
+      riskScore.innerHTML = `
+        <div class="tiny">risk posture</div>
+        <strong>${risk} / 95</strong>
+        <span class="risk-tag">${label}</span>
+        <div class="tiny">readiness: ${readiness}% · ${guidance}</div>
+      `;
+
+      localStorage.setItem(riskKey, JSON.stringify({ interruptions, dependencies, quality }));
+    };
+
+    const initRisk = (telemetry) => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(riskKey) || '{}');
+        if (Number.isFinite(saved.interruptions)) interruptionsRange.value = saved.interruptions;
+        if (Number.isFinite(saved.dependencies)) dependenciesRange.value = saved.dependencies;
+        if (Number.isFinite(saved.quality)) qualityRange.value = saved.quality;
+      } catch {}
+
+      [interruptionsRange, dependenciesRange, qualityRange].forEach((el) => {
+        el.addEventListener('input', () => renderRisk(telemetry));
+      });
+      renderRisk(telemetry);
+    };
+
     const init = async () => {
       const [updates, notes, milestones, expeditions, nowData] = await Promise.all([
         loadJson('assets/roost-updates.json', { updates: [] }),
@@ -476,6 +577,7 @@
       const avgProgress = expeditions.length
         ? Math.round(expeditions.reduce((sum, entry) => sum + (Number(entry.progress) || 0), 0) / expeditions.length)
         : 0;
+      const telemetry = { activeExpeditions, avgProgress };
 
       kpiGrid.innerHTML = '';
       kpiGrid.append(
@@ -490,6 +592,7 @@
       renderFocus(nowData);
       renderStream(events);
       initCadence();
+      initRisk(telemetry);
 
       searchInput.addEventListener('input', () => renderStream(events));
       sourceSelect.addEventListener('change', () => renderStream(events));
