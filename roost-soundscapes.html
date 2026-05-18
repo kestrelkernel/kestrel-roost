@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Soundscapes - ambient focus mixer" />
+  <title>Roost Soundscapes</title>
+  <style>
+    :root { --bg:#0b1020; --bg2:#101b3d; --fg:#e6ecff; --muted:#9fb0ff; --line:#2b3a7a; --card:#0d1530cc; --accent:#7aa2ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--fg); background:radial-gradient(circle at 15% -5%, #22397d 0%, transparent 40%),radial-gradient(circle at 85% 105%, #1a2758 0%, transparent 45%),linear-gradient(180deg,var(--bg2),var(--bg)); min-height:100vh; }
+    .wrap { width:min(900px,92vw); margin:30px auto; display:grid; gap:12px; }
+    .card { border:1px solid var(--line); background:var(--card); border-radius:16px; padding:18px; }
+    h1,h2,p { margin:0; }
+    p { color:var(--muted); line-height:1.5; }
+    .row { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+    .btn { border:1px solid #4660be; border-radius:10px; padding:8px 12px; background:#112057; color:#dbe4ff; font:inherit; cursor:pointer; }
+    .btn:hover { background:#132668; border-color:#6f8dff; }
+    .track { border:1px solid #304285; border-radius:12px; background:#0a1333; padding:12px; display:grid; gap:8px; }
+    .track label { display:flex; justify-content:space-between; color:#c8d5ff; font-size:.9rem; }
+    input[type="range"] { width:100%; }
+    .tiny { font-size:.82rem; color:#99abef; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost soundscapes</h1>
+      <p>ambient focus mixer with lightweight generated audio. no files, just procedural loops.</p>
+      <div class="row">
+        <a class="btn" href="index.html">home</a>
+        <button class="btn" id="playPause">start audio</button>
+        <button class="btn" data-preset="deep">deep focus</button>
+        <button class="btn" data-preset="calm">calm writing</button>
+        <button class="btn" data-preset="storm">storm mode</button>
+      </div>
+      <p class="tiny" id="status" style="margin-top:10px;">audio stopped</p>
+    </section>
+
+    <section class="card" id="tracks"></section>
+  </main>
+
+  <script>
+    const config = [
+      { key:'wind', label:'wind', freq:180, type:'bandpass', q:0.9 },
+      { key:'rain', label:'rain', freq:2400, type:'highpass', q:0.7 },
+      { key:'engine', label:'engine hum', freq:75, type:'lowpass', q:1.2 },
+      { key:'chimes', label:'distant chimes', freq:680, type:'bandpass', q:8 }
+    ];
+    const presets = {
+      deep: { wind:0.22, rain:0.14, engine:0.18, chimes:0.07 },
+      calm: { wind:0.18, rain:0.08, engine:0.10, chimes:0.16 },
+      storm:{ wind:0.35, rain:0.30, engine:0.08, chimes:0.03 }
+    };
+    const stateKey = 'roost-soundscapes-v1';
+    const tracksEl = document.getElementById('tracks');
+    const statusEl = document.getElementById('status');
+    const playBtn = document.getElementById('playPause');
+    let ctx, master, running = false;
+    const nodes = new Map();
+
+    const saved = (() => { try { return JSON.parse(localStorage.getItem(stateKey) || '{}'); } catch { return {}; }})();
+
+    const ensureAudio = async () => {
+      if (ctx) return;
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      master = ctx.createGain();
+      master.gain.value = 0.8;
+      master.connect(ctx.destination);
+      config.forEach((item) => {
+        const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+        const data = noiseBuf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+        const src = ctx.createBufferSource();
+        src.buffer = noiseBuf;
+        src.loop = true;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = item.type;
+        filter.frequency.value = item.freq;
+        filter.Q.value = item.q;
+
+        const lfo = ctx.createOscillator();
+        const lfoGain = ctx.createGain();
+        lfo.frequency.value = item.key === 'chimes' ? 0.1 : 0.05;
+        lfoGain.gain.value = item.key === 'chimes' ? 120 : 40;
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+
+        const gain = ctx.createGain();
+        gain.gain.value = Number(saved[item.key] ?? 0.12);
+
+        src.connect(filter); filter.connect(gain); gain.connect(master);
+        src.start(); lfo.start();
+        nodes.set(item.key, { gain });
+      });
+    };
+
+    const render = () => {
+      tracksEl.innerHTML = '<h2>mixer</h2>';
+      config.forEach((item) => {
+        const wrap = document.createElement('article');
+        wrap.className = 'track';
+        const val = Number(saved[item.key] ?? 0.12);
+        wrap.innerHTML = `<label>${item.label}<span id="${item.key}Val">${Math.round(val * 100)}%</span></label><input data-key="${item.key}" type="range" min="0" max="0.5" step="0.01" value="${val}" />`;
+        tracksEl.appendChild(wrap);
+      });
+    };
+
+    tracksEl.addEventListener('input', (e) => {
+      const t = e.target;
+      if (!(t instanceof HTMLInputElement)) return;
+      const key = t.dataset.key;
+      if (!key) return;
+      const val = Number(t.value);
+      saved[key] = val;
+      document.getElementById(`${key}Val`).textContent = `${Math.round(val * 100)}%`;
+      if (nodes.has(key)) nodes.get(key).gain.gain.value = val;
+      localStorage.setItem(stateKey, JSON.stringify(saved));
+    });
+
+    document.querySelectorAll('[data-preset]').forEach((btn) => btn.addEventListener('click', () => {
+      const preset = presets[btn.dataset.preset];
+      Object.entries(preset).forEach(([key, val]) => {
+        saved[key] = val;
+        const input = tracksEl.querySelector(`input[data-key="${key}"]`);
+        if (input) input.value = val;
+        const out = document.getElementById(`${key}Val`);
+        if (out) out.textContent = `${Math.round(val * 100)}%`;
+        if (nodes.has(key)) nodes.get(key).gain.gain.value = val;
+      });
+      localStorage.setItem(stateKey, JSON.stringify(saved));
+      statusEl.textContent = `preset loaded: ${btn.dataset.preset}`;
+    }));
+
+    playBtn.addEventListener('click', async () => {
+      await ensureAudio();
+      if (!running) {
+        await ctx.resume();
+        running = true;
+        playBtn.textContent = 'pause audio';
+        statusEl.textContent = 'audio running';
+      } else {
+        await ctx.suspend();
+        running = false;
+        playBtn.textContent = 'start audio';
+        statusEl.textContent = 'audio paused';
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
