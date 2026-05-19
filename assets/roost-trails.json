@@ -1,0 +1,68 @@
+[
+  {
+    "title": "Command Center Telemetry Layer",
+    "date": "2026-05-18",
+    "status": "shipped",
+    "track": "product",
+    "energy": "deep",
+    "impact": 5,
+    "summary": "Added KPI cards, momentum bars, and risk posture simulation to surface delivery health.",
+    "page": "command-center.html",
+    "tags": ["dashboard", "metrics", "planning"]
+  },
+  {
+    "title": "Soundscapes Mission Deck",
+    "date": "2026-05-18",
+    "status": "shipped",
+    "track": "content",
+    "energy": "light",
+    "impact": 3,
+    "summary": "Created a focused ambient board for context switching and sustained build sessions.",
+    "page": "roost-soundscapes.html",
+    "tags": ["audio", "focus", "mood"]
+  },
+  {
+    "title": "Chronicle Timeline Filter",
+    "date": "2026-05-13",
+    "status": "shipped",
+    "track": "ux",
+    "energy": "light",
+    "impact": 3,
+    "summary": "Introduced type filters to quickly inspect launches, experiments, and ops moves.",
+    "page": "roost-chronicle.html",
+    "tags": ["timeline", "discoverability"]
+  },
+  {
+    "title": "Constellations Data Story",
+    "date": "2026-05-14",
+    "status": "shipped",
+    "track": "content",
+    "energy": "deep",
+    "impact": 4,
+    "summary": "Mapped ongoing priorities as constellations to make strategic intent easier to scan.",
+    "page": "roost-constellations.html",
+    "tags": ["strategy", "storytelling"]
+  },
+  {
+    "title": "Trail Replay Mode",
+    "date": "2026-05-19",
+    "status": "active",
+    "track": "product",
+    "energy": "deep",
+    "impact": 4,
+    "summary": "Building a weekly replay experience that turns raw logs into highlights and lessons.",
+    "page": "weekly-review.html",
+    "tags": ["insights", "review", "automation"]
+  },
+  {
+    "title": "Atlas Route Refresh",
+    "date": "2026-05-10",
+    "status": "archived",
+    "track": "ux",
+    "energy": "deep",
+    "impact": 2,
+    "summary": "Expanded route map interactions, then retired one branch after low usage.",
+    "page": "roost-atlas.html",
+    "tags": ["mapping", "navigation"]
+  }
+]

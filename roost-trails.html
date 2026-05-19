@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Trails: filterable map of shipped work, experiments, and active bets" />
+  <title>Roost Trails</title>
+  <style>
+    :root { --bg:#070f24; --bg2:#10244f; --card:#0c1738cc; --line:#314c9a; --fg:#eaf0ff; --muted:#9fb0e8; --accent:#88acff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:ui-monospace,Consolas,monospace; color:var(--fg); background:radial-gradient(circle at 10% -10%,#213a86 0,transparent 42%),radial-gradient(circle at 90% 110%,#1a2c65 0,transparent 45%),linear-gradient(180deg,var(--bg2),var(--bg)); min-height:100vh; }
+    .wrap { width:min(1080px,94vw); margin:32px auto; display:grid; gap:12px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; }
+    h1,h2,h3,p { margin:0; }
+    p { color:var(--muted); line-height:1.45; }
+    .row, .meta, .chips, .stats { display:flex; flex-wrap:wrap; gap:8px; }
+    .btn, .chip, .field, select { font:inherit; font-size:.84rem; color:#dce6ff; border:1px solid #4967ca; border-radius:999px; padding:7px 11px; background:#10235a; text-decoration:none; }
+    .btn.active { background:#1a357f; border-color:#7598ff; }
+    .field { border-radius:10px; min-width:220px; }
+    select { border-radius:10px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px; }
+    .trail { border:1px solid #2f458e; border-radius:13px; background:#091336; padding:12px; display:grid; gap:8px; }
+    .tiny { font-size:.78rem; color:#adc0ff; }
+    .stat { border:1px solid #3550a6; border-radius:12px; background:#0b1842; padding:10px; min-width:120px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost trails</h1>
+      <p>Interactive map of shipped missions, active bets, and retired experiments so direction stays visible.</p>
+      <div class="row" style="margin-top:10px;">
+        <a class="btn" href="command-center.html">← command center</a>
+        <input id="search" class="field" type="search" placeholder="search title, summary, tags" />
+        <select id="status"><option value="all">all status</option><option value="shipped">shipped</option><option value="active">active</option><option value="archived">archived</option></select>
+        <select id="track"><option value="all">all tracks</option><option value="product">product</option><option value="ux">ux</option><option value="content">content</option></select>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>trail stats</h2>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="card">
+      <h2>entries</h2>
+      <div class="grid" id="grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const stats = document.getElementById('stats');
+    const search = document.getElementById('search');
+    const status = document.getElementById('status');
+    const track = document.getElementById('track');
+
+    const fmt = (d) => new Date(d).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+
+    const render = (data) => {
+      const q = search.value.trim().toLowerCase();
+      const filtered = data.filter((item) => {
+        if (status.value !== 'all' && item.status !== status.value) return false;
+        if (track.value !== 'all' && item.track !== track.value) return false;
+        if (!q) return true;
+        const hay = `${item.title} ${item.summary} ${(item.tags || []).join(' ')}`.toLowerCase();
+        return hay.includes(q);
+      }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+      const impact = filtered.reduce((sum, item) => sum + (item.impact || 0), 0);
+      const active = filtered.filter((item) => item.status === 'active').length;
+      stats.innerHTML = `
+        <article class="stat"><div class="tiny">visible trails</div><strong>${filtered.length}</strong></article>
+        <article class="stat"><div class="tiny">active bets</div><strong>${active}</strong></article>
+        <article class="stat"><div class="tiny">impact points</div><strong>${impact}</strong></article>
+      `;
+
+      grid.innerHTML = filtered.map((item) => `
+        <article class="trail">
+          <div class="meta tiny">${fmt(item.date)} · ${item.status} · ${item.track}</div>
+          <h3>${item.title}</h3>
+          <p>${item.summary}</p>
+          <div class="chips">${(item.tags || []).map((tag) => `<span class="chip">${tag}</span>`).join('')}</div>
+          <a class="btn" href="${item.page}">open artifact</a>
+        </article>
+      `).join('') || '<div class="tiny">no trails match this filter yet.</div>';
+    };
+
+    const init = async () => {
+      const response = await fetch('assets/roost-trails.json', { cache:'no-store' });
+      const data = response.ok ? await response.json() : [];
+      [search, status, track].forEach((el) => el.addEventListener('input', () => render(data)));
+      render(data);
+    };
+
+    init();
+  </script>
+</body>
+</html>
