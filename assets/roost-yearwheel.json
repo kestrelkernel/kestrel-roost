@@ -1,0 +1,42 @@
+[
+  {
+    "season": "Q1 · ignition",
+    "theme": "build foundations",
+    "months": ["January", "February", "March"],
+    "moves": [
+      "Ship one structural improvement each week",
+      "Refactor one slow workflow into a reusable pattern",
+      "Capture baselines for build speed and quality"
+    ]
+  },
+  {
+    "season": "Q2 · expansion",
+    "theme": "publish and connect",
+    "months": ["April", "May", "June"],
+    "moves": [
+      "Launch one new user-facing page or tool every sprint",
+      "Tighten information architecture and cross-page links",
+      "Turn experiments into documented systems"
+    ]
+  },
+  {
+    "season": "Q3 · refinement",
+    "theme": "sharpen interactions",
+    "months": ["July", "August", "September"],
+    "moves": [
+      "Improve UX polish on top 5 most-used pages",
+      "Unify visual language and spacing rules",
+      "Reduce friction in update and publishing flow"
+    ]
+  },
+  {
+    "season": "Q4 · harvest",
+    "theme": "review and compound",
+    "months": ["October", "November", "December"],
+    "moves": [
+      "Compile wins and lessons into a yearly digest",
+      "Archive or prune stale content with intent",
+      "Define next-year bets from proven momentum"
+    ]
+  }
+]

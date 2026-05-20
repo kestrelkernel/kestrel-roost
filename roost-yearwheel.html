@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Yearwheel: seasonal strategy map for what to build and when." />
+  <title>Roost Yearwheel</title>
+  <style>
+    :root{--bg:#070b1a;--bg2:#121d44;--card:#0d1533cc;--line:#3d5cb3;--fg:#eaf0ff;--muted:#afbef4;--accent:#9ec0ff}
+    *{box-sizing:border-box}body{margin:0;font-family:ui-monospace,Consolas,monospace;color:var(--fg);background:radial-gradient(circle at 0% 0%,#263b7b 0,transparent 42%),linear-gradient(180deg,var(--bg2),var(--bg));min-height:100vh}
+    .wrap{width:min(980px,92vw);margin:32px auto;display:grid;gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #4f70d3;border-radius:999px;padding:6px 10px;background:#102155;color:#dee8ff;cursor:pointer;text-decoration:none;font:inherit}
+    .btn.active,.btn:hover{background:#18357a;border-color:#80a2ff}.grid{display:grid;gap:10px}.entry{border:1px solid #2f478e;border-radius:12px;background:#09112b;padding:12px}
+    .tiny{color:var(--muted);font-size:.9rem}ul{margin:.5rem 0 0;padding-left:1.1rem;line-height:1.5}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost yearwheel</h1>
+      <p class="tiny">A seasonal build map so the site keeps compounding instead of drifting sprint to sprint.</p>
+      <div class="row" id="filters"></div>
+      <div class="row" style="margin-top:8px"><a class="btn" href="index.html">← back home</a></div>
+    </section>
+    <section class="card">
+      <h2 id="focusTitle">season plan</h2>
+      <div id="grid" class="grid" aria-live="polite"></div>
+    </section>
+  </main>
+<script>
+const filters = document.getElementById('filters');
+const grid = document.getElementById('grid');
+const focusTitle = document.getElementById('focusTitle');
+
+let data = [];
+let active = 'all';
+
+function render(){
+  const rows = active === 'all' ? data : data.filter(item => item.season.startsWith(active));
+  focusTitle.textContent = active === 'all' ? 'season plan' : `${active} focus`;
+  grid.innerHTML = rows.map(item => `
+    <article class="entry">
+      <h3>${item.season}</h3>
+      <p class="tiny"><strong>theme:</strong> ${item.theme}</p>
+      <p class="tiny"><strong>months:</strong> ${item.months.join(', ')}</p>
+      <ul>${item.moves.map(move => `<li>${move}</li>`).join('')}</ul>
+    </article>
+  `).join('');
+}
+
+function buildFilters(){
+  const seasons = ['all', ...new Set(data.map(item => item.season.split(' ')[0]))];
+  filters.innerHTML = seasons.map(season => `<button class="btn ${season === 'all' ? 'active' : ''}" data-season="${season}">${season}</button>`).join('');
+  filters.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+    filters.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    active = btn.dataset.season;
+    render();
+  }));
+}
+
+fetch('assets/roost-yearwheel.json')
+  .then(response => response.json())
+  .then(json => { data = json; buildFilters(); render(); })
+  .catch(() => { grid.innerHTML = '<p class="tiny">Yearwheel data failed to load.</p>'; });
+</script>
+</body>
+</html>
