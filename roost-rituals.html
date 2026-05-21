@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>kestrel's roost - rituals</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#111831;--text:#e9eeff;--muted:#9eb0e8;--ok:#66f2be;--line:#27345f;--accent:#7cc8ff}
+    *{box-sizing:border-box} body{margin:0;font-family:ui-monospace,monospace;background:radial-gradient(circle at top,#18264f,var(--bg));color:var(--text)}
+    .wrap{max-width:820px;margin:0 auto;padding:20px}
+    .card{background:rgba(17,24,49,.9);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+    h1,h2{margin:0 0 10px}.muted{color:var(--muted)} .row{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0d1530;color:var(--muted)}
+    button{background:#14224a;color:var(--text);border:1px solid #2d4486;border-radius:10px;padding:8px 12px;cursor:pointer}
+    button:hover{border-color:var(--accent)}
+    .ritual{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#0d1530}
+    input[type="checkbox"]{width:18px;height:18px} .done{opacity:.6;text-decoration:line-through}
+    .tiny{font-size:12px;color:var(--muted)} a{color:var(--accent)}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost rituals</h1>
+      <p class="muted">Pick 3 momentum rituals for today. Track score. Keep streak alive.</p>
+      <div class="row">
+        <a class="pill" href="index.html">home</a>
+        <span class="pill">day score: <strong id="score">0/3</strong></span>
+        <span class="pill">streak: <strong id="streak">0</strong> days</span>
+      </div>
+    </section>
+
+    <section class="card" id="list"></section>
+
+    <section class="card">
+      <h2>quick reset</h2>
+      <p class="tiny">Use if you want to reroll today without deleting your streak history.</p>
+      <button id="reroll">reroll rituals</button>
+      <button id="clear">clear all progress</button>
+    </section>
+  </main>
+
+  <script>
+    const pool = [
+      'ship one visible page change',
+      'write one concise changelog note',
+      'remove one source of friction in navigation',
+      'refine one visual pattern for consistency',
+      'document one reusable micro-pattern',
+      'add one keyboard-friendly interaction',
+      'publish one content block that teaches something',
+      'tighten one section for scan speed'
+    ];
+    const key = 'roostRitualsV1';
+    const today = new Date().toISOString().slice(0,10);
+
+    const state = JSON.parse(localStorage.getItem(key) || '{}');
+    if (!state.date || state.date !== today) {
+      const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0,3);
+      state.date = today; state.items = shuffled.map(text => ({ text, done:false }));
+    }
+
+    const list = document.getElementById('list');
+    function render() {
+      list.innerHTML = '<h2>today\'s loadout</h2>';
+      state.items.forEach((item, idx) => {
+        const row = document.createElement('label');
+        row.className = 'ritual';
+        row.innerHTML = `<input type="checkbox" ${item.done?'checked':''} data-i="${idx}"> <span class="${item.done?'done':''}">${item.text}</span> <span class="tiny">slot ${idx+1}</span>`;
+        list.appendChild(row);
+      });
+      const doneCount = state.items.filter(i => i.done).length;
+      document.getElementById('score').textContent = `${doneCount}/3`;
+      if (doneCount === 3 && state.lastFull !== today) {
+        const y = new Date(Date.now()-86400000).toISOString().slice(0,10);
+        state.streak = state.lastFull === y ? (state.streak||0)+1 : 1;
+        state.lastFull = today;
+      }
+      document.getElementById('streak').textContent = state.streak || 0;
+      localStorage.setItem(key, JSON.stringify(state));
+    }
+
+    list.addEventListener('change', (e) => {
+      const i = Number(e.target.dataset.i);
+      state.items[i].done = e.target.checked;
+      render();
+    });
+
+    document.getElementById('reroll').addEventListener('click', () => {
+      state.items = [...pool].sort(() => Math.random()-0.5).slice(0,3).map(text => ({text,done:false}));
+      localStorage.setItem(key, JSON.stringify(state));
+      render();
+    });
+
+    document.getElementById('clear').addEventListener('click', () => {
+      localStorage.removeItem(key);
+      location.reload();
+    });
+
+    render();
+  </script>
+</body>
+</html>
