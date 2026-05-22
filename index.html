@@ -506,6 +506,33 @@
       </div>
     </section>
 
+    <section class="card" id="pathfinderBoard" aria-live="polite">
+      <h2>roost pathfinder</h2>
+      <p class="tiny" style="margin-bottom:10px;">pick your moment, get the best next page. tuned for energy + time + intent.</p>
+      <div class="explorer-tools">
+        <select id="pathfinderIntent" class="explorer-input" style="max-width:220px;">
+          <option value="build">build</option>
+          <option value="learn">learn</option>
+          <option value="play">play</option>
+          <option value="reflect">reflect</option>
+        </select>
+        <select id="pathfinderEnergy" class="explorer-input" style="max-width:220px;">
+          <option value="high">high energy</option>
+          <option value="medium">medium energy</option>
+          <option value="low">low energy</option>
+        </select>
+        <select id="pathfinderTime" class="explorer-input" style="max-width:220px;">
+          <option value="15">15 min</option>
+          <option value="30">30 min</option>
+          <option value="60">60+ min</option>
+        </select>
+        <button class="btn" id="runPathfinder">find next move</button>
+      </div>
+      <div id="pathfinderResult" class="feed-grid">
+        <div class="empty-card">pick settings and run pathfinder.</div>
+      </div>
+    </section>
+
     <section class="card">
       <h2>roost explorer</h2>
       <p class="tiny" style="margin-bottom:10px;">quick-find pages by intent. shortcut: press <kbd>/</kbd> to jump into search.</p>
@@ -749,19 +776,30 @@
     const siteSearchResults = document.getElementById('siteSearchResults');
     const clearSiteSearchBtn = document.getElementById('clearSiteSearch');
     const randomPageBtn = document.getElementById('randomPage');
+    const pathfinderIntent = document.getElementById('pathfinderIntent');
+    const pathfinderEnergy = document.getElementById('pathfinderEnergy');
+    const pathfinderTime = document.getElementById('pathfinderTime');
+    const runPathfinderBtn = document.getElementById('runPathfinder');
+    const pathfinderResult = document.getElementById('pathfinderResult');
 
     const roostPages = [
       {
         title: 'game',
         href: 'game.html',
         description: 'playable kestrel game loop with keyboard controls and score flow.',
-        tags: ['play', 'interactive', 'arcade']
+        tags: ['play', 'interactive', 'arcade'],
+        intents: ['play'],
+        energy: 'high',
+        minTime: 15
       },
       {
         title: 'gallery',
         href: 'gallery.html',
         description: 'art drop gallery with project visuals and experiments.',
-        tags: ['art', 'visual', 'collection']
+        tags: ['art', 'visual', 'collection'],
+        intents: ['play', 'reflect'],
+        energy: 'low',
+        minTime: 15
       },
       {
         title: 'wallpapers',
@@ -779,7 +817,10 @@
         title: 'quest forge',
         href: 'quest-forge.html',
         description: 'tune daily quest prompts and customize the quest pool.',
-        tags: ['tooling', 'productivity', 'quests']
+        tags: ['tooling', 'productivity', 'quests'],
+        intents: ['build'],
+        energy: 'medium',
+        minTime: 30
       },
       {
         title: 'flight deck',
@@ -791,7 +832,10 @@
         title: 'field notes',
         href: 'notes.html',
         description: 'writing archive and note stream for ideas and postmortems.',
-        tags: ['writing', 'archive', 'journal']
+        tags: ['writing', 'archive', 'journal'],
+        intents: ['reflect', 'learn'],
+        energy: 'low',
+        minTime: 15
       },
       {
         title: 'signal board',
@@ -815,7 +859,10 @@
         title: 'roost lab',
         href: 'roost-lab.html',
         description: 'prototype sandbox for styles, interactions, and experiments.',
-        tags: ['prototype', 'design', 'sandbox']
+        tags: ['prototype', 'design', 'sandbox'],
+        intents: ['build', 'learn'],
+        energy: 'high',
+        minTime: 30
       },
       {
         title: 'expeditions',
@@ -827,7 +874,10 @@
         title: 'command center',
         href: 'command-center.html',
         description: 'single dashboard for momentum, focus, and cross-feed activity.',
-        tags: ['dashboard', 'metrics', 'overview']
+        tags: ['dashboard', 'metrics', 'overview'],
+        intents: ['build', 'reflect'],
+        energy: 'medium',
+        minTime: 15
       },
       {
         title: 'roost briefing',
@@ -857,7 +907,10 @@
         title: 'roost observatory',
         href: 'roost-observatory.html',
         description: 'filterable signal board for tracking ship, note, milestone, and expedition momentum.',
-        tags: ['analytics', 'signals', 'momentum']
+        tags: ['analytics', 'signals', 'momentum'],
+        intents: ['reflect', 'learn'],
+        energy: 'low',
+        minTime: 30
       },
       {
         title: 'nest garden',
@@ -905,9 +958,63 @@
         title: 'roost soundscapes',
         href: 'roost-soundscapes.html',
         description: 'procedural ambient mixer with presets for deep focus, calm writing, and storm mode.',
-        tags: ['audio', 'focus', 'mixer']
+        tags: ['audio', 'focus', 'mixer'],
+        intents: ['play', 'reflect'],
+        energy: 'low',
+        minTime: 15
       }
     ];
+
+    const energyScore = { high: 3, medium: 2, low: 1 };
+
+    const scorePathfinderCandidate = (page, pref) => {
+      let score = 1;
+      const intents = Array.isArray(page.intents) ? page.intents : [];
+      if (intents.includes(pref.intent)) score += 5;
+
+      if (page.energy === pref.energy) {
+        score += 3;
+      } else {
+        const diff = Math.abs((energyScore[page.energy] || 2) - (energyScore[pref.energy] || 2));
+        score += Math.max(0, 2 - diff);
+      }
+
+      if (Number.isFinite(page.minTime)) {
+        if (pref.time >= page.minTime) score += 3;
+        else score -= 2;
+      }
+
+      if (pref.intent === 'build' && page.tags.includes('tooling')) score += 1;
+      if (pref.intent === 'learn' && page.tags.includes('analytics')) score += 1;
+      if (pref.intent === 'play' && page.tags.includes('interactive')) score += 1;
+      if (pref.intent === 'reflect' && page.tags.includes('journal')) score += 1;
+
+      return score;
+    };
+
+    const runPathfinder = () => {
+      const pref = {
+        intent: pathfinderIntent.value,
+        energy: pathfinderEnergy.value,
+        time: Number(pathfinderTime.value)
+      };
+
+      const picks = roostPages
+        .map((page) => ({ page, score: scorePathfinderCandidate(page, pref) }))
+        .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title))
+        .slice(0, 3);
+
+      pathfinderResult.innerHTML = picks.map(({ page, score }, idx) => `
+        <article class="feed-card">
+          <h3>${idx === 0 ? 'best next move' : `alt ${idx}`}: ${page.title}</h3>
+          <p class="explorer-copy">${page.description}</p>
+          <div class="feed-meta"><span>fit score ${score}</span><span>${page.energy || 'medium'} energy</span><span>${page.minTime || 15}+ min</span></div>
+          <div class="link-row"><a class="btn" href="${page.href}">open ${page.title}</a></div>
+        </article>
+      `).join('');
+
+      storage.set('roostPathfinderPrefs', JSON.stringify(pref));
+    };
 
     const scorePage = (page, query) => {
       const q = query.toLowerCase().trim();
@@ -1462,7 +1569,17 @@
       }
     });
 
+    runPathfinderBtn.addEventListener('click', runPathfinder);
+
+    try {
+      const savedPrefs = JSON.parse(storage.get('roostPathfinderPrefs') || 'null');
+      if (savedPrefs?.intent) pathfinderIntent.value = savedPrefs.intent;
+      if (savedPrefs?.energy) pathfinderEnergy.value = savedPrefs.energy;
+      if (savedPrefs?.time) pathfinderTime.value = String(savedPrefs.time);
+    } catch { }
+
     renderExplorer('');
+    runPathfinder();
     loadNowTimeline();
     loadMissionBoard();
 
