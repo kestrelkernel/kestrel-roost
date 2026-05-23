@@ -16,6 +16,20 @@
   },
   "updates": [
     {
+      "slug": "expedition-planner-launch",
+      "date": "2026-05-23",
+      "title": "Launched Roost Expedition Planner for guided site tours",
+      "type": "feature",
+      "impact": "Visitors can now generate a tailored route through the site based on available time, preferred content type, and desired depth, making discovery faster and less overwhelming.",
+      "details": "Added roost-expedition-planner.html with live route generation from the shared updates feed, scoring logic for stop selection, and dynamic stop cards linking directly to destination pages.",
+      "page": "roost-expedition-planner.html",
+      "pageLabel": "Open expedition planner",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "roost-linking-system"
+      ]
+    },
+    {
       "slug": "now-board-launch",
       "date": "2026-04-17",
       "title": "Launched Now Board with live focus tracking",

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roost Expedition Planner</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font-family: Inter, system-ui, sans-serif; background:#08101e; color:#e7ecff; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+    .top { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
+    a { color:#9cc9ff; }
+    h1 { margin:0; font-size: clamp(1.6rem, 3.3vw, 2.2rem); }
+    .panel { background:linear-gradient(180deg,#111d35,#0e182c); border:1px solid #2a3e67; border-radius:16px; padding:1rem; margin-top:1rem; }
+    .controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.8rem; }
+    label { font-size:.85rem; opacity:.9; display:block; margin-bottom:.35rem; }
+    select,button { width:100%; background:#121f39; color:#ebf2ff; border:1px solid #35548b; border-radius:10px; padding:.6rem .7rem; }
+    button { cursor:pointer; background:#2759c6; border-color:#3b72df; font-weight:600; }
+    .stats { display:flex; flex-wrap:wrap; gap:.65rem; margin-top:.9rem; }
+    .pill { background:#101d36; border:1px solid #2a4473; border-radius:999px; padding:.35rem .6rem; font-size:.78rem; }
+    .route { display:grid; gap:.75rem; margin-top:1rem; }
+    .card { background:#0f1b33; border:1px solid #2a436f; border-radius:14px; padding:.8rem; }
+    .card h3 { margin:.1rem 0 .3rem; font-size:1.02rem; }
+    .meta { font-size:.78rem; opacity:.8; margin-bottom:.35rem; }
+    .empty { opacity:.85; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Roost Expedition Planner</h1>
+      <a href="index.html">← back home</a>
+    </div>
+    <p>Build a quick custom tour through the roost based on your time and what you want more of right now.</p>
+
+    <section class="panel">
+      <div class="controls">
+        <div><label for="minutes">Tour time</label><select id="minutes"><option value="10">10 min</option><option value="20" selected>20 min</option><option value="35">35 min</option></select></div>
+        <div><label for="focus">Focus</label><select id="focus"><option value="all" selected>Everything</option><option value="feature">Features</option><option value="interaction">Interactions</option><option value="content">Content</option></select></div>
+        <div><label for="intensity">Intensity</label><select id="intensity"><option value="calm">Calm</option><option value="balanced" selected>Balanced</option><option value="deep">Deep dive</option></select></div>
+        <div style="align-self:end"><button id="build">Build route</button></div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="route" id="route"></div>
+    </section>
+  </div>
+
+  <script>
+    const state = { updates: [] };
+    const avgMinutes = { calm: 5, balanced: 8, deep: 12 };
+
+    function score(update, focus){
+      let value = 1;
+      if (focus !== 'all' && update.type === focus) value += 2;
+      if (update.type === 'feature') value += 1;
+      if ((update.relatedNotes || []).length > 1) value += 0.5;
+      return value;
+    }
+
+    function buildRoute(){
+      const minutes = Number(document.querySelector('#minutes').value);
+      const focus = document.querySelector('#focus').value;
+      const intensity = document.querySelector('#intensity').value;
+      const stopMinutes = avgMinutes[intensity] || 8;
+      const maxStops = Math.max(2, Math.floor(minutes / stopMinutes));
+
+      const ranked = [...state.updates]
+        .filter(item => focus === 'all' || item.type === focus)
+        .sort((a,b) => score(b,focus) - score(a,focus) || b.date.localeCompare(a.date));
+
+      const picks = ranked.slice(0, maxStops);
+      render(picks, minutes, intensity);
+    }
+
+    function render(picks, minutes, intensity){
+      const route = document.querySelector('#route');
+      const stats = document.querySelector('#stats');
+      stats.innerHTML = `<span class="pill">${picks.length} stops</span><span class="pill">~${minutes} minutes</span><span class="pill">${intensity}</span>`;
+
+      if(!picks.length){
+        route.innerHTML = '<p class="empty">No matching entries yet. Try a wider focus.</p>';
+        return;
+      }
+
+      route.innerHTML = picks.map((item, i) => `
+        <article class="card">
+          <div class="meta">Stop ${i+1} · ${item.date} · ${item.type}</div>
+          <h3>${item.title}</h3>
+          <p>${item.impact}</p>
+          <a href="${item.page}">${item.pageLabel || 'Open page'}</a>
+        </article>
+      `).join('');
+    }
+
+    async function init(){
+      const res = await fetch('assets/roost-updates.json');
+      const data = await res.json();
+      state.updates = data.updates || [];
+      buildRoute();
+    }
+
+    document.querySelector('#build').addEventListener('click', buildRoute);
+    init().catch(() => {
+      document.querySelector('#route').innerHTML = '<p class="empty">Could not load updates feed.</p>';
+    });
+  </script>
+</body>
+</html>
