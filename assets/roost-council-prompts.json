@@ -1,0 +1,12 @@
+[
+  {"councilor":"Navigator","mode":"Clarity","prompt":"What is the one output that would make today feel like a win by sunset?"},
+  {"councilor":"Quartermaster","mode":"Scope","prompt":"If you had to ship this in 45 minutes, what smaller version would you release?"},
+  {"councilor":"Signalmaster","mode":"Communication","prompt":"Who needs an update right now, and what is the single sentence they care about?"},
+  {"councilor":"Cartographer","mode":"Discovery","prompt":"What assumption are you making that you could test in under 10 minutes?"},
+  {"councilor":"Watchkeeper","mode":"Risk","prompt":"What could fail silently today, and what quick check would expose it?"},
+  {"councilor":"Flight Captain","mode":"Momentum","prompt":"What action can you take in 5 minutes that unlocks a bigger task?"},
+  {"councilor":"Archivist","mode":"Learning","prompt":"What did yesterday teach you that should change today's plan?"},
+  {"councilor":"Weather Reader","mode":"Energy","prompt":"Given your current energy, what task fits your actual bandwidth best?"},
+  {"councilor":"Scout","mode":"Courage","prompt":"What are you avoiding because it's uncertain, and what's the first probe?"},
+  {"councilor":"Engineer","mode":"Execution","prompt":"What can you automate right now to save yourself 10+ minutes this week?"}
+]

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roost Council | Kestrel Roost</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #20344d, #0a111a 55%);
+      color: #e8f0ff;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 3rem 1.2rem 4rem; }
+    .crumb { color: #9fb6d8; text-decoration: none; }
+    h1 { font-size: clamp(2rem, 6vw, 3rem); margin-bottom: .5rem; }
+    .lead { color: #c4d3ea; margin-bottom: 1.2rem; }
+    .panel {
+      background: rgba(13, 24, 37, .88);
+      border: 1px solid rgba(154, 183, 222, .25);
+      border-radius: 18px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,.25);
+    }
+    .prompt { font-size: 1.2rem; line-height: 1.5; margin: 0; }
+    .meta { color: #aac1df; font-size: .95rem; margin-top: .8rem; }
+    .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
+    button {
+      background: #5ea5ff;
+      border: none;
+      color: #04111f;
+      font-weight: 700;
+      padding: .68rem .92rem;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    button.secondary { background: #223956; color: #d9e8ff; border: 1px solid #4e6f98; }
+    ul { margin: 0; padding-left: 1.2rem; color: #c9d9ef; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="crumb" href="index.html">← Back to Kestrel Roost</a>
+    <h1>Roost Council</h1>
+    <p class="lead">Daily decision prompts from your advisory table. Use this to cut through indecision and choose your next meaningful move.</p>
+
+    <section class="panel">
+      <p id="prompt" class="prompt">Loading council guidance...</p>
+      <p id="meta" class="meta"></p>
+      <div class="actions">
+        <button id="newPrompt">Draw New Prompt</button>
+        <button id="copyPrompt" class="secondary">Copy Prompt</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How to use it</h2>
+      <ul>
+        <li>Draw a prompt when stuck or overloaded.</li>
+        <li>Set a 20-minute timer and execute the first concrete step.</li>
+        <li>If blocked, draw exactly one more and continue.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const promptEl = document.getElementById('prompt');
+    const metaEl = document.getElementById('meta');
+    const newBtn = document.getElementById('newPrompt');
+    const copyBtn = document.getElementById('copyPrompt');
+
+    let prompts = [];
+    let current = null;
+
+    function drawPrompt() {
+      if (!prompts.length) return;
+      current = prompts[Math.floor(Math.random() * prompts.length)];
+      promptEl.textContent = current.prompt;
+      metaEl.textContent = `${current.councilor} • ${current.mode}`;
+    }
+
+    async function loadPrompts() {
+      const res = await fetch('assets/roost-council-prompts.json');
+      prompts = await res.json();
+      drawPrompt();
+    }
+
+    newBtn.addEventListener('click', drawPrompt);
+    copyBtn.addEventListener('click', async () => {
+      if (!current) return;
+      await navigator.clipboard.writeText(`${current.prompt} (${current.councilor}, ${current.mode})`);
+      copyBtn.textContent = 'Copied';
+      setTimeout(() => (copyBtn.textContent = 'Copy Prompt'), 1200);
+    });
+
+    loadPrompts().catch(() => {
+      promptEl.textContent = 'Unable to load prompts right now. Check again in a minute.';
+      metaEl.textContent = '';
+    });
+  </script>
+</body>
+</html>
