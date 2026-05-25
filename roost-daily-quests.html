@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>roost daily quests</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#07101a; color:#d7e6ff; }
+    main { max-width: 900px; margin: 0 auto; padding: 28px 16px 48px; }
+    .card { background:#0f1e31; border:1px solid #27405f; border-radius:12px; padding:16px; margin-bottom:14px; }
+    h1,h2 { margin:0 0 10px; }
+    .muted { color:#93accf; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    button, input { background:#122741; color:#e4efff; border:1px solid #38608b; border-radius:10px; padding:9px 12px; font:inherit; }
+    button { cursor:pointer; }
+    ul { margin:8px 0 0 18px; }
+    li { margin:6px 0; }
+    .quest { padding:12px; border:1px solid #365a84; border-radius:10px; background:#0b1626; }
+    a { color:#8ec5ff; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>roost daily quests</h1>
+  <p class="muted">Generate a focused daily quest, adjust intensity, and keep streak momentum locally in your browser.</p>
+
+  <section class="card">
+    <h2>quest controls</h2>
+    <div class="row">
+      <label>focus
+        <input id="focusInput" type="text" placeholder="ship, writing, health, ops..." />
+      </label>
+      <label>intensity
+        <input id="intensityInput" type="number" min="1" max="5" value="3" />
+      </label>
+      <button id="rollBtn">roll quest</button>
+      <button id="doneBtn">mark done</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>today's quest</h2>
+    <div class="quest" id="questBox">No quest rolled yet.</div>
+    <p class="muted" id="questMeta">streak: 0 days</p>
+  </section>
+
+  <section class="card">
+    <h2>quest log (last 7)</h2>
+    <ul id="questLog"><li class="muted">No completed quests yet.</li></ul>
+  </section>
+
+  <p><a href="index.html">← back to roost</a></p>
+</main>
+<script>
+(() => {
+  const KEY = 'roost_daily_quest_v1';
+  const focusInput = document.getElementById('focusInput');
+  const intensityInput = document.getElementById('intensityInput');
+  const questBox = document.getElementById('questBox');
+  const questMeta = document.getElementById('questMeta');
+  const questLog = document.getElementById('questLog');
+
+  const verbs = ['Ship', 'Refactor', 'Draft', 'Design', 'Document', 'Polish', 'Audit'];
+  const targets = ['one visible feature', 'a rough but usable v1 page', 'a decision note with next actions', 'a quality pass with screenshots', 'a reusable pattern'];
+  const constraints = ['within 45 minutes', 'before lunch', 'without opening new tabs', 'in one focused session', 'with one clear demo outcome'];
+
+  const load = () => {
+    try { return JSON.parse(localStorage.getItem(KEY)) || { streak:0, lastDay:'', active:null, done:[] }; }
+    catch { return { streak:0, lastDay:'', active:null, done:[] }; }
+  };
+  const save = (state) => localStorage.setItem(KEY, JSON.stringify(state));
+
+  const render = (state) => {
+    questBox.textContent = state.active || 'No quest rolled yet.';
+    questMeta.textContent = `streak: ${state.streak} day${state.streak===1?'':'s'}`;
+    if (!state.done.length) {
+      questLog.innerHTML = '<li class="muted">No completed quests yet.</li>';
+      return;
+    }
+    questLog.innerHTML = state.done.slice(0,7).map(item => `<li>${item}</li>`).join('');
+  };
+
+  const roll = () => {
+    const focus = (focusInput.value || 'momentum').trim();
+    const intensity = Math.max(1, Math.min(5, Number(intensityInput.value || 3)));
+    const chunks = Math.min(intensity, 5);
+    const quest = `${verbs[Math.floor(Math.random()*verbs.length)]} ${targets[Math.floor(Math.random()*targets.length)]} for ${focus}, split into ${chunks} checkpoint${chunks===1?'':'s'}, ${constraints[Math.floor(Math.random()*constraints.length)]}.`;
+    const state = load();
+    state.active = quest;
+    save(state);
+    render(state);
+  };
+
+  const markDone = () => {
+    const state = load();
+    if (!state.active) return;
+    const today = new Date().toISOString().slice(0,10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+    if (state.lastDay === yesterday) state.streak += 1;
+    else if (state.lastDay !== today) state.streak = 1;
+    state.lastDay = today;
+    state.done.unshift(`${today}: ${state.active}`);
+    state.done = state.done.slice(0, 30);
+    state.active = null;
+    save(state);
+    render(state);
+  };
+
+  document.getElementById('rollBtn').addEventListener('click', roll);
+  document.getElementById('doneBtn').addEventListener('click', markDone);
+  render(load());
+})();
+</script>
+</body>
+</html>
