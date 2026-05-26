@@ -34,10 +34,13 @@ python3 -m http.server 8080
 - `shipyard.html` — roadmap cockpit with searchable/sortable project queue, impact/effort scanning, and local pinned ideas
 - `roost-routines.html` — cadence-aware routines cockpit with streaks, daily checklists, and JSON import/export backup
 - `weekly-review.html` — auto-generated weekly digest with KPI rollup across ships, notes, milestones, and expedition risk watch
-- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`)
+- `roost-trails.html` — trail intelligence board for filtering shipped/active work and scanning impact patterns over time
+- `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
 
+- **Roost Trails launch:** added `roost-trails.html`, a trail intelligence board with status/track/energy filters, momentum KPIs, impact scoring, and direct links back to the source pages
+- **Homepage wiring for Trails:** linked `roost-trails.html` into nav, quick links, and explorer/pathfinder search from `index.html`
 - **Shipyard launch:** added `shipyard.html` + `assets/roost-shipyard.json`, introducing a new roadmap cockpit with status/horizon filters, impact-vs-effort sorting, local pinning, and direct jump links into destination surfaces
 - **Navigation and dashboard wiring:** linked Shipyard from `index.html` and `command-center.html` so active planning is reachable from both launchpad and dashboard
 - **Mission Plotter launch:** added `mission-plotter.html`, a drag-and-drop planning board with lane cycling, completion tracking, local autosave, sample seeding, and JSON export snapshots
