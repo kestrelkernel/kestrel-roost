@@ -33,11 +33,15 @@ python3 -m http.server 8080
 - `mission-plotter.html` — drag-and-drop planning board with local autosave, completion tracking, and JSON export
 - `shipyard.html` — roadmap cockpit with searchable/sortable project queue, impact/effort scanning, and local pinned ideas
 - `roost-routines.html` — cadence-aware routines cockpit with streaks, daily checklists, and JSON import/export backup
+- `roost-flight-sessions.html` — sprint timer cockpit with focus/break cycles, run notes, and one-click markdown summary export
 - `weekly-review.html` — auto-generated weekly digest with KPI rollup across ships, notes, milestones, and expedition risk watch
 - `roost-trails.html` — trail intelligence board for filtering shipped/active work and scanning impact patterns over time
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
+
+- **Roost Flight Sessions launch:** added `roost-flight-sessions.html`, a focus sprint cockpit with configurable cycle runs, pause/skip controls, local run history, note capture, and clipboard summary export for quick shipping recaps
+- **Homepage wiring for Flight Sessions:** linked the new page into nav, quick links, and explorer/pathfinder discovery from `index.html`
 
 - **Roost Trails launch:** added `roost-trails.html`, a trail intelligence board with status/track/energy filters, momentum KPIs, impact scoring, and direct links back to the source pages
 - **Homepage wiring for Trails:** linked `roost-trails.html` into nav, quick links, and explorer/pathfinder search from `index.html`

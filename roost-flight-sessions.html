@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>roost flight sessions</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#061018; color:#d7e6ff; }
+    main { max-width: 920px; margin:0 auto; padding:28px 16px 48px; }
+    .card { background:#0f1e31; border:1px solid #2c496d; border-radius:12px; padding:16px; margin-bottom:14px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+    label { display:grid; gap:6px; color:#9fbbdf; }
+    input, button, textarea, select { background:#122741; color:#eaf3ff; border:1px solid #3c6391; border-radius:10px; padding:9px 12px; font:inherit; }
+    button { cursor:pointer; }
+    .timer { font-size: clamp(2rem, 8vw, 4rem); letter-spacing:0.06em; margin:4px 0 8px; }
+    .muted { color:#8ea9ce; }
+    .log { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+    .log li { border:1px solid #34587f; background:#0b1626; border-radius:10px; padding:10px; }
+    textarea { width:100%; min-height:110px; resize:vertical; }
+    a { color:#8fc7ff; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>roost flight sessions</h1>
+  <p class="muted">Run focused build sprints with built-in break rhythm, quick notes, and a saved session log.</p>
+
+  <section class="card">
+    <h2>session setup</h2>
+    <div class="row">
+      <label>focus sprint (minutes)
+        <input id="focusMinutes" type="number" min="5" max="90" value="25" />
+      </label>
+      <label>break (minutes)
+        <input id="breakMinutes" type="number" min="3" max="30" value="5" />
+      </label>
+      <label>cycles
+        <select id="cycles"><option>2</option><option selected>4</option><option>6</option><option>8</option></select>
+      </label>
+      <button id="startBtn">start run</button>
+      <button id="pauseBtn">pause/resume</button>
+      <button id="skipBtn">skip phase</button>
+      <button id="stopBtn">end run</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>live cockpit</h2>
+    <div class="timer" id="timer">25:00</div>
+    <p id="phase" class="muted">idle · set up and start when ready</p>
+    <p id="progress" class="muted">cycle 0 / 0</p>
+  </section>
+
+  <section class="card">
+    <h2>session notes</h2>
+    <textarea id="notes" placeholder="capture what you shipped in this run..."></textarea>
+    <div class="row" style="margin-top:10px;">
+      <button id="saveNoteBtn">save note to run log</button>
+      <button id="exportBtn">export latest run summary</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>recent runs</h2>
+    <ul id="runs" class="log"><li class="muted">No runs yet.</li></ul>
+  </section>
+
+  <p><a href="index.html">← back to roost</a></p>
+</main>
+<script>
+(() => {
+  const KEY = 'roost_flight_sessions_v1';
+  const state = { mode:'idle', left:1500, focus:25, breakMin:5, cycles:4, cycle:0, running:false, phase:'focus', startedAt:null };
+  let tick = null;
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (s) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || { runs:[] }; } catch { return { runs:[] }; } };
+  const save = (data) => localStorage.setItem(KEY, JSON.stringify(data));
+
+  const render = () => {
+    $('timer').textContent = fmt(state.left);
+    $('phase').textContent = `${state.phase} phase · ${state.running ? 'running' : 'paused'}`;
+    $('progress').textContent = `cycle ${state.cycle} / ${state.cycles}`;
+  };
+
+  const renderRuns = () => {
+    const data = load();
+    const list = $('runs');
+    if (!data.runs.length) { list.innerHTML = '<li class="muted">No runs yet.</li>'; return; }
+    list.innerHTML = data.runs.slice(0,8).map(r => `<li><strong>${r.date}</strong> · ${r.cycles} cycles @ ${r.focus}/${r.breakMin}m<br>${r.note || '<span class="muted">No note captured.</span>'}</li>`).join('');
+  };
+
+  const advancePhase = () => {
+    if (state.phase === 'focus') {
+      state.phase = 'break';
+      state.left = state.breakMin * 60;
+    } else {
+      state.cycle += 1;
+      if (state.cycle >= state.cycles) {
+        state.running = false;
+        state.mode = 'done';
+        clearInterval(tick);
+        $('phase').textContent = 'run complete · add a note and export if useful';
+        return;
+      }
+      state.phase = 'focus';
+      state.left = state.focus * 60;
+    }
+    render();
+  };
+
+  const start = () => {
+    state.focus = Math.max(5, Number($('focusMinutes').value || 25));
+    state.breakMin = Math.max(3, Number($('breakMinutes').value || 5));
+    state.cycles = Number($('cycles').value || 4);
+    state.cycle = 1;
+    state.phase = 'focus';
+    state.left = state.focus * 60;
+    state.mode = 'active';
+    state.running = true;
+    state.startedAt = new Date().toISOString();
+    clearInterval(tick);
+    tick = setInterval(() => {
+      if (!state.running) return;
+      state.left -= 1;
+      if (state.left <= 0) advancePhase();
+      render();
+    }, 1000);
+    render();
+  };
+
+  $('startBtn').addEventListener('click', start);
+  $('pauseBtn').addEventListener('click', () => { state.running = !state.running; render(); });
+  $('skipBtn').addEventListener('click', advancePhase);
+  $('stopBtn').addEventListener('click', () => { state.running = false; clearInterval(tick); state.mode='idle'; state.left = state.focus*60; render(); });
+
+  $('saveNoteBtn').addEventListener('click', () => {
+    const data = load();
+    data.runs.unshift({ date: new Date().toISOString().slice(0,10), focus: state.focus, breakMin: state.breakMin, cycles: state.cycles, note: $('notes').value.trim() });
+    data.runs = data.runs.slice(0,30);
+    save(data);
+    renderRuns();
+  });
+
+  $('exportBtn').addEventListener('click', async () => {
+    const data = load();
+    const latest = data.runs[0];
+    if (!latest) return;
+    const text = `# roost flight session\n- date: ${latest.date}\n- setup: ${latest.focus}m focus / ${latest.breakMin}m break x ${latest.cycles}\n- note: ${latest.note || 'n/a'}`;
+    try { await navigator.clipboard.writeText(text); $('phase').textContent = 'latest run summary copied to clipboard'; }
+    catch { $('phase').textContent = 'clipboard blocked. copy from notes manually.'; }
+  });
+
+  render();
+  renderRuns();
+})();
+</script>
+</body>
+</html>
