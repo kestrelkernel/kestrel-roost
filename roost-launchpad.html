@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>roost launchpad</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#070f1a; color:#dbe8ff; }
+    main { max-width: 1000px; margin: 0 auto; padding: 28px 16px 48px; }
+    .card { background:#0d1b2d; border:1px solid #2c4a6b; border-radius:12px; padding:16px; margin-bottom:14px; }
+    h1,h2,h3 { margin:0 0 10px; }
+    .muted { color:#94afcf; }
+    .grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
+    .lane { background:#091424; border:1px solid #27405f; border-radius:10px; padding:10px; }
+    .task { background:#12233a; border:1px solid #3d628a; border-radius:10px; padding:10px; margin:8px 0; }
+    .task strong { display:block; margin-bottom:6px; }
+    button,input,select { background:#11253d; color:#e7f0ff; border:1px solid #3b608a; border-radius:8px; padding:8px 10px; font:inherit; }
+    button { cursor:pointer; }
+    .row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+    .stats { display:flex; gap:16px; flex-wrap:wrap; }
+    a { color:#8ec5ff; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>roost launchpad</h1>
+  <p class="muted">A lightweight product roadmap board with velocity snapshots and one-click task movement.</p>
+
+  <section class="card">
+    <h2>add mission card</h2>
+    <div class="row">
+      <input id="titleInput" type="text" placeholder="task title" />
+      <select id="sizeInput"><option value="S">S</option><option value="M" selected>M</option><option value="L">L</option></select>
+      <button id="addBtn">add to backlog</button>
+      <button id="seedBtn">load starter missions</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>weekly velocity</h2>
+    <div class="stats" id="stats"></div>
+    <p class="muted" id="health">health: calculating…</p>
+  </section>
+
+  <section class="grid" id="board"></section>
+
+  <p><a href="index.html">← back to roost</a></p>
+</main>
+<script>
+(() => {
+  const KEY = 'roost_launchpad_v1';
+  const lanes = ['backlog', 'in-flight', 'shipped'];
+  const weight = { S: 1, M: 2, L: 3 };
+  const seed = [
+    { title: 'Homepage spotlight refresh', size: 'M', lane: 'backlog' },
+    { title: 'Add mobile nav cleanup pass', size: 'S', lane: 'in-flight' },
+    { title: 'Ship one interactive cockpit tool', size: 'L', lane: 'backlog' }
+  ];
+
+  const load = () => {
+    try { return JSON.parse(localStorage.getItem(KEY)) || { cards: [], history: [] }; }
+    catch { return { cards: [], history: [] }; }
+  };
+  const save = (s) => localStorage.setItem(KEY, JSON.stringify(s));
+
+  const addCard = (s, title, size, lane='backlog') => {
+    s.cards.push({ id: crypto.randomUUID(), title, size, lane, createdAt: Date.now() });
+  };
+
+  const moveCard = (s, id) => {
+    const c = s.cards.find(x => x.id === id);
+    if (!c) return;
+    const idx = lanes.indexOf(c.lane);
+    c.lane = lanes[Math.min(idx + 1, lanes.length - 1)];
+    if (c.lane === 'shipped') s.history.unshift({ when: Date.now(), size: c.size, title: c.title });
+  };
+
+  const removeCard = (s, id) => { s.cards = s.cards.filter(x => x.id !== id); };
+
+  const render = () => {
+    const s = load();
+    const board = document.getElementById('board');
+    board.innerHTML = lanes.map(lane => {
+      const cards = s.cards.filter(c => c.lane === lane);
+      return `<section class="lane"><h3>${lane}</h3>${cards.map(c => `<article class="task"><strong>${c.title}</strong><div>size ${c.size}</div><div class="row"><button data-move="${c.id}">advance</button><button data-del="${c.id}">remove</button></div></article>`).join('') || '<p class="muted">empty</p>'}</section>`;
+    }).join('');
+
+    const weekAgo = Date.now() - 7 * 86400000;
+    const recent = s.history.filter(h => h.when >= weekAgo);
+    const points = recent.reduce((acc, h) => acc + (weight[h.size] || 1), 0);
+    document.getElementById('stats').innerHTML = `<div>shipped this week: <strong>${recent.length}</strong></div><div>velocity points: <strong>${points}</strong></div><div>in-flight now: <strong>${s.cards.filter(c => c.lane === 'in-flight').length}</strong></div>`;
+    document.getElementById('health').textContent = points >= 8 ? 'health: strong momentum' : points >= 4 ? 'health: steady pace' : 'health: low output, trim scope and ship a small win';
+  };
+
+  document.addEventListener('click', (e) => {
+    const move = e.target.getAttribute('data-move');
+    const del = e.target.getAttribute('data-del');
+    if (!move && !del) return;
+    const s = load();
+    if (move) moveCard(s, move);
+    if (del) removeCard(s, del);
+    save(s); render();
+  });
+
+  document.getElementById('addBtn').addEventListener('click', () => {
+    const title = document.getElementById('titleInput').value.trim();
+    if (!title) return;
+    const size = document.getElementById('sizeInput').value;
+    const s = load();
+    addCard(s, title, size);
+    save(s);
+    document.getElementById('titleInput').value = '';
+    render();
+  });
+
+  document.getElementById('seedBtn').addEventListener('click', () => {
+    const s = load();
+    if (s.cards.length) return;
+    seed.forEach(item => addCard(s, item.title, item.size, item.lane));
+    save(s); render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
