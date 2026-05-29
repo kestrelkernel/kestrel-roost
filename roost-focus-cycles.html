@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>roost focus cycles</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#07101a; color:#d7e6ff; }
+    main { max-width: 900px; margin: 0 auto; padding: 28px 16px 48px; }
+    .card { background:#0f1e31; border:1px solid #27405f; border-radius:12px; padding:16px; margin-bottom:14px; }
+    .row { display:flex; flex-wrap:wrap; gap:8px; align-items:end; }
+    button, input, select { background:#122741; color:#e4efff; border:1px solid #38608b; border-radius:10px; padding:9px 12px; font:inherit; }
+    button { cursor:pointer; }
+    h1,h2 { margin:0 0 10px; }
+    .muted { color:#93accf; }
+    .timer { font-size: clamp(36px, 8vw, 64px); font-weight: 700; letter-spacing: 1px; margin: 8px 0 10px; }
+    .pill { display:inline-block; border:1px solid #38608b; border-radius:999px; padding:6px 10px; margin-right:8px; }
+    a { color:#8ec5ff; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>roost focus cycles</h1>
+  <p class="muted">Run guided focus and break loops, then inspect your weekly cycle output. Everything stores locally.</p>
+
+  <section class="card">
+    <h2>cycle setup</h2>
+    <div class="row">
+      <label>focus minutes <input id="focusMin" type="number" min="5" max="90" value="25"></label>
+      <label>break minutes <input id="breakMin" type="number" min="1" max="30" value="5"></label>
+      <label>long break every <input id="longEvery" type="number" min="2" max="6" value="4"></label>
+      <label>long break minutes <input id="longMin" type="number" min="10" max="45" value="15"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>live cycle</h2>
+    <div><span class="pill" id="phase">phase: focus</span><span class="pill" id="round">round: 1</span></div>
+    <div class="timer" id="timer">25:00</div>
+    <div class="row">
+      <button id="startBtn">start</button>
+      <button id="pauseBtn">pause</button>
+      <button id="skipBtn">skip phase</button>
+      <button id="resetBtn">reset</button>
+    </div>
+    <p class="muted" id="hint">Tip: keep this tab open while you work.</p>
+  </section>
+
+  <section class="card">
+    <h2>weekly output</h2>
+    <p id="summary">No cycles finished yet.</p>
+  </section>
+
+  <p><a href="index.html">← back to roost</a></p>
+</main>
+<script>
+(() => {
+  const KEY = 'roost_focus_cycles_v1';
+  const el = id => document.getElementById(id);
+  const state = {
+    phase: 'focus',
+    round: 1,
+    remaining: 25 * 60,
+    running: false,
+    tick: null
+  };
+
+  const loadLog = () => {
+    try { return JSON.parse(localStorage.getItem(KEY)) || []; }
+    catch { return []; }
+  };
+  const saveLog = (log) => localStorage.setItem(KEY, JSON.stringify(log.slice(0, 200)));
+
+  const parse = () => ({
+    focus: Math.max(5, Number(el('focusMin').value || 25)),
+    brk: Math.max(1, Number(el('breakMin').value || 5)),
+    longEvery: Math.max(2, Number(el('longEvery').value || 4)),
+    long: Math.max(5, Number(el('longMin').value || 15))
+  });
+
+  const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
+
+  const render = () => {
+    el('phase').textContent = `phase: ${state.phase}`;
+    el('round').textContent = `round: ${state.round}`;
+    el('timer').textContent = fmt(state.remaining);
+  };
+
+  const writeSummary = () => {
+    const weekAgo = Date.now() - 7 * 86400000;
+    const log = loadLog().filter(x => x.at >= weekAgo);
+    const focusCount = log.filter(x => x.type === 'focus').length;
+    const breakCount = log.filter(x => x.type !== 'focus').length;
+    const focusMin = log.filter(x => x.type === 'focus').reduce((a, x) => a + x.minutes, 0);
+    el('summary').textContent = log.length
+      ? `Last 7 days: ${focusCount} focus cycles, ${breakCount} breaks, ${focusMin} focused minutes logged.`
+      : 'No cycles finished yet.';
+  };
+
+  const phaseSeconds = () => {
+    const cfg = parse();
+    if (state.phase === 'focus') return cfg.focus * 60;
+    if (state.phase === 'long-break') return cfg.long * 60;
+    return cfg.brk * 60;
+  };
+
+  const advance = () => {
+    const cfg = parse();
+    const log = loadLog();
+    const minutes = Math.round(phaseSeconds() / 60);
+    log.unshift({ at: Date.now(), type: state.phase, minutes });
+    saveLog(log);
+
+    if (state.phase === 'focus') {
+      state.phase = (state.round % cfg.longEvery === 0) ? 'long-break' : 'break';
+    } else {
+      if (state.phase === 'long-break') state.round += 1;
+      if (state.phase === 'break') state.round += 1;
+      state.phase = 'focus';
+    }
+    state.remaining = phaseSeconds();
+    writeSummary();
+    render();
+  };
+
+  const start = () => {
+    if (state.running) return;
+    state.running = true;
+    state.tick = setInterval(() => {
+      state.remaining -= 1;
+      if (state.remaining <= 0) advance();
+      render();
+    }, 1000);
+  };
+
+  const pause = () => {
+    state.running = false;
+    if (state.tick) clearInterval(state.tick);
+    state.tick = null;
+  };
+
+  const reset = () => {
+    pause();
+    state.phase = 'focus';
+    state.round = 1;
+    state.remaining = parse().focus * 60;
+    render();
+  };
+
+  el('startBtn').addEventListener('click', start);
+  el('pauseBtn').addEventListener('click', pause);
+  el('skipBtn').addEventListener('click', advance);
+  el('resetBtn').addEventListener('click', reset);
+  ['focusMin','breakMin','longEvery','longMin'].forEach(id => el(id).addEventListener('change', reset));
+
+  reset();
+  writeSummary();
+})();
+</script>
+</body>
+</html>
