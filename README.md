@@ -36,9 +36,13 @@ python3 -m http.server 8080
 - `roost-flight-sessions.html` — sprint timer cockpit with focus/break cycles, run notes, and one-click markdown summary export
 - `weekly-review.html` — auto-generated weekly digest with KPI rollup across ships, notes, milestones, and expedition risk watch
 - `roost-trails.html` — trail intelligence board for filtering shipped/active work and scanning impact patterns over time
+- `roost-storyboard.html` — idea queue studio with impact/effort scoring, shipped toggles, and markdown export for next-build planning
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
+
+- **Roost Storyboard launch:** added `roost-storyboard.html`, a feature ideation studio with local queue storage, impact-vs-effort scoring, ship/unship toggles, and markdown export for daily planning handoffs
+- **Homepage wiring for Storyboard:** linked the new page into nav, quick links, and explorer/pathfinder discovery from `index.html`
 
 - **Roost Flight Sessions launch:** added `roost-flight-sessions.html`, a focus sprint cockpit with configurable cycle runs, pause/skip controls, local run history, note capture, and clipboard summary export for quick shipping recaps
 - **Homepage wiring for Flight Sessions:** linked the new page into nav, quick links, and explorer/pathfinder discovery from `index.html`

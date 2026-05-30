@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roost Storyboard</title>
+  <style>
+    :root{--bg:#0b1020;--card:#0e1738;--line:#33488d;--text:#e8edff;--muted:#9fb0ff;--accent:#7aa2ff;--good:#8fffcd}
+    *{box-sizing:border-box} body{margin:0;font-family:ui-monospace,monospace;background:linear-gradient(180deg,#111a3d,#0b1020);color:var(--text)}
+    main{max-width:1050px;margin:28px auto;padding:0 16px;display:grid;gap:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input,select,textarea,button{font:inherit;border-radius:10px;border:1px solid #4660be;background:#132668;color:var(--text);padding:9px 11px}
+    input,select,textarea{background:#0a1438} textarea{width:100%;min-height:80px}
+    button{cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+    .idea{border:1px solid #2f4486;background:#0b1434;border-radius:12px;padding:12px;display:grid;gap:8px}
+    .pill{display:inline-block;border:1px dashed #5873cb;border-radius:999px;padding:3px 8px;font-size:.78rem;color:#bed0ff}
+    .tiny{color:var(--muted);font-size:.83rem}
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h1>roost storyboard</h1>
+    <p class="tiny">capture feature ideas, score them, and ship next with less overthinking.</p>
+    <div class="row" style="margin-top:10px">
+      <a href="index.html" class="pill">home</a>
+      <a href="shipyard.html" class="pill">shipyard</a>
+      <a href="mission-plotter.html" class="pill">mission plotter</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>add idea</h2>
+    <div class="row">
+      <input id="title" placeholder="Feature title" style="flex:1 1 240px" />
+      <select id="surface"><option>homepage</option><option>new page</option><option>game</option><option>content system</option></select>
+      <select id="impact"><option value="3">impact: high</option><option value="2">impact: medium</option><option value="1">impact: low</option></select>
+      <select id="effort"><option value="1">effort: low</option><option value="2">effort: medium</option><option value="3">effort: high</option></select>
+    </div>
+    <div style="margin-top:8px"><textarea id="notes" placeholder="what changes for visitors?"></textarea></div>
+    <div class="row" style="margin-top:8px">
+      <button id="add">save idea</button>
+      <button id="seed">seed examples</button>
+      <button id="export">copy markdown</button>
+      <span id="status" class="tiny" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>priority queue</h2>
+    <div id="kpis" class="tiny"></div>
+    <div id="list" class="grid" style="margin-top:10px"></div>
+  </section>
+</main>
+<script>
+const key='roostStoryboardIdeas';
+const $=id=>document.getElementById(id);
+const storage={get:()=>{try{return JSON.parse(localStorage.getItem(key)||'[]')}catch{return[]}},set:v=>localStorage.setItem(key,JSON.stringify(v))};
+const score=i=>(Number(i.impact)*2)-Number(i.effort)+(i.shipped? -5:0);
+function render(){
+  const ideas=storage.get().sort((a,b)=>score(b)-score(a));
+  $('kpis').textContent=`${ideas.length} ideas • ${ideas.filter(i=>i.shipped).length} shipped • ${ideas.filter(i=>!i.shipped).length} queued`;
+  $('list').innerHTML=ideas.map((i,idx)=>`<article class="idea"><strong>${i.title}</strong><span class="pill">${i.surface}</span><div class="tiny">score ${score(i)} • impact ${i.impact}/3 • effort ${i.effort}/3</div><p class="tiny">${i.notes||'no notes yet'}</p><div class="row"><button data-act="ship" data-id="${idx}">${i.shipped?'unship':'mark shipped'}</button><button data-act="del" data-id="${idx}">delete</button></div></article>`).join('')||'<p class="tiny">no ideas yet</p>';
+}
+$('add').onclick=()=>{const title=$('title').value.trim(); if(!title)return; const ideas=storage.get(); ideas.push({title,surface:$('surface').value,impact:$('impact').value,effort:$('effort').value,notes:$('notes').value.trim(),shipped:false,addedAt:new Date().toISOString()}); storage.set(ideas); $('title').value=''; $('notes').value=''; $('status').textContent='saved'; render();};
+$('seed').onclick=()=>{const ideas=storage.get(); if(ideas.length) return; storage.set([{title:'launch seasonal homepage hero rotation',surface:'homepage',impact:3,effort:2,notes:'ship month-based hero blocks',shipped:false},{title:'add expedition retrospective template',surface:'content system',impact:2,effort:1,notes:'faster post-ship writeups',shipped:false},{title:'build weekly challenge variant in game',surface:'game',impact:3,effort:3,notes:'replay value and streak hooks',shipped:false}]); $('status').textContent='seeded'; render();};
+$('export').onclick=async()=>{const ideas=storage.get(); const md=['# Roost Storyboard',...ideas.map(i=>`- [${i.shipped?'x':' '}] **${i.title}** (${i.surface}) - impact ${i.impact}/3, effort ${i.effort}/3\n  - ${i.notes||'no notes'}`)].join('\n'); try{await navigator.clipboard.writeText(md); $('status').textContent='markdown copied';}catch{$('status').textContent='copy failed';}};
+$('list').onclick=(e)=>{const b=e.target.closest('button'); if(!b) return; const ideas=storage.get().sort((a,b)=>score(b)-score(a)); const i=Number(b.dataset.id); if(!ideas[i]) return; if(b.dataset.act==='ship') ideas[i].shipped=!ideas[i].shipped; if(b.dataset.act==='del') ideas.splice(i,1); storage.set(ideas); render();};
+render();
+</script>
+</body>
+</html>
