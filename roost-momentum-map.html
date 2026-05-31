@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roost Momentum Map</title>
+  <style>
+    :root{--bg:#070d1f;--card:#0d1737;--line:#2f458f;--text:#e8edff;--muted:#99abff;--accent:#7cb3ff;--hot:#8bffcb;--warn:#ffcc88}
+    *{box-sizing:border-box}body{margin:0;font-family:ui-monospace,monospace;background:radial-gradient(circle at top,#15265d,#070d1f);color:var(--text)}
+    main{max-width:1100px;margin:28px auto;padding:0 16px;display:grid;gap:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input,button,select{font:inherit;border-radius:10px;border:1px solid #506ccc;background:#111f50;color:var(--text);padding:8px 11px}
+    input,select{background:#081336} button{cursor:pointer}
+    .grid{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}.tiny{font-size:.84rem;color:var(--muted)}
+    .matrix{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+    .cell{border:1px solid #35509d;background:#0a1538;border-radius:10px;padding:10px;min-height:94px}
+    .cell h4{margin:0 0 6px;font-size:.85rem;color:#b9caff}
+    .pill{display:inline-block;padding:2px 7px;border:1px dashed #6280d6;border-radius:999px;font-size:.74rem;color:#c7d6ff}
+    .score0{background:#0a1538}.score1{background:#1c2a57}.score2{background:#29406f}.score3{background:#2d566e}.score4{background:#2d6b66}.score5{background:#2e7f63}
+    .log li{margin:0 0 8px;padding:8px;border:1px solid #31488f;border-radius:10px;background:#0a1530;list-style:none}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h1>roost momentum map</h1>
+    <p class="tiny">map the week by energy + focus so shipping rhythm stays visible and recoverable.</p>
+    <div class="row" style="margin-top:10px">
+      <a href="index.html" class="pill">home</a>
+      <a href="roost-launchpad.html" class="pill">launchpad</a>
+      <a href="roost-storyboard.html" class="pill">storyboard</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <input id="task" placeholder="task or mission" style="flex:1 1 240px" />
+      <select id="day"><option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option></select>
+      <select id="lane"><option value="build">build</option><option value="care">care</option><option value="spark">spark</option></select>
+      <select id="energy"><option value="1">energy 1</option><option value="2">energy 2</option><option value="3">energy 3</option><option value="4">energy 4</option><option value="5">energy 5</option></select>
+      <button id="add">add block</button>
+      <button id="reset">clear week</button>
+    </div>
+    <p id="status" class="tiny" aria-live="polite" style="margin-top:8px"></p>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <h2>weekly grid</h2>
+      <div class="matrix" id="matrix"></div>
+    </article>
+    <article class="card">
+      <h2>signal summary</h2>
+      <p class="tiny" id="summary">loading…</p>
+      <ul class="log" id="log"></ul>
+      <div class="row">
+        <button id="copy">copy weekly recap</button>
+      </div>
+    </article>
+  </section>
+</main>
+<script>
+const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const lanes=['build','care','spark'];
+const key='roostMomentumMapV1';
+const $=id=>document.getElementById(id);
+const load=()=>{try{return JSON.parse(localStorage.getItem(key)||'[]')}catch{return[]}};
+const save=v=>localStorage.setItem(key,JSON.stringify(v));
+const laneEmoji={build:'🛠️',care:'🧹',spark:'⚡'};
+
+function render(){
+  const data=load();
+  const matrix=days.map(day=>{
+    const dayItems=data.filter(x=>x.day===day);
+    const avg=dayItems.length?Math.round(dayItems.reduce((a,b)=>a+Number(b.energy),0)/dayItems.length):0;
+    const cls='score'+Math.min(5,Math.max(0,avg));
+    return `<article class="cell ${cls}"><h4>${day} <span class="pill">energy ${avg||'-'}</span></h4>${dayItems.map(i=>`<div>${laneEmoji[i.lane]} ${i.task}</div>`).join('')||'<span class="tiny">no blocks yet</span>'}</article>`;
+  }).join('');
+  $('matrix').innerHTML=matrix;
+
+  const laneCounts=lanes.map(l=>`${l}: ${data.filter(i=>i.lane===l).length}`).join(' • ');
+  const hotDay=days.map(d=>({d,s:data.filter(i=>i.day===d).reduce((a,b)=>a+Number(b.energy),0)})).sort((a,b)=>b.s-a.s)[0];
+  $('summary').textContent=`${data.length} blocks planned • ${laneCounts} • strongest day: ${hotDay?.s?hotDay.d:'none yet'}`;
+
+  const latest=[...data].slice(-6).reverse();
+  $('log').innerHTML=latest.map(i=>`<li><strong>${i.day}</strong> ${laneEmoji[i.lane]} ${i.task}<br><span class="tiny">energy ${i.energy} • added ${new Date(i.at).toLocaleString()}</span></li>`).join('')||'<li class="tiny">no entries yet</li>';
+}
+
+$('add').onclick=()=>{
+  const task=$('task').value.trim(); if(!task){$('status').textContent='add a task first';return;}
+  const data=load(); data.push({task,day:$('day').value,lane:$('lane').value,energy:Number($('energy').value),at:new Date().toISOString()});
+  save(data); $('task').value=''; $('status').textContent='block saved'; render();
+};
+$('reset').onclick=()=>{save([]);$('status').textContent='week cleared';render();};
+$('copy').onclick=async()=>{
+  const data=load();
+  const lines=['# Roost Momentum Map Recap',...days.map(d=>`- ${d}: ${data.filter(i=>i.day===d).map(i=>`${laneEmoji[i.lane]} ${i.task} (e${i.energy})`).join(', ')||'—'}`)];
+  try{await navigator.clipboard.writeText(lines.join('\n'));$('status').textContent='recap copied';}catch{$('status').textContent='copy failed';}
+};
+render();
+</script>
+</body>
+</html>
