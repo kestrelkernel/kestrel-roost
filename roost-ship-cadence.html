@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roost Ship Cadence</title>
+  <style>
+    :root{--bg:#0a1229;--card:#111c42;--line:#3f58a5;--text:#eaf0ff;--muted:#abc0ff;--acc:#82a8ff;--good:#8df7cf}
+    *{box-sizing:border-box} body{margin:0;font-family:ui-monospace,monospace;background:linear-gradient(180deg,#121f4d,#0a1229);color:var(--text)}
+    main{max-width:1100px;margin:28px auto;padding:0 16px;display:grid;gap:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input,select,button{font:inherit;border-radius:10px;border:1px solid #5472cf;background:#132965;color:var(--text);padding:9px 11px}
+    input,select{background:#0b173f}
+    button{cursor:pointer}
+    .pill{display:inline-block;border:1px dashed #5e7ed8;border-radius:999px;padding:3px 8px;font-size:.78rem;color:#c1d2ff}
+    .tiny{color:var(--muted);font-size:.85rem}
+    table{width:100%;border-collapse:collapse} th,td{padding:8px 6px;text-align:left;border-bottom:1px solid #2f4385;font-size:.92rem}
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h1>roost ship cadence</h1>
+    <p class="tiny">plan weekly product pushes and keep a visible ship rhythm.</p>
+    <div class="row"><a class="pill" href="index.html">home</a><a class="pill" href="roost-storyboard.html">storyboard</a><a class="pill" href="shipyard.html">shipyard</a></div>
+  </section>
+
+  <section class="card">
+    <h2>log a push</h2>
+    <div class="row">
+      <input id="title" placeholder="what did you ship?" style="flex:1 1 280px" />
+      <select id="impact"><option value="high">impact: high</option><option value="medium">impact: medium</option><option value="low">impact: low</option></select>
+      <select id="surface"><option>homepage</option><option>new page</option><option>tooling</option><option>content system</option><option>interaction</option></select>
+      <button id="add">save push</button>
+      <button id="seed">seed</button>
+      <span id="status" class="tiny" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>cadence dashboard</h2>
+    <div id="kpis" class="tiny"></div>
+    <div id="weeks" style="margin-top:10px"></div>
+  </section>
+</main>
+<script>
+const key='roostShipCadence';
+const $=id=>document.getElementById(id);
+const storage={get:()=>{try{return JSON.parse(localStorage.getItem(key)||'[]')}catch{return[]}},set:v=>localStorage.setItem(key,JSON.stringify(v))};
+const week=(d)=>{const x=new Date(d); const first=new Date(Date.UTC(x.getUTCFullYear(),0,1)); const day=Math.floor((x-first)/86400000); const wk=Math.ceil((day+first.getUTCDay()+1)/7); return `${x.getUTCFullYear()}-W${String(wk).padStart(2,'0')}`;};
+function render(){
+  const entries=storage.get().sort((a,b)=>b.at.localeCompare(a.at));
+  const byWeek={}; entries.forEach(e=>{const w=week(e.at); (byWeek[w]??=[]).push(e)});
+  const total=entries.length, strong=entries.filter(e=>e.impact==='high').length, weeks=Object.keys(byWeek).length;
+  $('kpis').textContent=`${total} pushes logged • ${strong} high-impact • ${weeks} active weeks`;
+  const rows=Object.entries(byWeek).sort((a,b)=>b[0].localeCompare(a[0])).map(([w,list])=>`<h3>${w} <span class="tiny">(${list.length} pushes)</span></h3><table><thead><tr><th>ship</th><th>impact</th><th>surface</th></tr></thead><tbody>${list.map((e,i)=>`<tr><td>${e.title}</td><td>${e.impact}</td><td>${e.surface}</td></tr>`).join('')}</tbody></table>`).join('');
+  $('weeks').innerHTML=rows||'<p class="tiny">no pushes logged yet</p>';
+}
+$('add').onclick=()=>{const title=$('title').value.trim(); if(!title) return; const data=storage.get(); data.push({title,impact:$('impact').value,surface:$('surface').value,at:new Date().toISOString()}); storage.set(data); $('title').value=''; $('status').textContent='saved'; render();};
+$('seed').onclick=()=>{if(storage.get().length) return; storage.set([{title:'launched momentum map weekly planner',impact:'high',surface:'new page',at:new Date(Date.now()-8*86400000).toISOString()},{title:'added storyboard priority scoring',impact:'medium',surface:'tooling',at:new Date(Date.now()-6*86400000).toISOString()},{title:'refreshed homepage quick-links',impact:'low',surface:'homepage',at:new Date(Date.now()-2*86400000).toISOString()}]); $('status').textContent='seeded'; render();};
+render();
+</script>
+</body>
+</html>
