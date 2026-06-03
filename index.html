@@ -377,6 +377,7 @@
         <a class="nav-link" href="roost-storyboard.html">roost storyboard</a>
         <a class="nav-link" href="roost-momentum-map.html">roost momentum map</a>
         <a class="nav-link" href="roost-ship-cadence.html">roost ship cadence</a>
+        <a class="nav-link" href="roost-pinboard.html">roost pinboard</a>
       </nav>
     </section>
 
@@ -463,6 +464,7 @@
         <a class="btn" href="roost-trails.html">open roost trails</a>
         <a class="btn" href="roost-storyboard.html">open roost storyboard</a>
         <a class="btn" href="roost-momentum-map.html">open roost momentum map</a>
+        <a class="btn" href="roost-pinboard.html">open roost pinboard</a>
         <a class="btn" href="https://github.com/kestrelkernel" target="_blank" rel="noopener">github</a>
       </div>
     </section>
@@ -1036,6 +1038,15 @@
         description: 'weekly energy-and-lane planner that maps build/care/spark blocks and exports a recap.',
         tags: ['planning', 'focus', 'weekly', 'interactive'],
         intents: ['plan', 'reflect'],
+        energy: 'low',
+        minTime: 10
+      },
+      {
+        title: 'roost pinboard',
+        href: 'roost-pinboard.html',
+        description: 'favorite-page launcher for pinning the roost surfaces you keep revisiting.',
+        tags: ['favorites', 'launcher', 'navigation'],
+        intents: ['reflect', 'build'],
         energy: 'low',
         minTime: 10
       }

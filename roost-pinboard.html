@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kestrel's pinboard for favorite roost pages, launch routes, and quick access." />
+  <title>Roost Pinboard</title>
+  <style>
+    :root {
+      --bg:#09101f;
+      --bg2:#121c3f;
+      --fg:#e8eeff;
+      --muted:#a4b4ee;
+      --accent:#8bb3ff;
+      --card:#0c1430cc;
+      --line:#30438d;
+      --good:#86f1c5;
+      --warn:#ffd37a;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 15% -5%, #203978 0%, transparent 40%),
+        radial-gradient(circle at 85% 105%, #19275b 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap { width:min(1120px, 92vw); margin:32px auto; display:grid; gap:14px; }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:18px;
+      backdrop-filter: blur(5px);
+      box-shadow:0 10px 30px #00000033;
+    }
+    h1, h2 { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.2rem); margin-bottom:8px; }
+    h2 { font-size:1rem; color:#c6d3ff; margin-bottom:10px; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    .tiny { font-size:.82rem; color:#9fb0ff; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:12px; }
+    .controls, .chips, .links { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn, .chip, .nav-link {
+      text-decoration:none;
+      color:#dce5ff;
+      border:1px solid #4862bb;
+      border-radius:999px;
+      padding:8px 12px;
+      background:#10204f;
+      font:inherit;
+      cursor:pointer;
+    }
+    .btn:hover, .chip:hover, .nav-link:hover { border-color:#7b99ff; background:#132664; }
+    .chip.is-active { background:#dce5ff; color:#10204f; border-color:#dce5ff; }
+    .search {
+      width:min(100%, 420px);
+      background:#0a1438;
+      border:1px solid #4058a9;
+      border-radius:12px;
+      color:var(--fg);
+      padding:10px 12px;
+      font:inherit;
+    }
+    .search:focus-visible { outline:2px solid #9ab4ff; outline-offset:2px; }
+    .list { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+    .item {
+      border:1px solid #33498f;
+      border-radius:14px;
+      background:#0a1333;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .item-head { display:flex; gap:10px; justify-content:space-between; align-items:start; flex-wrap:wrap; }
+    .item h3 { margin:0; font-size:.98rem; }
+    .item a { color:#edf2ff; text-decoration:none; }
+    .item a:hover { color:#b9c8ff; }
+    .meta { font-size:.76rem; color:#a8b8ef; display:flex; gap:8px; flex-wrap:wrap; }
+    .tags { display:flex; gap:8px; flex-wrap:wrap; }
+    .tag { border:1px dashed #4660b4; border-radius:999px; padding:2px 8px; font-size:.74rem; color:#bfd0ff; }
+    .empty { border:1px dashed #4960ae; border-radius:14px; padding:14px; color:#a9b9f0; }
+    .pinbar { display:flex; gap:10px; flex-wrap:wrap; }
+    .pinbar .btn { padding:6px 10px; }
+    .panel { display:grid; gap:10px; }
+    .summary { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; }
+    .stat { border:1px solid #33498f; border-radius:12px; background:#09122d; padding:10px; }
+    .stat strong { display:block; font-size:1.2rem; color:#f0f4ff; }
+    .stat span { font-size:.76rem; color:#a6b6ef; }
+    .footer { text-align:center; color:#8ea2e8; font-size:.84rem; padding:4px 0 16px; }
+    @media (max-width: 700px) {
+      .item-head { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost pinboard</h1>
+      <p>pin the pages you keep reaching for, then launch a cleaner route instead of hunting through the whole roost.</p>
+      <div class="links" style="margin-top:12px;">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="command-center.html">command center</a>
+        <a class="nav-link" href="roost-atlas.html">roost atlas</a>
+        <a class="nav-link" href="roost-expedition-planner.html">expedition planner</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card panel">
+        <h2>launch controls</h2>
+        <div class="controls">
+          <input id="search" class="search" type="search" placeholder="search pages, tags, or vibes" autocomplete="off" />
+          <button class="btn" id="clearSearch">clear</button>
+          <button class="btn" id="pinTop">pin top results</button>
+          <button class="btn" id="copyRoute">copy route</button>
+          <button class="btn" id="clearPins">clear pins</button>
+        </div>
+        <div class="chips" id="filters"></div>
+        <p class="tiny">tip: search by intent like build, learn, play, reflect, or by page name.</p>
+      </article>
+
+      <article class="card panel">
+        <h2>pin stats</h2>
+        <div class="summary" id="stats"></div>
+        <p class="tiny" id="status">loading pinboard…</p>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>pinned launch path</h2>
+      <p class="tiny" style="margin-bottom:10px;">ordered from top to bottom. drag-and-drop would be nice later; today gets quick buttons.</p>
+      <ul class="list" id="pinnedList"><li class="empty">no pins yet. pin something useful.</li></ul>
+    </section>
+
+    <section class="card">
+      <h2>roost directory</h2>
+      <ul class="list" id="directory"></ul>
+    </section>
+
+    <footer class="footer">plain html, localStorage, and a little less wandering.</footer>
+  </main>
+
+  <script>
+    const pages = [
+      { title: 'game', href: 'game.html', description: 'sky sprint mini-game with daily challenge mode.', tags: ['play', 'interactive', 'arcade'], intent: 'play', energy: 'high' },
+      { title: 'gallery', href: 'gallery.html', description: 'art drop gallery and experiments wall.', tags: ['art', 'visual', 'play'], intent: 'play', energy: 'low' },
+      { title: 'wallpapers', href: 'wallpapers.html', description: 'downloadable desktop and phone wallpaper packs.', tags: ['art', 'download', 'assets'], intent: 'play', energy: 'low' },
+      { title: 'now', href: 'now.html', description: 'live focus snapshot and next-up board.', tags: ['status', 'roadmap', 'current'], intent: 'reflect', energy: 'low' },
+      { title: 'quest forge', href: 'quest-forge.html', description: 'tune the daily quest pool.', tags: ['tooling', 'productivity', 'quests'], intent: 'build', energy: 'medium' },
+      { title: 'flight deck', href: 'flight-deck.html', description: 'release log and roadmap landing page.', tags: ['releases', 'timeline', 'shipping'], intent: 'reflect', energy: 'medium' },
+      { title: 'field notes', href: 'notes.html', description: 'searchable writing archive.', tags: ['writing', 'archive', 'journal'], intent: 'reflect', energy: 'low' },
+      { title: 'signal board', href: 'signal-board.html', description: 'cross-site timeline of releases and notes.', tags: ['links', 'references', 'curation'], intent: 'learn', energy: 'medium' },
+      { title: 'release radar', href: 'release-radar.html', description: 'momentum dashboard for releases.', tags: ['watchlist', 'tools', 'updates'], intent: 'learn', energy: 'medium' },
+      { title: 'roost atlas', href: 'roost-atlas.html', description: 'relationship map of the whole site.', tags: ['map', 'navigation', 'structure'], intent: 'learn', energy: 'low' },
+      { title: 'roost lab', href: 'roost-lab.html', description: 'design prototyping studio.', tags: ['prototype', 'design', 'sandbox'], intent: 'build', energy: 'high' },
+      { title: 'expeditions', href: 'expeditions.html', description: 'mission board for product expeditions.', tags: ['roadmap', 'missions', 'strategy'], intent: 'build', energy: 'medium' },
+      { title: 'command center', href: 'command-center.html', description: 'single dashboard for momentum and focus.', tags: ['dashboard', 'metrics', 'overview'], intent: 'reflect', energy: 'medium' },
+      { title: 'roost briefing', href: 'roost-briefing.html', description: 'daily briefing with focus, ships, and soundtrack cue.', tags: ['briefing', 'overview', 'daily'], intent: 'reflect', energy: 'low' },
+      { title: 'shipyard', href: 'shipyard.html', description: 'sortable roadmap cockpit.', tags: ['roadmap', 'queue', 'planning'], intent: 'build', energy: 'medium' },
+      { title: 'roost routines', href: 'roost-routines.html', description: 'routine cockpit with streaks and import/export.', tags: ['habits', 'ops', 'streaks'], intent: 'reflect', energy: 'medium' },
+      { title: 'roost compass', href: 'roost-compass.html', description: 'balance build, learn, maintain, and play.', tags: ['balance', 'planning', 'focus'], intent: 'reflect', energy: 'low' },
+      { title: 'roost observatory', href: 'roost-observatory.html', description: 'signal board for momentum and ship health.', tags: ['analytics', 'signals', 'momentum'], intent: 'learn', energy: 'low' },
+      { title: 'nest garden', href: 'nest-garden.html', description: 'session planner for energy, mode, and time.', tags: ['focus', 'planner', 'creative'], intent: 'build', energy: 'medium' },
+      { title: 'roost almanac', href: 'almanac.html', description: 'lightweight planning board for work windows.', tags: ['planning', 'calendar', 'focus'], intent: 'reflect', energy: 'low' },
+      { title: 'roost chronicle', href: 'roost-chronicle.html', description: 'archive of launches and seasonal missions.', tags: ['timeline', 'history', 'milestones'], intent: 'learn', energy: 'low' },
+      { title: 'roost forgeboard', href: 'roost-forgeboard.html', description: 'weekly bet board with export.', tags: ['planning', 'focus', 'weekly'], intent: 'build', energy: 'medium' },
+      { title: 'roost weather deck', href: 'roost-weather.html', description: 'mood-filtered weather board for work windows.', tags: ['weather', 'focus', 'mood'], intent: 'reflect', energy: 'low' },
+      { title: 'captain\'s log', href: 'captains-log.html', description: 'digest combining milestones and notes.', tags: ['digest', 'history', 'summary'], intent: 'reflect', energy: 'low' },
+      { title: 'changelog', href: 'changelog.html', description: 'full revision history and shipped deltas.', tags: ['history', 'diffs', 'versions'], intent: 'learn', energy: 'low' },
+      { title: 'roost soundscapes', href: 'roost-soundscapes.html', description: 'ambient mixer for focus and storm mode.', tags: ['audio', 'focus', 'mixer'], intent: 'play', energy: 'low' },
+      { title: 'roost trails', href: 'roost-trails.html', description: 'trail intelligence board for shipped momentum.', tags: ['insights', 'history', 'momentum'], intent: 'learn', energy: 'low' },
+      { title: 'roost focus cycles', href: 'roost-focus-cycles.html', description: 'pomodoro loop with weekly output.', tags: ['focus', 'timer', 'rituals'], intent: 'build', energy: 'medium' },
+      { title: 'roost flight sessions', href: 'roost-flight-sessions.html', description: 'focus sprint cockpit with summary export.', tags: ['focus', 'timer', 'sessions'], intent: 'build', energy: 'medium' },
+      { title: 'roost launchpad', href: 'roost-launchpad.html', description: 'roadmap board with backlog and momentum checks.', tags: ['planning', 'roadmap', 'tooling'], intent: 'build', energy: 'medium' },
+      { title: 'roost storyboard', href: 'roost-storyboard.html', description: 'feature queue with scoring and export.', tags: ['planning', 'product', 'queue'], intent: 'build', energy: 'medium' },
+      { title: 'roost momentum map', href: 'roost-momentum-map.html', description: 'weekly energy-and-lane planner.', tags: ['planning', 'focus', 'weekly'], intent: 'reflect', energy: 'low' }
+    ];
+
+    const stateKey = 'roostPinboardState';
+    const state = { pins: [], query: '', filter: 'all' };
+
+    const $ = (id) => document.getElementById(id);
+    const search = $('search');
+    const clearSearch = $('clearSearch');
+    const pinTop = $('pinTop');
+    const copyRoute = $('copyRoute');
+    const clearPins = $('clearPins');
+    const filters = $('filters');
+    const stats = $('stats');
+    const status = $('status');
+    const pinnedList = $('pinnedList');
+    const directory = $('directory');
+
+    const load = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(stateKey) || 'null');
+        if (saved && Array.isArray(saved.pins)) state.pins = saved.pins.filter((href) => pages.some((p) => p.href === href));
+        if (typeof saved?.query === 'string') state.query = saved.query;
+        if (typeof saved?.filter === 'string') state.filter = saved.filter;
+      } catch {}
+      search.value = state.query;
+    };
+
+    const save = () => localStorage.setItem(stateKey, JSON.stringify(state));
+
+    const score = (page, query) => {
+      const q = query.trim().toLowerCase();
+      if (!q) return 1;
+      const hay = `${page.title} ${page.description} ${page.tags.join(' ')} ${page.intent} ${page.energy}`.toLowerCase();
+      if (!hay.includes(q)) return 0;
+      let s = 2;
+      if (page.title.startsWith(q)) s += 4;
+      if (page.title.includes(q)) s += 2;
+      if (page.tags.some((tag) => tag.includes(q))) s += 2;
+      if (page.description.includes(q)) s += 1;
+      return s;
+    };
+
+    const filteredPages = () => pages
+      .map((page) => ({ page, score: score(page, state.query) }))
+      .filter(({ page, score }) => score > 0 && (state.filter === 'all' || page.intent === state.filter))
+      .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title))
+      .map(({ page }) => page);
+
+    const renderFilters = () => {
+      const kinds = ['all', 'build', 'learn', 'play', 'reflect'];
+      filters.innerHTML = kinds.map((kind) => `<button class="chip${kind === state.filter ? ' is-active' : ''}" data-filter="${kind}">${kind}</button>`).join('');
+      filters.querySelectorAll('[data-filter]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.filter = btn.dataset.filter;
+          save();
+          render();
+        });
+      });
+    };
+
+    const renderStats = () => {
+      const pinned = state.pins.map((href) => pages.find((p) => p.href === href)).filter(Boolean);
+      const counts = pinned.reduce((acc, page) => {
+        acc[page.intent] = (acc[page.intent] || 0) + 1;
+        return acc;
+      }, {});
+      const topIntent = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'none';
+      stats.innerHTML = `
+        <div class="stat"><strong>${pinned.length}</strong><span>pinned pages</span></div>
+        <div class="stat"><strong>${filteredPages().length}</strong><span>visible matches</span></div>
+        <div class="stat"><strong>${topIntent}</strong><span>dominant intent</span></div>
+      `;
+    };
+
+    const renderPinned = () => {
+      const pinned = state.pins.map((href) => pages.find((p) => p.href === href)).filter(Boolean);
+      if (!pinned.length) {
+        pinnedList.innerHTML = '<li class="empty">no pins yet. pick a few pages you keep revisiting.</li>';
+        return;
+      }
+      pinnedList.innerHTML = pinned.map((page, index) => `
+        <li class="item">
+          <div class="item-head">
+            <div>
+              <h3><a href="${page.href}">${index + 1}. ${page.title}</a></h3>
+              <p>${page.description}</p>
+            </div>
+            <div class="pinbar">
+              <button class="btn" data-action="up" data-href="${page.href}">up</button>
+              <button class="btn" data-action="down" data-href="${page.href}">down</button>
+              <button class="btn" data-action="open" data-href="${page.href}">open</button>
+              <button class="btn" data-action="remove" data-href="${page.href}">remove</button>
+            </div>
+          </div>
+          <div class="meta"><span>${page.intent}</span><span>${page.energy}</span></div>
+        </li>
+      `).join('');
+      pinnedList.querySelectorAll('button[data-action]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const href = btn.dataset.href;
+          const idx = state.pins.indexOf(href);
+          if (btn.dataset.action === 'remove' && idx >= 0) state.pins.splice(idx, 1);
+          if (btn.dataset.action === 'up' && idx > 0) [state.pins[idx - 1], state.pins[idx]] = [state.pins[idx], state.pins[idx - 1]];
+          if (btn.dataset.action === 'down' && idx >= 0 && idx < state.pins.length - 1) [state.pins[idx + 1], state.pins[idx]] = [state.pins[idx], state.pins[idx + 1]];
+          if (btn.dataset.action === 'open') window.location.href = href;
+          save();
+          render();
+        });
+      });
+    };
+
+    const renderDirectory = () => {
+      const pagesToShow = filteredPages();
+      if (!pagesToShow.length) {
+        directory.innerHTML = '<li class="empty">no matches. broaden the search or switch filters.</li>';
+        return;
+      }
+      directory.innerHTML = pagesToShow.map((page) => {
+        const pinned = state.pins.includes(page.href);
+        return `
+          <li class="item">
+            <div class="item-head">
+              <div>
+                <h3><a href="${page.href}">${page.title}</a></h3>
+                <p>${page.description}</p>
+              </div>
+              <div class="pinbar">
+                <button class="btn" data-pin="${page.href}">${pinned ? 'pinned' : 'pin'}</button>
+                <a class="btn" href="${page.href}">open</a>
+              </div>
+            </div>
+            <div class="meta"><span>${page.intent}</span><span>${page.energy}</span></div>
+            <div class="tags">${page.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')}</div>
+          </li>
+        `;
+      }).join('');
+      directory.querySelectorAll('[data-pin]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const href = btn.dataset.pin;
+          if (state.pins.includes(href)) state.pins = state.pins.filter((p) => p !== href);
+          else state.pins.unshift(href);
+          save();
+          render();
+        });
+      });
+    };
+
+    const render = () => {
+      renderFilters();
+      renderStats();
+      renderPinned();
+      renderDirectory();
+      status.textContent = `${state.pins.length} pinned • ${filteredPages().length} matching pages`;
+    };
+
+    const pinTopResults = () => {
+      const matches = filteredPages().slice(0, 3).map((p) => p.href);
+      state.pins = [...new Set([...matches, ...state.pins])].slice(0, 12);
+      save();
+      render();
+    };
+
+    const copyLaunchRoute = async () => {
+      const pinned = state.pins.map((href) => pages.find((p) => p.href === href)).filter(Boolean);
+      const route = pinned.length ? pinned : filteredPages().slice(0, 3);
+      const text = route.map((page, idx) => `${idx + 1}. ${page.title} - ${page.href}`).join('\n');
+      try {
+        await navigator.clipboard.writeText(text);
+        status.textContent = 'route copied to clipboard.';
+      } catch {
+        status.textContent = 'clipboard blocked, but the route is ready.';
+      }
+    };
+
+    load();
+    render();
+
+    search.addEventListener('input', () => {
+      state.query = search.value;
+      save();
+      render();
+    });
+    clearSearch.addEventListener('click', () => {
+      state.query = '';
+      search.value = '';
+      save();
+      render();
+    });
+    pinTop.addEventListener('click', pinTopResults);
+    copyRoute.addEventListener('click', copyLaunchRoute);
+    clearPins.addEventListener('click', () => {
+      state.pins = [];
+      save();
+      render();
+    });
+  </script>
+</body>
+</html>
