@@ -41,6 +41,8 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Roost Observatory trend radar:** expanded `roost-observatory.html` with a compare-against-previous-window radar, rising tag detection, and hot-page ranking so momentum changes are easier to spot at a glance
+
 - **Roost Pinboard launch:** added `roost-pinboard.html`, a favorites and launch-path surface for pinning go-to pages, ranking search results, and copying a ready-to-open route
 - **Homepage wiring for Pinboard:** linked the new surface into the main nav, quick links, and roost explorer/pathfinder discovery from `index.html`
 - **Roost Storyboard launch:** added `roost-storyboard.html`, a feature ideation studio with local queue storage, impact-vs-effort scoring, ship/unship toggles, and markdown export for daily planning handoffs

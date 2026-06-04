@@ -104,6 +104,11 @@
       grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
       gap:10px;
     }
+    .insight-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:10px;
+    }
     .stat {
       border:1px solid #304285;
       border-radius:12px;
@@ -114,6 +119,52 @@
     }
     .stat strong { font-size:1.3rem; }
     .tiny { font-size:.8rem; color:#9ab0ff; }
+    .delta-up { color:var(--good); }
+    .delta-down { color:var(--warn); }
+    .delta-flat { color:#dbe4ff; }
+    .insight-note {
+      border:1px solid #365099;
+      border-radius:12px;
+      background:linear-gradient(180deg, #0d1740, #0a1333);
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .insight-note strong { font-size:1.12rem; }
+    .rank-list {
+      list-style:none;
+      margin:0;
+      padding:0;
+      display:grid;
+      gap:8px;
+    }
+    .rank-item {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:12px;
+      display:grid;
+      gap:6px;
+    }
+    .rank-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+    }
+    .rank-head a { color:#e6ecff; text-decoration:none; font-weight:700; }
+    .bar-shell {
+      width:100%;
+      height:8px;
+      border-radius:999px;
+      background:#121f4b;
+      overflow:hidden;
+    }
+    .bar-fill {
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, #8fffcd, #7aa2ff);
+    }
     .grid {
       display:grid;
       grid-template-columns:2fr 1fr;
@@ -195,6 +246,11 @@
       <div id="stats" class="stats" aria-live="polite"></div>
     </section>
 
+    <section class="card">
+      <h2>trend radar</h2>
+      <div id="trendRadar" class="insight-grid" aria-live="polite"></div>
+    </section>
+
     <section class="grid">
       <section class="card">
         <h2>observed activity</h2>
@@ -203,14 +259,18 @@
       <section class="card">
         <h2>tag heat</h2>
         <ul id="tags" class="list" aria-live="polite"></ul>
+        <h2 style="margin-top:14px;">hot pages</h2>
+        <ul id="hotPages" class="list" aria-live="polite"></ul>
       </section>
     </section>
   </main>
 
   <script>
     const statsEl = document.getElementById('stats');
+    const trendRadarEl = document.getElementById('trendRadar');
     const streamEl = document.getElementById('stream');
     const tagsEl = document.getElementById('tags');
+    const hotPagesEl = document.getElementById('hotPages');
     const summaryEl = document.getElementById('summary');
     const windowSelect = document.getElementById('window');
     const kindSelect = document.getElementById('kind');
@@ -240,6 +300,7 @@
         title: entry.title,
         summary: entry.details || entry.impact || '',
         href: entry.page || 'flight-deck.html',
+        pageLabel: entry.pageLabel || entry.page || 'open page',
         tags: [entry.type, 'ship'].filter(Boolean)
       }));
 
@@ -258,6 +319,7 @@
         title: entry.title,
         summary: entry.summary || entry.impact || '',
         href: 'timeline.html',
+        pageLabel: 'open timeline',
         tags: [...(entry.tags || []), entry.type || 'milestone']
       }));
 
@@ -267,6 +329,7 @@
         title: entry.title,
         summary: entry.outcome || entry.summary || entry.goal || '',
         href: 'expeditions.html',
+        pageLabel: 'open expeditions',
         tags: [...(entry.tags || []), entry.status || 'expedition']
       }));
 
@@ -283,6 +346,27 @@
       start.setUTCDate(start.getUTCDate() - days);
       return start;
     };
+
+    const getWindowDays = (windowValue) => {
+      if (windowValue === 'all') return null;
+      const days = Number(windowValue);
+      return Number.isFinite(days) ? days : null;
+    };
+
+    const getWindowRange = (days) => {
+      if (!days) return null;
+      const end = new Date();
+      const start = new Date(end);
+      start.setUTCDate(start.getUTCDate() - days);
+      return { start, end };
+    };
+
+    const countBy = (items, keyFn) => items.reduce((acc, item) => {
+      const key = keyFn(item);
+      if (!key) return acc;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
 
     const filterEvents = (events) => {
       const windowValue = windowSelect.value;
@@ -324,6 +408,48 @@
           <span class="tiny">${card.hint}</span>
         </article>
       `).join('');
+    };
+
+    const renderTrendRadar = (allEvents) => {
+      const days = getWindowDays(windowSelect.value);
+      const currentRange = getWindowRange(days);
+      const previousRange = days && currentRange
+        ? { start: new Date(currentRange.start.getTime() - days * 24 * 60 * 60 * 1000), end: currentRange.start }
+        : null;
+
+      const currentEvents = currentRange ? allEvents.filter((entry) => new Date(entry.date) >= currentRange.start && new Date(entry.date) < currentRange.end) : allEvents;
+      const previousEvents = previousRange ? allEvents.filter((entry) => new Date(entry.date) >= previousRange.start && new Date(entry.date) < previousRange.end) : [];
+
+      const currentByKind = countBy(currentEvents, (entry) => entry.kind);
+      const previousByKind = countBy(previousEvents, (entry) => entry.kind);
+      const topKind = Object.entries(currentByKind).sort((a, b) => b[1] - a[1])[0];
+      const topPage = Object.entries(countBy(currentEvents, (entry) => entry.href)).sort((a, b) => b[1] - a[1])[0];
+      const momentumDelta = days ? currentEvents.length - previousEvents.length : 0;
+      const momentumClass = momentumDelta > 0 ? 'delta-up' : momentumDelta < 0 ? 'delta-down' : 'delta-flat';
+
+      const currentTags = countBy(currentEvents.flatMap((entry) => entry.tags || []), (tag) => tag);
+      const previousTags = countBy(previousEvents.flatMap((entry) => entry.tags || []), (tag) => tag);
+      const rising = Object.entries(currentTags)
+        .map(([tag, count]) => ({ tag, count, delta: count - (previousTags[tag] || 0) }))
+        .filter((entry) => entry.delta > 0)
+        .sort((a, b) => b.delta - a.delta || b.count - a.count || a.tag.localeCompare(b.tag))
+        .slice(0, 4);
+
+      const risingHtml = rising.length
+        ? `<ul class="rank-list">${rising.map((entry, index) => {
+            const maxDelta = rising[0].delta || 1;
+            const width = Math.max(12, Math.round((entry.delta / maxDelta) * 100));
+            return `<li class="rank-item"><div class="rank-head"><strong>${entry.tag}</strong><span class="rank-score">+${entry.delta}</span></div><div class="bar-shell"><div class="bar-fill" style="width:${width}%"></div></div><span class="tiny">${entry.count} mentions in current window</span></li>`;
+          }).join('')}</ul>`
+        : `<article class="insight-note"><span class="tiny">rising tags</span><strong>none are outpacing the last window.</strong><span class="tiny">That usually means the focus is steady, not scattered.</span></article>`;
+
+      trendRadarEl.innerHTML = [
+        `<article class="insight-note"><span class="tiny">window pulse</span><strong>${currentEvents.length} visible signals</strong><span class="tiny ${momentumClass}">${days ? `${momentumDelta >= 0 ? '+' : ''}${momentumDelta} vs previous ${days}-day window` : 'all-time view'}</span></article>`,
+        `<article class="insight-note"><span class="tiny">hot surface</span><strong>${topKind ? `${topKind[0]} · ${topKind[1]} items` : 'no activity yet'}</strong><span class="tiny">${days ? `previous window: ${previousByKind[topKind?.[0]] || 0}` : 'sorted by current window volume'}</span></article>`,
+        `<article class="insight-note"><span class="tiny">most opened page</span><strong>${topPage ? topPage[0] : 'n/a'}</strong><span class="tiny">${topPage ? `${topPage[1]} hits from visible items` : 'no destinations yet'}</span></article>`,
+        days ? `<article class="insight-note"><span class="tiny">window compare</span><strong>${currentEvents.length} current / ${previousEvents.length} previous</strong><span class="tiny ${momentumClass}">${momentumDelta >= 0 ? '+' : ''}${momentumDelta} change in signal count</span></article>` : `<article class="insight-note"><span class="tiny">window compare</span><strong>all-time view</strong><span class="tiny">pick a fixed range to compare momentum against the prior period.</span></article>`,
+        risingHtml
+      ].join('');
     };
 
     const renderStream = (events) => {
@@ -372,6 +498,18 @@
       `).join('');
     };
 
+    const renderHotPages = (events) => {
+      const pages = Object.entries(countBy(events, (entry) => entry.href))
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 6);
+
+      if (!pages.length) return '<li class="empty">no destination pages in this filter yet.</li>';
+      return pages.map(([href, count]) => {
+        const sample = events.find((entry) => entry.href === href);
+        return `<li class="rank-item"><div class="rank-head"><a href="${href}">${sample?.pageLabel || href}</a><span class="rank-score">${count}</span></div><span class="tiny">${href}</span></li>`;
+      }).join('');
+    };
+
     const syncSummary = (events) => {
       const source = kindSelect.value === 'all' ? 'all sources' : `${kindSelect.value} only`;
       const windowLabel = windowSelect.options[windowSelect.selectedIndex].textContent;
@@ -392,8 +530,10 @@
         const filtered = filterEvents(allEvents);
         syncSummary(filtered);
         renderStats(filtered);
+        renderTrendRadar(allEvents);
         renderStream(filtered);
         renderTags(filtered);
+        hotPagesEl.innerHTML = renderHotPages(filtered);
       };
 
       [windowSelect, kindSelect].forEach((el) => el.addEventListener('change', render));
