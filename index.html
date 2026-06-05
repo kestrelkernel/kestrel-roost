@@ -189,6 +189,42 @@
       display:grid;
       gap:10px;
     }
+    .routebook-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:10px;
+    }
+    .routebook-card {
+      border:1px solid #3b53a6;
+      border-radius:12px;
+      background:#0a1438;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .routebook-card.is-featured {
+      background:linear-gradient(160deg, #11265d, #0a1438 70%);
+      border-color:#6983df;
+    }
+    .routebook-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f0f4ff;
+    }
+    .routebook-copy {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .routebook-meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      font-size:.76rem;
+      color:#bfd0ff;
+    }
     .feed-card h3 {
       margin:0;
       font-size:.95rem;
@@ -522,6 +558,27 @@
       </ul>
     </section>
 
+    <section class="card" id="routebook" aria-live="polite">
+      <h2>roost routebook</h2>
+      <p class="tiny" style="margin-bottom:10px;">a daily recommended route plus a small stash of pinned pages. this makes the homepage feel more like a command launch than a brochure.</p>
+      <div class="links" style="margin-bottom:10px;">
+        <button class="btn" id="rerollRoutebook">shuffle route</button>
+        <button class="btn" id="clearRoutebookPins">clear pins</button>
+      </div>
+      <div class="routebook-grid">
+        <article class="routebook-card is-featured" id="featuredRouteCard">
+          <h3>loading route…</h3>
+          <p class="routebook-copy">finding the best next page.</p>
+        </article>
+        <article class="routebook-card">
+          <h3>pinned pages</h3>
+          <p class="routebook-copy" id="routebookPinHint">pin any pages you keep returning to.</p>
+          <div id="routebookPins" class="tag-row"></div>
+        </article>
+      </div>
+      <div class="feed-grid" id="routebookAlternates" style="margin-top:12px;"></div>
+    </section>
+
     <section class="card">
       <h2>latest ships</h2>
       <p class="tiny" style="margin-bottom:10px;">live from flight deck. each card now points somewhere useful.</p>
@@ -795,6 +852,13 @@
     const latestShips = document.getElementById('latestShips');
     const latestNotes = document.getElementById('latestNotes');
     const nowFocusGrid = document.getElementById('nowFocusGrid');
+    const routebook = document.getElementById('routebook');
+    const featuredRouteCard = document.getElementById('featuredRouteCard');
+    const routebookPins = document.getElementById('routebookPins');
+    const routebookAlternates = document.getElementById('routebookAlternates');
+    const routebookPinHint = document.getElementById('routebookPinHint');
+    const rerollRoutebookBtn = document.getElementById('rerollRoutebook');
+    const clearRoutebookPinsBtn = document.getElementById('clearRoutebookPins');
     const storageStatus = document.getElementById('storageStatus');
     const siteSearchInput = document.getElementById('siteSearch');
     const siteSearchResults = document.getElementById('siteSearchResults');
@@ -1078,6 +1142,141 @@
 
       return score;
     };
+
+    let routebookSeed = Number.parseInt(storage.get('roostRoutebookSeed') ?? '', 10);
+    if (!Number.isFinite(routebookSeed)) {
+      routebookSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+      storage.set('roostRoutebookSeed', String(routebookSeed));
+    }
+
+    const seededRandom = (seed) => {
+      let state = seed % 2147483647;
+      if (state <= 0) state += 2147483646;
+      return () => {
+        state = state * 16807 % 2147483647;
+        return (state - 1) / 2147483646;
+      };
+    };
+
+    let routebookPinsState;
+    try {
+      routebookPinsState = JSON.parse(storage.get('roostRoutebookPins') ?? '[]');
+    } catch {
+      routebookPinsState = [];
+    }
+    if (!Array.isArray(routebookPinsState)) routebookPinsState = [];
+    routebookPinsState = routebookPinsState.filter((href) => roostPages.some((page) => page.href === href));
+
+    const saveRoutebookPins = () => {
+      storage.set('roostRoutebookPins', JSON.stringify(routebookPinsState));
+    };
+
+    const getRoutebookCandidates = () => {
+      const routeRandom = seededRandom(routebookSeed);
+      return roostPages
+        .map((page) => {
+          const base = Math.floor(routeRandom() * 3);
+          const intentBoost = page.intents?.includes('build') ? 3 : page.intents?.includes('reflect') ? 2 : 1;
+          const pinBoost = routebookPinsState.includes(page.href) ? 5 : 0;
+          const timeBoost = Number.isFinite(page.minTime) ? Math.max(0, 4 - Math.min(3, Math.floor(page.minTime / 15))) : 1;
+          return { page, score: base + intentBoost + pinBoost + timeBoost };
+        })
+        .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title));
+    };
+
+    const renderRoutebookPins = () => {
+      routebookPins.innerHTML = '';
+      routebookPinHint.textContent = routebookPinsState.length
+        ? 'your quick-launch set.'
+        : 'pin any pages you keep returning to.';
+
+      if (!routebookPinsState.length) {
+        const empty = document.createElement('span');
+        empty.className = 'tag';
+        empty.textContent = 'no pins yet';
+        routebookPins.appendChild(empty);
+        return;
+      }
+
+      for (const href of routebookPinsState) {
+        const page = roostPages.find((entry) => entry.href === href);
+        if (!page) continue;
+        const link = document.createElement('a');
+        link.className = 'mini-link';
+        link.href = page.href;
+        link.textContent = page.title;
+        routebookPins.appendChild(link);
+      }
+    };
+
+    const renderRoutebook = () => {
+      const ranked = getRoutebookCandidates();
+      const [featured, ...alternates] = ranked;
+
+      if (!featured) {
+        featuredRouteCard.innerHTML = '<h3>route unavailable</h3><p class="routebook-copy">the page map is empty.</p>';
+        routebookAlternates.innerHTML = '';
+        renderRoutebookPins();
+        return;
+      }
+
+      const featuredTags = featured.page.tags.slice(0, 3).map((tag) => `<span class="tag">${tag}</span>`).join('');
+      const isPinned = routebookPinsState.includes(featured.page.href);
+      featuredRouteCard.innerHTML = `
+        <h3>daily route: ${featured.page.title}</h3>
+        <p class="routebook-copy">${featured.page.description}</p>
+        <div class="routebook-meta"><span>fit ${featured.score}</span><span>${featured.page.energy || 'medium'} energy</span><span>${featured.page.minTime || 15}+ min</span></div>
+        <div class="tag-row">${featuredTags}</div>
+        <div class="link-row">
+          <a class="btn" href="${featured.page.href}">open route</a>
+          <button class="btn" data-route-pin="${featured.page.href}">${isPinned ? 'unpin page' : 'pin page'}</button>
+        </div>
+      `;
+
+      routebookAlternates.innerHTML = alternates.slice(0, 2).map(({ page, score }) => `
+        <article class="feed-card">
+          <h3>${page.title}</h3>
+          <p class="explorer-copy">${page.description}</p>
+          <div class="feed-meta"><span>fit ${score}</span><span>${page.tags.slice(0, 2).join(' · ') || 'route'}</span></div>
+          <div class="link-row">
+            <a class="mini-link" href="${page.href}">open</a>
+            <button class="mini-link" data-route-pin="${page.href}">${routebookPinsState.includes(page.href) ? 'unpin' : 'pin'}</button>
+          </div>
+        </article>
+      `).join('');
+
+      renderRoutebookPins();
+    };
+
+    routebook?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const href = target.dataset.routePin;
+      if (!href) return;
+
+      if (routebookPinsState.includes(href)) {
+        routebookPinsState = routebookPinsState.filter((entry) => entry !== href);
+      } else {
+        routebookPinsState = [href, ...routebookPinsState].slice(0, 6);
+      }
+      saveRoutebookPins();
+      renderRoutebook();
+      setActionStatus('routebook pins updated ✓', 'ok');
+    });
+
+    rerollRoutebookBtn.addEventListener('click', () => {
+      routebookSeed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostRoutebookSeed', String(routebookSeed));
+      renderRoutebook();
+      setActionStatus('daily route reshuffled ✓', 'ok');
+    });
+
+    clearRoutebookPinsBtn.addEventListener('click', () => {
+      routebookPinsState = [];
+      saveRoutebookPins();
+      renderRoutebook();
+      setActionStatus('routebook pins cleared.', 'info');
+    });
 
     const runPathfinder = () => {
       const pref = {
@@ -1667,6 +1866,7 @@
 
     renderExplorer('');
     runPathfinder();
+    renderRoutebook();
     loadNowTimeline();
     loadMissionBoard();
 
