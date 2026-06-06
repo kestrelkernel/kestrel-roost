@@ -41,7 +41,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
-- **Roost routebook launch:** added a new homepage launch surface with a daily recommended route, pinned page storage, alternate picks, and one-click reshuffling so the front page feels more like a command deck
+- **Roost routebook launch:** added a new homepage launch surface with a daily recommended route, pinned page storage, alternate picks, a recent-launch memory rail, and one-click reshuffling so the front page feels more like a command deck
 
 - **Roost Observatory trend radar:** expanded `roost-observatory.html` with a compare-against-previous-window radar, rising tag detection, and hot-page ranking so momentum changes are easier to spot at a glance
 

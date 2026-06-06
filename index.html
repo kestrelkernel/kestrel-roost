@@ -225,6 +225,31 @@
       font-size:.76rem;
       color:#bfd0ff;
     }
+    .routebook-recent {
+      border:1px solid #3b53a6;
+      border-radius:12px;
+      background:#081031;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      margin-top:12px;
+    }
+    .routebook-recent-head {
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      align-items:baseline;
+      flex-wrap:wrap;
+    }
+    .routebook-recent h3 {
+      margin:0;
+      font-size:.98rem;
+      color:#f0f4ff;
+    }
+    .routebook-recent-note {
+      font-size:.8rem;
+      color:#a9bbff;
+    }
     .feed-card h3 {
       margin:0;
       font-size:.95rem;
@@ -577,6 +602,13 @@
         </article>
       </div>
       <div class="feed-grid" id="routebookAlternates" style="margin-top:12px;"></div>
+      <div class="routebook-recent">
+        <div class="routebook-recent-head">
+          <h3>recent launches</h3>
+          <span class="routebook-recent-note">last pages you actually opened</span>
+        </div>
+        <div id="routebookRecent" class="tag-row"></div>
+      </div>
     </section>
 
     <section class="card">
@@ -856,6 +888,7 @@
     const featuredRouteCard = document.getElementById('featuredRouteCard');
     const routebookPins = document.getElementById('routebookPins');
     const routebookAlternates = document.getElementById('routebookAlternates');
+    const routebookRecent = document.getElementById('routebookRecent');
     const routebookPinHint = document.getElementById('routebookPinHint');
     const rerollRoutebookBtn = document.getElementById('rerollRoutebook');
     const clearRoutebookPinsBtn = document.getElementById('clearRoutebookPins');
@@ -1167,8 +1200,21 @@
     if (!Array.isArray(routebookPinsState)) routebookPinsState = [];
     routebookPinsState = routebookPinsState.filter((href) => roostPages.some((page) => page.href === href));
 
+    let routebookRecentState;
+    try {
+      routebookRecentState = JSON.parse(storage.get('roostRoutebookRecent') ?? '[]');
+    } catch {
+      routebookRecentState = [];
+    }
+    if (!Array.isArray(routebookRecentState)) routebookRecentState = [];
+    routebookRecentState = routebookRecentState.filter((href) => roostPages.some((page) => page.href === href)).slice(0, 5);
+
     const saveRoutebookPins = () => {
       storage.set('roostRoutebookPins', JSON.stringify(routebookPinsState));
+    };
+
+    const saveRoutebookRecent = () => {
+      storage.set('roostRoutebookRecent', JSON.stringify(routebookRecentState));
     };
 
     const getRoutebookCandidates = () => {
@@ -1209,6 +1255,27 @@
       }
     };
 
+    const renderRoutebookRecent = () => {
+      routebookRecent.innerHTML = '';
+      if (!routebookRecentState.length) {
+        const empty = document.createElement('span');
+        empty.className = 'tag';
+        empty.textContent = 'no launches yet';
+        routebookRecent.appendChild(empty);
+        return;
+      }
+
+      for (const href of routebookRecentState) {
+        const page = roostPages.find((entry) => entry.href === href);
+        if (!page) continue;
+        const link = document.createElement('a');
+        link.className = 'mini-link';
+        link.href = page.href;
+        link.textContent = page.title;
+        routebookRecent.appendChild(link);
+      }
+    };
+
     const renderRoutebook = () => {
       const ranked = getRoutebookCandidates();
       const [featured, ...alternates] = ranked;
@@ -1246,7 +1313,27 @@
       `).join('');
 
       renderRoutebookPins();
+      renderRoutebookRecent();
     };
+
+    const recordRoutebookLaunch = (href) => {
+      if (!href || !roostPages.some((page) => page.href === href)) return;
+      routebookRecentState = [href, ...routebookRecentState.filter((entry) => entry !== href)].slice(0, 5);
+      saveRoutebookRecent();
+      renderRoutebookRecent();
+    };
+
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const link = target.closest('a[href]');
+      if (!(link instanceof HTMLAnchorElement)) return;
+      const href = link.getAttribute('href') || '';
+      if (!href.endsWith('.html') && !href.includes('.html#')) return;
+      const page = roostPages.find((entry) => entry.href === href.split('#')[0]);
+      if (!page) return;
+      recordRoutebookLaunch(page.href);
+    });
 
     routebook?.addEventListener('click', (event) => {
       const target = event.target;
