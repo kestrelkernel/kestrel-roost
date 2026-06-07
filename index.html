@@ -250,6 +250,61 @@
       font-size:.8rem;
       color:#a9bbff;
     }
+    .relay-board {
+      display:grid;
+      gap:12px;
+    }
+    .relay-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .relay-card {
+      border:1px solid #3550a8;
+      border-radius:12px;
+      background:#081231;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .relay-card.is-lead {
+      background:linear-gradient(145deg, #11265d, #081231 72%);
+      border-color:#6d86df;
+    }
+    .relay-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f2f5ff;
+    }
+    .relay-copy {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .relay-step {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+      font-size:.8rem;
+      color:#c4d2ff;
+    }
+    .relay-summary {
+      border:1px solid #3b53a6;
+      border-radius:12px;
+      background:#08102c;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .relay-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .feed-card h3 {
       margin:0;
       font-size:.95rem;
@@ -611,6 +666,23 @@
       </div>
     </section>
 
+    <section class="card" id="routeRelayBoard" aria-live="polite">
+      <h2>roost route relay</h2>
+      <p class="tiny" style="margin-bottom:10px;">a 3-stop tour for when you want the homepage to hand you a real next move, not a wall of options.</p>
+      <div class="links" style="margin-bottom:10px;">
+        <button class="btn" id="rerollRouteRelay">reshuffle relay</button>
+        <button class="btn" id="copyRouteRelay">copy handoff</button>
+        <button class="btn" id="pinRouteRelay">pin relay</button>
+      </div>
+      <div class="relay-board">
+        <div class="relay-grid" id="routeRelayStops"></div>
+        <div class="relay-summary">
+          <h3 style="margin:0; font-size:.98rem; color:#f0f4ff;">handoff note</h3>
+          <pre id="routeRelaySummary">loading relay…</pre>
+        </div>
+      </div>
+    </section>
+
     <section class="card">
       <h2>latest ships</h2>
       <p class="tiny" style="margin-bottom:10px;">live from flight deck. each card now points somewhere useful.</p>
@@ -890,8 +962,14 @@
     const routebookAlternates = document.getElementById('routebookAlternates');
     const routebookRecent = document.getElementById('routebookRecent');
     const routebookPinHint = document.getElementById('routebookPinHint');
+    const routeRelayBoard = document.getElementById('routeRelayBoard');
+    const routeRelayStops = document.getElementById('routeRelayStops');
+    const routeRelaySummary = document.getElementById('routeRelaySummary');
     const rerollRoutebookBtn = document.getElementById('rerollRoutebook');
     const clearRoutebookPinsBtn = document.getElementById('clearRoutebookPins');
+    const rerollRouteRelayBtn = document.getElementById('rerollRouteRelay');
+    const copyRouteRelayBtn = document.getElementById('copyRouteRelay');
+    const pinRouteRelayBtn = document.getElementById('pinRouteRelay');
     const storageStatus = document.getElementById('storageStatus');
     const siteSearchInput = document.getElementById('siteSearch');
     const siteSearchResults = document.getElementById('siteSearchResults');
@@ -1217,6 +1295,70 @@
       storage.set('roostRoutebookRecent', JSON.stringify(routebookRecentState));
     };
 
+    let routeRelayState;
+    try {
+      routeRelayState = JSON.parse(storage.get('roostRouteRelay') ?? '[]');
+    } catch {
+      routeRelayState = [];
+    }
+    if (!Array.isArray(routeRelayState)) routeRelayState = [];
+    routeRelayState = routeRelayState.filter((href) => roostPages.some((page) => page.href === href)).slice(0, 3);
+
+    const saveRouteRelay = () => {
+      storage.set('roostRouteRelay', JSON.stringify(routeRelayState));
+    };
+
+    const buildRouteRelay = () => {
+      const routeRandom = seededRandom(routebookSeed + 97);
+      const remaining = [...roostPages];
+      const picks = [];
+      const preferences = [
+        { intent: 'build', energy: 'high', time: 20 },
+        { intent: 'reflect', energy: 'low', time: 15 },
+        { intent: 'play', energy: 'medium', time: 15 }
+      ];
+
+      for (const pref of preferences) {
+        const ranked = remaining
+          .map((page) => ({ page, score: scorePathfinderCandidate(page, pref) + (routeRelayState.includes(page.href) ? 4 : 0) + Math.floor(routeRandom() * 2) }))
+          .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title));
+        const next = ranked.find(({ page }) => !picks.some((pick) => pick.href === page.href)) || ranked[0];
+        if (!next) continue;
+        picks.push(next.page);
+        const idx = remaining.findIndex((page) => page.href === next.page.href);
+        if (idx >= 0) remaining.splice(idx, 1);
+      }
+
+      while (picks.length < 3 && remaining.length) {
+        picks.push(remaining.shift());
+      }
+
+      return picks.slice(0, 3);
+    };
+
+    const renderRouteRelay = () => {
+      const relayPages = routeRelayState.length ? routeRelayState.map((href) => roostPages.find((page) => page.href === href)).filter(Boolean) : buildRouteRelay();
+
+      routeRelayStops.innerHTML = relayPages.map((page, idx) => `
+        <article class="relay-card ${idx === 0 ? 'is-lead' : ''}">
+          <div class="relay-step"><span>stop ${idx + 1}</span><span>${page.energy || 'medium'} energy · ${page.minTime || 15}+ min</span></div>
+          <h3>${page.title}</h3>
+          <p class="relay-copy">${page.description}</p>
+          <div class="tag-row">${page.tags.slice(0, 3).map((tag) => `<span class="tag">${tag}</span>`).join('')}</div>
+          <div class="link-row"><a class="btn" href="${page.href}">open stop</a></div>
+        </article>
+      `).join('');
+
+      const summaryLines = relayPages.map((page, idx) => `${idx + 1}. ${page.title} -> ${page.href}`);
+      routeRelaySummary.textContent = `Today’s route relay:\n${summaryLines.join('\n')}\n\nWhy this matters: it turns the roost homepage into a guided tour with a real beginning, middle, and landing page.`;
+    };
+
+    const shuffleRouteRelay = () => {
+      routeRelayState = buildRouteRelay().map((page) => page.href);
+      saveRouteRelay();
+      renderRouteRelay();
+    };
+
     const getRoutebookCandidates = () => {
       const routeRandom = seededRandom(routebookSeed);
       return roostPages
@@ -1355,6 +1497,7 @@
       routebookSeed = Math.floor(Math.random() * 9_999_999);
       storage.set('roostRoutebookSeed', String(routebookSeed));
       renderRoutebook();
+      shuffleRouteRelay();
       setActionStatus('daily route reshuffled ✓', 'ok');
     });
 
@@ -1363,6 +1506,27 @@
       saveRoutebookPins();
       renderRoutebook();
       setActionStatus('routebook pins cleared.', 'info');
+    });
+
+    rerollRouteRelayBtn.addEventListener('click', () => {
+      shuffleRouteRelay();
+      setActionStatus('route relay reshuffled ✓', 'ok');
+    });
+
+    copyRouteRelayBtn.addEventListener('click', async () => {
+      const text = routeRelaySummary.textContent || '';
+      if (navigator.clipboard?.writeText) {
+        try { await navigator.clipboard.writeText(text); } catch { }
+      }
+      setActionStatus('route handoff copied ✓', 'ok');
+    });
+
+    pinRouteRelayBtn.addEventListener('click', () => {
+      const current = routeRelayState.length ? routeRelayState : buildRouteRelay().map((page) => page.href);
+      routebookPinsState = [...new Set([...current, ...routebookPinsState])].slice(0, 6);
+      saveRoutebookPins();
+      renderRoutebook();
+      setActionStatus('relay pages pinned into routebook ✓', 'ok');
     });
 
     const runPathfinder = () => {
@@ -1954,6 +2118,7 @@
     renderExplorer('');
     runPathfinder();
     renderRoutebook();
+    renderRouteRelay();
     loadNowTimeline();
     loadMissionBoard();
 
