@@ -3,103 +3,517 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Mood-based weather deck for Kestrel's Roost" />
+  <meta name="description" content="Interactive weather planning studio for Kestrel's Roost" />
   <title>Roost Weather Deck</title>
   <style>
-    :root { --bg:#0b1020; --card:#0f1b42cc; --line:#3753af; --fg:#e6ecff; --muted:#9fb0ff; --accent:#8db1ff; }
+    :root {
+      --bg:#070b18;
+      --bg2:#101d43;
+      --card:#0d1738cc;
+      --line:#324a9b;
+      --line2:#4e6fd6;
+      --fg:#eef3ff;
+      --muted:#a8b9ef;
+      --accent:#87aaff;
+      --good:#88f0c9;
+      --warn:#ffd479;
+      --bad:#ff9ea6;
+    }
     * { box-sizing:border-box; }
-    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color:var(--fg); background:radial-gradient(circle at 20% -10%, #2a438d 0, transparent 40%), linear-gradient(180deg,#111e45,#090f22); }
-    .wrap { width:min(980px,92vw); margin:32px auto; display:grid; gap:14px; }
-    .card { border:1px solid var(--line); border-radius:14px; background:var(--card); padding:18px; }
-    h1,h2,h3 { margin:0; }
-    p { margin:0; color:var(--muted); line-height:1.5; }
-    .row { display:flex; flex-wrap:wrap; gap:10px; }
-    .btn { border:1px solid #4f69c7; border-radius:999px; background:#142a6e; color:#dfe7ff; padding:7px 12px; cursor:pointer; font:inherit; }
-    .btn.active { background:#204095; border-color:#88a9ff; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
-    .region { border:1px solid #324a9e; border-radius:12px; padding:12px; background:#0b1437; display:grid; gap:8px; }
-    .meta { font-size:.84rem; color:#bfd0ff; }
-    .timeline { display:grid; gap:6px; margin-top:6px; }
-    .slot { display:grid; grid-template-columns:58px 1fr auto auto; gap:8px; font-size:.83rem; color:#cdd9ff; }
-    .topline { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    a { color:#cfe0ff; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      color:var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background:
+        radial-gradient(circle at 14% 0%, #28469b 0, transparent 34%),
+        radial-gradient(circle at 86% 4%, #1c356f 0, transparent 30%),
+        radial-gradient(circle at 50% 100%, #16214b 0, transparent 42%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap { width:min(1180px, 94vw); margin:28px auto 40px; display:grid; gap:14px; }
+    .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 14px 35px #00000033;
+      padding:18px;
+    }
+    h1, h2, h3 { margin:0; }
+    h1 { font-size:clamp(2rem, 4vw, 3.4rem); letter-spacing:-0.03em; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+    a { color:#dce7ff; }
+    .topline { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+    .hero-copy { max-width:70ch; }
+    .hero-stats { display:flex; gap:10px; flex-wrap:wrap; }
+    .stat {
+      border:1px solid #3f5bb6;
+      border-radius:14px;
+      background:#0d1841;
+      padding:10px 12px;
+      min-width:128px;
+    }
+    .stat strong { display:block; font-size:1.12rem; color:#f3f6ff; }
+    .stat span { color:#b8c8ff; font-size:.82rem; }
+    .toolbar { display:grid; gap:12px; }
+    .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .btn, .pill, select {
+      font:inherit;
+      color:#ecf2ff;
+      border:1px solid #4663c2;
+      background:#102157;
+      border-radius:999px;
+      padding:8px 12px;
+    }
+    .btn, .pill { cursor:pointer; text-decoration:none; }
+    .btn:hover, .pill:hover, .btn:focus-visible, .pill:focus-visible, select:focus-visible {
+      outline:none;
+      border-color:#89a8ff;
+      background:#153072;
+    }
+    .btn.secondary { background:#0c163a; }
+    .btn.active { border-color:#9ab6ff; background:#1a3781; }
+    select {
+      border-radius:12px;
+      padding:8px 10px;
+      background:#0e1a45;
+    }
+    .grid { display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; }
+    .panel { display:grid; gap:12px; }
+    .panel-card {
+      border:1px solid #3a53aa;
+      border-radius:16px;
+      background:#091233;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .panel-card.featured {
+      background:linear-gradient(160deg, #132a68, #091233 70%);
+      border-color:#7290e6;
+    }
+    .meta, .tiny { color:#b8c8ff; font-size:.83rem; }
+    .tiny { line-height:1.45; }
+    .score {
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .score strong { font-size:1.9rem; color:#f4f7ff; }
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid #415cb7;
+      background:#0d1a45;
+      color:#d7e2ff;
+      font-size:.76rem;
+      width:fit-content;
+    }
+    .badge.good { border-color:#3b9b79; color:var(--good); }
+    .badge.warn { border-color:#9d7f39; color:var(--warn); }
+    .badge.bad { border-color:#a6525d; color:var(--bad); }
+    .region-list { display:grid; gap:12px; }
+    .region-card {
+      border:1px solid #354d9f;
+      border-radius:16px;
+      background:#0a1436;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .region-card.is-picked { border-color:#85a6ff; box-shadow: 0 0 0 1px #85a6ff33 inset; }
+    .region-head { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:flex-start; }
+    .region-head h3 { font-size:1.05rem; }
+    .region-metrics { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:8px; }
+    .metric {
+      border:1px solid #314786;
+      border-radius:12px;
+      padding:8px 10px;
+      background:#08112d;
+    }
+    .metric span { display:block; font-size:.74rem; color:#9fb0ff; }
+    .metric strong { display:block; margin-top:4px; font-size:.92rem; color:#f3f6ff; }
+    .timeline {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+      gap:8px;
+    }
+    .slot {
+      border:1px solid #314786;
+      border-radius:12px;
+      background:#09112c;
+      padding:8px;
+      display:grid;
+      gap:4px;
+      text-align:center;
+    }
+    .slot strong { font-size:.82rem; }
+    .slot span { font-size:.76rem; color:#bdd0ff; }
+    .chart {
+      display:grid;
+      gap:10px;
+    }
+    .chart-row {
+      display:grid;
+      grid-template-columns: 72px 1fr 44px;
+      gap:8px;
+      align-items:center;
+      font-size:.84rem;
+    }
+    .bar {
+      height:12px;
+      border-radius:999px;
+      overflow:hidden;
+      background:#071025;
+      border:1px solid #314786;
+    }
+    .bar > span {
+      display:block;
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, #5f84f3, #8af0cb);
+    }
+    .empty {
+      border:1px dashed #4864b7;
+      border-radius:14px;
+      padding:14px;
+      color:#c2d1ff;
+      background:#08112d;
+    }
+    .summary {
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      border:1px solid #314786;
+      border-radius:14px;
+      background:#071025;
+      color:#dce6ff;
+      padding:12px;
+      line-height:1.5;
+    }
+    .notice { min-height:1.2em; color:#c6d4ff; font-size:.82rem; }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns:1fr; }
+      .region-metrics { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
       <div class="topline">
-        <h1>roost weather deck</h1>
-        <a href="index.html">← back home</a>
+        <div class="hero-copy">
+          <h1>roost weather deck</h1>
+          <p>Turn the weather feed into a flight plan. Compare regions, pin a favorite, and surface the best work window instead of reading raw numbers like a wet spreadsheet.</p>
+        </div>
+        <a class="pill" href="index.html">← back home</a>
       </div>
-      <p>Pick your flight mood and get a matching work-weather window.</p>
-      <div class="row" id="filters"></div>
-      <p class="meta" id="updated">loading...</p>
+      <div class="hero-stats" id="heroStats">
+        <div class="stat"><strong>loading</strong><span>forecast status</span></div>
+        <div class="stat"><strong>--</strong><span>best window</span></div>
+        <div class="stat"><strong>--</strong><span>favorite region</span></div>
+      </div>
     </section>
 
-    <section class="grid" id="regions"></section>
+    <section class="card toolbar">
+      <div class="row" id="moodFilters"></div>
+      <div class="row">
+        <label class="tiny" for="sortBy">Sort</label>
+        <select id="sortBy">
+          <option value="score">best fit</option>
+          <option value="wind">wind strength</option>
+          <option value="temp">warmest</option>
+          <option value="visibility">visibility</option>
+        </select>
+        <button class="btn secondary" id="copySummary">copy forecast summary</button>
+        <button class="btn secondary" id="clearPin">clear favorite</button>
+      </div>
+      <div class="notice" id="notice">loading weather feed...</div>
+    </section>
+
+    <section class="grid">
+      <section class="panel">
+        <article class="panel-card featured" id="featuredRegion">
+          <div class="badge">featured recommendation</div>
+          <h2>waiting for forecast</h2>
+          <p class="tiny">The deck will highlight the most useful region based on your selected mood and sort mode.</p>
+        </article>
+        <div class="region-list" id="regionList"></div>
+      </section>
+
+      <aside class="panel">
+        <article class="panel-card summary">
+          <div class="badge">hourly comparison</div>
+          <h2>shared flight window</h2>
+          <p class="tiny">This chart compares all regions at the same hour so it is easier to spot overlapping windows.</p>
+          <div class="chart" id="hourlyChart"></div>
+        </article>
+        <article class="panel-card summary">
+          <div class="badge">deck note</div>
+          <h2>copyable handoff</h2>
+          <pre id="handoffText">loading summary...</pre>
+        </article>
+      </aside>
+    </section>
   </main>
 
   <script>
-    const filters = document.getElementById('filters');
-    const regionsEl = document.getElementById('regions');
-    const updatedEl = document.getElementById('updated');
+    const STORAGE_KEY = 'kestrel-roost-weather-favorite-v1';
+    const moodFilters = document.getElementById('moodFilters');
+    const sortBy = document.getElementById('sortBy');
+    const notice = document.getElementById('notice');
+    const regionList = document.getElementById('regionList');
+    const featuredRegion = document.getElementById('featuredRegion');
+    const hourlyChart = document.getElementById('hourlyChart');
+    const handoffText = document.getElementById('handoffText');
+    const heroStats = document.getElementById('heroStats');
+    const copySummary = document.getElementById('copySummary');
+    const clearPin = document.getElementById('clearPin');
+
+    const skyIcon = { clear:'☀', sun:'⛅', cloud:'☁', partly:'🌤', rain:'🌧' };
+    const scoreLabels = [
+      { min: 82, label: 'go time', cls: 'good' },
+      { min: 62, label: 'steady', cls: 'warn' },
+      { min: 0, label: 'slow lane', cls: 'bad' }
+    ];
+
     let activeMood = 'all';
     let regions = [];
+    let forecast = null;
+    let favoriteId = localStorage.getItem(STORAGE_KEY) || '';
 
-    const skyIcon = { clear:'☀️', sun:'🌤️', cloud:'☁️', partly:'⛅', rain:'🌧️' };
+    function scoreRegion(region) {
+      const calmWind = Math.max(0, 40 - region.windKph);
+      const visibilityBoost = region.visibilityKm * 2;
+      const warmthBoost = Math.max(0, region.tempC * 1.5);
+      const gustPenalty = Math.max(0, region.gustKph - region.windKph) * 0.8;
+      const moodBonus = region.mood === 'focus' ? 12 : region.mood === 'steady' ? 8 : 4;
+      return Math.round(calmWind + visibilityBoost + warmthBoost + moodBonus - gustPenalty);
+    }
 
-    function renderFilters() {
-      const moods = ['all', ...new Set(regions.map(r => r.mood))];
-      filters.innerHTML = '';
-      moods.forEach((mood) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn' + (mood === activeMood ? ' active' : '');
-        btn.textContent = mood;
-        btn.addEventListener('click', () => {
-          activeMood = mood;
-          renderFilters();
-          renderRegions();
-        });
-        filters.appendChild(btn);
+    function scoreToBadge(score) {
+      return scoreLabels.find((item) => score >= item.min) || scoreLabels[scoreLabels.length - 1];
+    }
+
+    function formatRegionSummary(region) {
+      return `${region.name}: ${region.summary} Best for ${region.mood} work. Wind ${region.windKph}kph, gusts ${region.gustKph}, visibility ${region.visibilityKm}km.`;
+    }
+
+    function getVisibleRegions() {
+      const base = activeMood === 'all' ? regions : regions.filter((region) => region.mood === activeMood);
+      return [...base].sort((a, b) => {
+        if (sortBy.value === 'wind') return b.windKph - a.windKph;
+        if (sortBy.value === 'temp') return b.tempC - a.tempC;
+        if (sortBy.value === 'visibility') return b.visibilityKm - a.visibilityKm;
+        return b.score - a.score;
       });
     }
 
+    function renderMoodFilters() {
+      const moods = ['all', ...new Set(regions.map((region) => region.mood))];
+      moodFilters.innerHTML = '';
+      moods.forEach((mood) => {
+        const button = document.createElement('button');
+        button.className = 'btn' + (mood === activeMood ? ' active' : '');
+        button.textContent = mood;
+        button.addEventListener('click', () => {
+          activeMood = mood;
+          renderMoodFilters();
+          renderDeck();
+        });
+        moodFilters.appendChild(button);
+      });
+    }
+
+    function renderHeroStats() {
+      const featured = getVisibleRegions()[0];
+      const visibleCount = getVisibleRegions().length;
+      const favorite = regions.find((region) => region.id === favoriteId);
+      heroStats.innerHTML = `
+        <div class="stat"><strong>${forecast?.updated ? new Date(forecast.updated).toUTCString() : 'offline'}</strong><span>forecast update</span></div>
+        <div class="stat"><strong>${featured ? featured.name : '--'}</strong><span>best window</span></div>
+        <div class="stat"><strong>${favorite ? favorite.name : 'none'}</strong><span>favorite region</span></div>
+        <div class="stat"><strong>${visibleCount}</strong><span>visible regions</span></div>
+      `;
+    }
+
+    function renderFeatured(region) {
+      if (!region) {
+        featuredRegion.innerHTML = `
+          <div class="badge">featured recommendation</div>
+          <h2>no region available</h2>
+          <p class="tiny">Check the weather feed or relax the current filter.</p>
+        `;
+        return;
+      }
+      const score = region.score;
+      const badge = scoreToBadge(score);
+      const isFav = region.id === favoriteId;
+      featuredRegion.innerHTML = `
+        <div class="badge ${badge.cls}">${badge.label}</div>
+        <div class="score">
+          <h2>${region.name}</h2>
+          <strong>${score}</strong>
+        </div>
+        <p>${region.summary}</p>
+        <p class="tiny">${region.advice}</p>
+        <div class="row">
+          <span class="badge">temp ${region.tempC}C</span>
+          <span class="badge">wind ${region.windKph}kph</span>
+          <span class="badge">gust ${region.gustKph}kph</span>
+          <span class="badge">visibility ${region.visibilityKm}km</span>
+          ${isFav ? '<span class="badge good">pinned favorite</span>' : ''}
+        </div>
+      `;
+    }
+
     function renderRegions() {
-      const visible = activeMood === 'all' ? regions : regions.filter(r => r.mood === activeMood);
-      regionsEl.innerHTML = visible.map(region => `
-        <article class="region">
-          <h3>${region.name}</h3>
-          <p>${region.summary}</p>
-          <div class="meta">mood: ${region.mood} · temp: ${region.tempC}°C · wind: ${region.windKph} kph (gust ${region.gustKph}) · visibility: ${region.visibilityKm} km</div>
-          <p>${region.advice}</p>
-          <div class="timeline">
-            ${region.timeline.map(slot => `
-              <div class="slot">
-                <strong>${slot.hour}</strong>
-                <span>${skyIcon[slot.sky] || '•'} ${slot.sky}</span>
-                <span>${slot.tempC}°C</span>
-                <span>${slot.windKph}kph</span>
+      const visible = getVisibleRegions();
+      if (!visible.length) {
+        regionList.innerHTML = '<div class="empty">No regions match the current filter.</div>';
+        return;
+      }
+      regionList.innerHTML = visible.map((region) => {
+        const isFav = region.id === favoriteId;
+        return `
+          <article class="region-card ${isFav ? 'is-picked' : ''}">
+            <div class="region-head">
+              <div>
+                <div class="badge ${scoreToBadge(region.score).cls}">${scoreToBadge(region.score).label}</div>
+                <h3>${region.name}</h3>
+                <p>${region.summary}</p>
               </div>
-            `).join('')}
+              <div class="row">
+                <button class="btn secondary" data-pin="${region.id}">${isFav ? 'unpin' : 'pin favorite'}</button>
+              </div>
+            </div>
+            <div class="region-metrics">
+              <div class="metric"><span>score</span><strong>${region.score}</strong></div>
+              <div class="metric"><span>mood</span><strong>${region.mood}</strong></div>
+              <div class="metric"><span>temp</span><strong>${region.tempC}C</strong></div>
+              <div class="metric"><span>wind / gust</span><strong>${region.windKph} / ${region.gustKph} kph</strong></div>
+              <div class="metric"><span>visibility</span><strong>${region.visibilityKm} km</strong></div>
+              <div class="metric"><span>advice</span><strong>${region.advice}</strong></div>
+            </div>
+            <div class="timeline">
+              ${region.timeline.map((slot) => `
+                <div class="slot">
+                  <strong>${slot.hour}</strong>
+                  <span>${skyIcon[slot.sky] || '•'} ${slot.sky}</span>
+                  <span>${slot.tempC}C</span>
+                  <span>${slot.windKph}kph</span>
+                </div>
+              `).join('')}
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      regionList.querySelectorAll('[data-pin]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-pin');
+          favoriteId = favoriteId === id ? '' : id;
+          if (favoriteId) {
+            localStorage.setItem(STORAGE_KEY, favoriteId);
+            notice.textContent = `Pinned ${regions.find((region) => region.id === favoriteId)?.name || 'region'} as your default weather lane.`;
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+            notice.textContent = 'Favorite region cleared.';
+          }
+          renderDeck();
+        });
+      });
+    }
+
+    function renderHourlyChart() {
+      const slots = regions[0]?.timeline?.map((slot) => slot.hour) || [];
+      if (!slots.length) {
+        hourlyChart.innerHTML = '<div class="empty">No hourly data yet.</div>';
+        return;
+      }
+      hourlyChart.innerHTML = slots.map((hour, index) => {
+        const values = regions.map((region) => region.timeline[index]?.windKph || 0);
+        const max = Math.max(...values, 1);
+        const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+        const fill = Math.min(100, Math.round((avg / max) * 100));
+        return `
+          <div class="chart-row">
+            <strong>${hour}</strong>
+            <div class="bar"><span style="width:${fill}%"></span></div>
+            <span>${Math.round(avg)}kph</span>
           </div>
-        </article>
-      `).join('');
+        `;
+      }).join('');
+    }
+
+    function renderHandoff() {
+      const visible = getVisibleRegions();
+      const featured = visible[0];
+      const favorite = regions.find((region) => region.id === favoriteId);
+      const lines = [
+        `Roost weather deck summary`,
+        `Forecast updated: ${forecast ? new Date(forecast.updated).toUTCString() : 'unavailable'}`,
+        `Filter: ${activeMood} | Sort: ${sortBy.value}`,
+        `Best region: ${featured ? `${featured.name} (${featured.score})` : 'none'}`,
+        `Favorite: ${favorite ? favorite.name : 'none'}`,
+        '',
+        ...visible.slice(0, 3).map((region) => `- ${formatRegionSummary(region)}`)
+      ];
+      handoffText.textContent = lines.join('\n');
+      copySummary.textContent = 'copy forecast summary';
+    }
+
+    function renderDeck() {
+      renderHeroStats();
+      renderFeatured(getVisibleRegions()[0]);
+      renderRegions();
+      renderHourlyChart();
+      renderHandoff();
     }
 
     async function init() {
-      const res = await fetch('assets/roost-weather.json', { cache: 'no-store' });
-      const data = await res.json();
-      regions = data.regions || [];
-      updatedEl.textContent = `updated: ${new Date(data.updated).toUTCString()} · ${regions.length} regions tracked`;
-      renderFilters();
-      renderRegions();
+      try {
+        const response = await fetch('assets/roost-weather.json', { cache: 'no-store' });
+        forecast = await response.json();
+        regions = (forecast.regions || []).map((region) => ({ ...region, score: scoreRegion(region) }));
+        renderMoodFilters();
+        renderDeck();
+        notice.textContent = `Loaded ${regions.length} weather regions. Use sort and pin controls to build a handoff.`;
+      } catch (error) {
+        notice.textContent = 'Weather feed offline.';
+        regionList.innerHTML = `<div class="empty">Could not load weather deck: ${error.message}</div>`;
+        hourlyChart.innerHTML = '<div class="empty">Forecast unavailable.</div>';
+        handoffText.textContent = 'Weather feed unavailable.';
+      }
     }
 
-    init().catch((error) => {
-      updatedEl.textContent = 'weather feed offline';
-      regionsEl.innerHTML = `<article class="region"><p>Could not load weather deck: ${error.message}</p></article>`;
+    sortBy.addEventListener('change', renderDeck);
+    clearPin.addEventListener('click', () => {
+      favoriteId = '';
+      localStorage.removeItem(STORAGE_KEY);
+      notice.textContent = 'Favorite region cleared.';
+      renderDeck();
     });
+    copySummary.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(handoffText.textContent);
+        notice.textContent = 'Forecast summary copied to clipboard.';
+      } catch {
+        notice.textContent = 'Clipboard blocked, but the summary is still visible below.';
+      }
+    });
+
+    init();
   </script>
 </body>
 </html>

@@ -41,6 +41,8 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Roost Weather Deck overhaul:** rebuilt `roost-weather.html` into an interactive planning studio with sortable region scoring, favorite pinning, hourly comparison, and a copyable forecast handoff for quicker session-to-session planning
+
 - **Roost Route Relay launch:** added a new homepage guided-tour panel that assembles a 3-stop next-step route, supports reshuffling and pinning, and produces a copyable handoff note for easier session-to-session continuity
 
 - **Roost routebook launch:** added a new homepage launch surface with a daily recommended route, pinned page storage, alternate picks, a recent-launch memory rail, and one-click reshuffling so the front page feels more like a command deck
