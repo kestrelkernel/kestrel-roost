@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Handoff: a copyable session brief assembled from live roost data." />
+  <title>roost handoff</title>
+  <style>
+    :root {
+      --bg:#07101f;
+      --bg2:#132850;
+      --card:#0d1733d9;
+      --line:#3553aa;
+      --fg:#ebf1ff;
+      --muted:#a9baf5;
+      --accent:#8db3ff;
+      --good:#7fe0b0;
+      --warn:#ffd480;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+      color:var(--fg);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 14% -8%, #2b4f9a 0%, transparent 42%),
+        radial-gradient(circle at 90% 115%, #172d66 0%, transparent 44%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+    .wrap{width:min(1080px,92vw);margin:32px auto;display:grid;gap:12px}
+    .card{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:18px;box-shadow:0 12px 30px #00000033}
+    h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3.2rem)}
+    h2{margin:0 0 10px;font-size:1rem;color:#ced8ff}
+    p{margin:0;color:var(--muted);line-height:1.55}
+    a{color:var(--accent);text-decoration:none}
+    a:hover,a:focus-visible{color:#d9e4ff;outline:none}
+    .row,.chips,.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn,.chip{
+      border:1px solid #4b67c5;
+      background:#0f1f52;
+      color:#e6ecff;
+      border-radius:999px;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .btn:hover,.chip:hover,.btn:focus-visible,.chip:focus-visible{
+      border-color:#7f9cff;
+      background:#132865;
+      outline:none;
+    }
+    .chip.is-active{background:#dce6ff;color:#10204f;border-color:#dce6ff}
+    .grid{display:grid;gap:12px}
+    .two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .three{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .panel{
+      border:1px solid #324a94;
+      border-radius:14px;
+      background:#08112f;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .panel strong,.stat strong{color:#f1f5ff}
+    .stat{border:1px solid #324a94;border-radius:12px;background:#091130;padding:12px}
+    .stat .value{display:block;font-size:1.5rem;color:#f4f7ff;margin-top:3px}
+    .meter{height:8px;background:#1c2f6d;border-radius:999px;overflow:hidden}
+    .meter span{display:block;height:100%;background:linear-gradient(90deg,#71dca5,#89b0ff)}
+    .list{margin:0;padding-left:18px;color:var(--muted)}
+    .list li{margin:4px 0}
+    .brief{
+      white-space:pre-wrap;
+      margin:0;
+      color:#e4ebff;
+      line-height:1.55;
+      background:#07102a;
+      border:1px solid #2f4791;
+      border-radius:14px;
+      padding:14px;
+      min-height:220px;
+    }
+    .status{font-size:.85rem;color:#bed0ff;min-height:1.2em}
+    .status.ok{color:var(--good)}
+    .status.warn{color:var(--warn)}
+    .tiny{font-size:.8rem;color:#9eb1ef}
+    .search{
+      flex:1 1 280px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #415aa9;
+      background:#0a1438;
+      color:var(--fg);
+      font:inherit;
+    }
+    .search:focus-visible{outline:2px solid #9ab4ff;outline-offset:2px}
+    .launch-list{display:grid;gap:8px}
+    .launch-item{
+      border:1px solid #31488f;
+      border-radius:12px;
+      background:#091133;
+      padding:12px;
+      display:grid;
+      gap:6px;
+    }
+    .launch-item h3{margin:0;font-size:.98rem}
+    .launch-item p{font-size:.9rem}
+    .launch-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:.76rem;color:#bfd0ff}
+    .tag{
+      border:1px dashed #4660b0;
+      border-radius:999px;
+      padding:2px 8px;
+      background:#101c48;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <div class="row">
+        <a class="btn" href="index.html">← back home</a>
+        <a class="btn" href="command-center.html">open command center</a>
+        <a class="btn" href="roost-pulse.html">open pulse</a>
+      </div>
+      <h1>roost handoff</h1>
+      <p>A one-screen session brief that turns the live roost data into a ready-to-copy next step. The point is less “dashboard” and more “what should I do when I return?”</p>
+    </section>
+
+    <section class="grid three">
+      <article class="stat">
+        <span class="tiny">session focus</span>
+        <strong class="value" id="sessionFocus">loading...</strong>
+        <div class="tiny" id="sessionWindow"></div>
+      </article>
+      <article class="stat">
+        <span class="tiny">active lane</span>
+        <strong class="value" id="activeLane">loading...</strong>
+        <div class="tiny" id="laneDetail"></div>
+      </article>
+      <article class="stat">
+        <span class="tiny">fresh signal</span>
+        <strong class="value" id="freshSignal">loading...</strong>
+        <div class="tiny" id="freshDetail"></div>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>brief generator</h2>
+        <div class="chips" id="modeChips"></div>
+        <div class="actions" style="margin:12px 0 0">
+          <button class="btn" id="copyBrief" type="button">copy brief</button>
+          <button class="btn" id="rerollBrief" type="button">reshuffle wording</button>
+          <button class="btn" id="toggleFocus" type="button">swap focus lane</button>
+        </div>
+        <div class="status" id="copyStatus"></div>
+        <p class="tiny" style="margin-top:8px">Tip: the generator prefers the freshest releases and the next-best lane, so the copied note feels like a real handoff instead of a generic summary.</p>
+      </article>
+
+      <article class="card">
+        <h2>copyable brief</h2>
+        <pre class="brief" id="briefText" aria-live="polite">Loading brief...</pre>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>build lens</h2>
+        <div class="grid three" id="buildStats"></div>
+        <ul class="list" id="buildNotes"></ul>
+      </article>
+
+      <article class="card">
+        <h2>what to open next</h2>
+        <div class="row">
+          <input class="search" id="pageSearch" type="search" placeholder="filter launch pages..." aria-label="Filter launch pages" />
+        </div>
+        <div class="launch-list" id="launchList"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const byId = id => document.getElementById(id);
+    const modes = [
+      { id: 'ship', label: 'ship mode', tone: 'push one visible change and call it done' },
+      { id: 'stabilize', label: 'stabilize mode', tone: 'tighten the edges and remove friction' },
+      { id: 'expand', label: 'expand mode', tone: 'add a broader surface or more expressive interaction' }
+    ];
+
+    const pages = [
+      { title: 'command center', href: 'command-center.html', tag: 'dashboard', blurb: 'watch the cross-feed instead of hopping between tabs' },
+      { title: 'roost pulse', href: 'roost-pulse.html', tag: 'momentum', blurb: 'scan the live roadmap pulse and recent wins' },
+      { title: 'flight deck', href: 'flight-deck.html', tag: 'roadmap', blurb: 'review the broader ship log and what is next' },
+      { title: 'shipyard', href: 'shipyard.html', tag: 'planning', blurb: 'keep the roadmap queue honest and sortable' },
+      { title: 'roost observatory', href: 'roost-observatory.html', tag: 'signals', blurb: 'track trend shifts and tag momentum changes' },
+      { title: 'roost constellations', href: 'roost-constellations.html', tag: 'rituals', blurb: 'pick a practical ritual by energy and domain' },
+      { title: 'roost compass', href: 'roost-compass.html', tag: 'balance', blurb: 'rebalance build, learn, maintain, and play work' }
+    ];
+
+    const state = {
+      mode: 'ship',
+      focusIndex: 0,
+      shuffled: 0,
+      now: null,
+      updates: null,
+      milestones: null
+    };
+
+    const modeMeta = id => modes.find(m => m.id === id) || modes[0];
+
+    function pick(array, index) {
+      return array[index % array.length];
+    }
+
+    function buildBrief() {
+      const mode = modeMeta(state.mode);
+      const focus = state.now.activeFocus[state.focusIndex];
+      const nextShip = state.updates.updates[0];
+      const nextMilestone = state.milestones[state.milestones.length - 1];
+      const recentWins = state.now.recentWins.slice(0, 3);
+      const roadmapNext = state.updates.roadmap.next.slice(0, 3);
+      const windup = [
+        `roost handoff // ${state.now.updatedAt}`,
+        `mode: ${mode.label}`,
+        `primary lane: ${focus.title} (${focus.horizon}, ${focus.progress}% complete)`,
+        `session intent: ${mode.tone}`,
+        '',
+        'today\'s brief',
+        `- keep the main push anchored on ${focus.title.toLowerCase()}.`,
+        `- ship one concrete improvement in ${mode.id} mode before expanding scope.`,
+        `- use ${nextShip.title.toLowerCase()} as the freshest signal to protect against drift.`,
+        '',
+        'recent wins',
+        ...recentWins.map(item => `- ${item}`),
+        '',
+        'next-up queue',
+        ...roadmapNext.map(item => `- ${item}`),
+        '',
+        `milestone watch: ${nextMilestone.date} · ${nextMilestone.title}`,
+        '',
+        'returning instructions',
+        '- open command center or pulse first, then continue without re-planning from scratch.',
+        '- if the page feels stale, ship a visible surface change rather than another micro-fix.',
+      ];
+      byId('briefText').textContent = windup.join('\n');
+      byId('sessionFocus').textContent = `${mode.label} · ${focus.title}`;
+      byId('sessionWindow').textContent = `${state.now.headline} Updated ${state.now.updatedAt}.`;
+      byId('activeLane').textContent = focus.title;
+      byId('laneDetail').textContent = `${focus.horizon} horizon · ${focus.progress}% complete`;
+      byId('freshSignal').textContent = nextShip.title;
+      byId('freshDetail').textContent = nextShip.title + ' • ' + nextShip.date;
+      renderStats(focus, nextShip, nextMilestone);
+      renderPages();
+    }
+
+    function renderStats(focus, nextShip, nextMilestone) {
+      const stats = [
+        { label: 'focus progress', value: `${focus.progress}%`, note: focus.summary },
+        { label: 'freshest ship', value: nextShip.title, note: nextShip.date },
+        { label: 'milestone watch', value: nextMilestone.title, note: nextMilestone.date }
+      ];
+      byId('buildStats').innerHTML = stats.map(stat => `
+        <div class="stat">
+          <span class="tiny">${stat.label}</span>
+          <strong class="value">${stat.value}</strong>
+          <div class="meter"><span style="width:${Math.min(100, focus.progress)}%"></span></div>
+          <div class="tiny" style="margin-top:8px">${stat.note}</div>
+        </div>
+      `).join('');
+      byId('buildNotes').innerHTML = [
+        `The brief is built from the current ${focus.horizon.toLowerCase()} lane so the homepage can hand off a concrete direction instead of just a status dump.`,
+        `The copied note includes one fresh release, one milestone watch, and a short "returning instructions" block for lower-friction re-entry.`,
+        `Switching modes changes the tone of the handoff so this page can support both shipping days and broader build days.`
+      ].map(item => `<li>${item}</li>`).join('');
+    }
+
+    function renderModes() {
+      byId('modeChips').innerHTML = modes.map(mode => `
+        <button class="chip ${mode.id === state.mode ? 'is-active' : ''}" data-mode="${mode.id}" type="button">${mode.label}</button>
+      `).join('');
+      byId('modeChips').querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+          state.mode = button.dataset.mode;
+          renderModes();
+          buildBrief();
+        });
+      });
+    }
+
+    function renderPages() {
+      const query = byId('pageSearch').value.trim().toLowerCase();
+      const filtered = pages.filter(page => !query || [page.title, page.tag, page.blurb].some(field => field.includes(query)));
+      byId('launchList').innerHTML = filtered.map(page => `
+        <article class="launch-item">
+          <div class="launch-meta"><span class="tag">${page.tag}</span><span>${page.href}</span></div>
+          <h3><a href="${page.href}">${page.title}</a></h3>
+          <p>${page.blurb}</p>
+        </article>
+      `).join('') || '<p class="tiny">No launch pages match that filter.</p>';
+    }
+
+    async function copyBrief() {
+      const text = byId('briefText').textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        byId('copyStatus').textContent = 'Copied handoff brief to clipboard.';
+        byId('copyStatus').className = 'status ok';
+      } catch {
+        byId('copyStatus').textContent = 'Clipboard blocked, but the brief is still visible above.';
+        byId('copyStatus').className = 'status warn';
+      }
+    }
+
+    async function boot() {
+      const [nowRes, updateRes, mileRes] = await Promise.all([
+        fetch('assets/roost-now.json', { cache: 'no-store' }),
+        fetch('assets/roost-updates.json', { cache: 'no-store' }),
+        fetch('assets/roost-milestones.json', { cache: 'no-store' })
+      ]);
+      state.now = await nowRes.json();
+      state.updates = await updateRes.json();
+      state.milestones = await mileRes.json();
+      renderModes();
+      buildBrief();
+      byId('pageSearch').addEventListener('input', renderPages);
+      byId('copyBrief').addEventListener('click', copyBrief);
+      byId('rerollBrief').addEventListener('click', () => {
+        state.shuffled += 1;
+        state.focusIndex = (state.focusIndex + 1 + state.shuffled) % state.now.activeFocus.length;
+        buildBrief();
+        byId('copyStatus').textContent = 'Reworded the brief for a different handoff angle.';
+        byId('copyStatus').className = 'status';
+      });
+      byId('toggleFocus').addEventListener('click', () => {
+        state.focusIndex = (state.focusIndex + 1) % state.now.activeFocus.length;
+        buildBrief();
+        byId('copyStatus').textContent = 'Swapped to the next active lane.';
+        byId('copyStatus').className = 'status';
+      });
+    }
+
+    boot().catch(() => {
+      byId('briefText').textContent = 'Handoff data unavailable. Reload or check the JSON feeds.';
+      byId('copyStatus').textContent = 'Failed to load live roost data.';
+      byId('copyStatus').className = 'status warn';
+    });
+  </script>
+</body>
+</html>

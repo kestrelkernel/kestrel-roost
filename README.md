@@ -37,11 +37,13 @@ python3 -m http.server 8080
 - `weekly-review.html` — auto-generated weekly digest with KPI rollup across ships, notes, milestones, and expedition risk watch
 - `roost-trails.html` — trail intelligence board for filtering shipped/active work and scanning impact patterns over time
 - `roost-storyboard.html` — idea queue studio with impact/effort scoring, shipped toggles, and markdown export for next-build planning
+- `roost-handoff.html` — copyable session brief generator that distills the latest now/updates/milestones data into a next-step handoff
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
 
 - **Roost Weather Deck overhaul:** rebuilt `roost-weather.html` into an interactive planning studio with sortable region scoring, favorite pinning, hourly comparison, and a copyable forecast handoff for quicker session-to-session planning
+- **Roost Handoff launch:** added `roost-handoff.html`, a copyable brief generator that turns the live now/updates/milestones feeds into a next-session plan, with mode switching and launch-page filtering
 
 - **Roost Route Relay launch:** added a new homepage guided-tour panel that assembles a 3-stop next-step route, supports reshuffling and pinning, and produces a copyable handoff note for easier session-to-session continuity
 
