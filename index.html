@@ -250,6 +250,102 @@
       font-size:.8rem;
       color:#a9bbff;
     }
+    .launch-deck {
+      border:1px solid #4a64bf;
+      background:linear-gradient(160deg, #0d173d, #0a1331 58%, #111b47);
+      position:relative;
+      overflow:hidden;
+    }
+    .launch-deck::after {
+      content:"";
+      position:absolute;
+      inset:auto -80px -100px auto;
+      width:260px;
+      height:260px;
+      border-radius:999px;
+      background:radial-gradient(circle, #7ea0ff2a 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .launch-deck-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      margin-bottom:12px;
+    }
+    .launch-deck-head h2 { margin:0; }
+    .launch-deck-note {
+      color:#a8b9ff;
+      font-size:.85rem;
+      margin:0;
+    }
+    .launch-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:12px;
+      align-items:center;
+    }
+    .launch-select {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:9px 11px;
+    }
+    .launch-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .launch-card {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#091132;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .launch-card.is-primary {
+      background:linear-gradient(155deg, #132a66, #091132 72%);
+      border-color:#7a95ea;
+    }
+    .launch-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .launch-copy {
+      margin:0;
+      color:#aebfff;
+      font-size:.92rem;
+      line-height:1.5;
+    }
+    .launch-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .launch-summary {
+      margin-top:12px;
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08122d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .launch-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .relay-board {
       display:grid;
       gap:12px;
@@ -668,6 +764,42 @@
       </div>
     </section>
 
+    <section class="card launch-deck" id="launchDeckBoard" aria-live="polite">
+      <div class="launch-deck-head">
+        <h2>launch deck</h2>
+        <p class="launch-deck-note">an intent-aware route that turns the homepage into a 3-stop handoff.</p>
+      </div>
+      <div class="launch-controls">
+        <select id="launchDeckIntent" class="launch-select">
+          <option value="build">build</option>
+          <option value="learn">learn</option>
+          <option value="play">play</option>
+          <option value="reflect">reflect</option>
+          <option value="plan">plan</option>
+        </select>
+        <select id="launchDeckEnergy" class="launch-select">
+          <option value="high">high energy</option>
+          <option value="medium">medium energy</option>
+          <option value="low">low energy</option>
+        </select>
+        <select id="launchDeckTime" class="launch-select">
+          <option value="15">15 min</option>
+          <option value="30">30 min</option>
+          <option value="60">60+ min</option>
+        </select>
+        <button class="btn" id="rerollLaunchDeck">reshuffle deck</button>
+        <button class="btn" id="pinLaunchDeck">pin to routebook</button>
+        <button class="btn" id="copyLaunchDeck">copy handoff</button>
+      </div>
+      <div class="launch-grid" id="launchDeckCards">
+        <div class="empty-card">loading launch deck…</div>
+      </div>
+      <div class="launch-summary">
+        <h3 style="margin:0; font-size:.98rem; color:#f0f4ff;">handoff note</h3>
+        <pre id="launchDeckSummary">loading launch deck…</pre>
+      </div>
+    </section>
+
     <section class="card" id="routeRelayBoard" aria-live="polite">
       <h2>roost route relay</h2>
       <p class="tiny" style="margin-bottom:10px;">a 3-stop tour for when you want the homepage to hand you a real next move, not a wall of options.</p>
@@ -972,6 +1104,14 @@
     const rerollRouteRelayBtn = document.getElementById('rerollRouteRelay');
     const copyRouteRelayBtn = document.getElementById('copyRouteRelay');
     const pinRouteRelayBtn = document.getElementById('pinRouteRelay');
+    const launchDeckIntent = document.getElementById('launchDeckIntent');
+    const launchDeckEnergy = document.getElementById('launchDeckEnergy');
+    const launchDeckTime = document.getElementById('launchDeckTime');
+    const rerollLaunchDeckBtn = document.getElementById('rerollLaunchDeck');
+    const pinLaunchDeckBtn = document.getElementById('pinLaunchDeck');
+    const copyLaunchDeckBtn = document.getElementById('copyLaunchDeck');
+    const launchDeckCards = document.getElementById('launchDeckCards');
+    const launchDeckSummary = document.getElementById('launchDeckSummary');
     const storageStatus = document.getElementById('storageStatus');
     const siteSearchInput = document.getElementById('siteSearch');
     const siteSearchResults = document.getElementById('siteSearchResults');
@@ -1308,6 +1448,79 @@
 
     const saveRouteRelay = () => {
       storage.set('roostRouteRelay', JSON.stringify(routeRelayState));
+    };
+
+    let launchDeckState;
+    try {
+      launchDeckState = JSON.parse(storage.get('roostLaunchDeckState') ?? '[]');
+    } catch {
+      launchDeckState = [];
+    }
+    if (!Array.isArray(launchDeckState)) launchDeckState = [];
+    launchDeckState = launchDeckState.filter((href) => roostPages.some((page) => page.href === href)).slice(0, 3);
+
+    const saveLaunchDeck = () => {
+      storage.set('roostLaunchDeckState', JSON.stringify(launchDeckState));
+    };
+
+    const getLaunchDeckPrefs = () => ({
+      intent: launchDeckIntent.value,
+      energy: launchDeckEnergy.value,
+      time: Number(launchDeckTime.value)
+    });
+
+    const scoreLaunchDeckCandidate = (page, pref) => {
+      let score = scorePathfinderCandidate(page, pref);
+      if (launchDeckState.includes(page.href)) score += 3;
+      if (pref.intent === 'plan' && page.tags.includes('planning')) score += 2;
+      if (pref.intent === 'build' && page.tags.includes('interactive')) score += 1;
+      if (pref.intent === 'reflect' && page.tags.includes('history')) score += 1;
+      return score;
+    };
+
+    const buildLaunchDeck = () => {
+      const pref = getLaunchDeckPrefs();
+      return roostPages
+        .map((page) => ({ page, score: scoreLaunchDeckCandidate(page, pref) }))
+        .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title))
+        .slice(0, 3);
+    };
+
+    const renderLaunchDeck = () => {
+      const ranked = launchDeckState.length
+        ? launchDeckState
+            .map((href) => roostPages.find((page) => page.href === href))
+            .filter(Boolean)
+            .map((page) => ({ page, score: scoreLaunchDeckCandidate(page, getLaunchDeckPrefs()) }))
+        : buildLaunchDeck();
+
+      if (!ranked.length) {
+        launchDeckCards.innerHTML = '<div class="empty-card">launch deck unavailable.</div>';
+        launchDeckSummary.textContent = 'launch deck unavailable right now.';
+        return;
+      }
+
+      launchDeckCards.innerHTML = ranked.map(({ page, score }, idx) => `
+        <article class="launch-card ${idx === 0 ? 'is-primary' : ''}">
+          <div class="launch-meta"><span>stop ${idx + 1}</span><span>fit ${score}</span><span>${page.energy || 'medium'} energy</span></div>
+          <h3>${page.title}</h3>
+          <p class="launch-copy">${page.description}</p>
+          <div class="tag-row">${page.tags.slice(0, 3).map((tag) => `<span class="tag">${tag}</span>`).join('')}</div>
+          <div class="link-row"><a class="btn" href="${page.href}">open stop</a></div>
+        </article>
+      `).join('');
+
+      const summaryLines = ranked.map(({ page }, idx) => `${idx + 1}. ${page.title} -> ${page.href}`);
+      const lead = ranked[0]?.page?.title || 'the deck';
+      const tail = ranked.slice(1).map(({ page }) => page.title);
+      const middle = tail.length ? `then hands off to ${tail.join(' and ')}.` : 'with no second stop needed.';
+      launchDeckSummary.textContent = `Launch deck:\n${summaryLines.join('\n')}\n\nThis route starts with ${lead}, ${middle}\nWhy it matters: the homepage can now shape a short, intentional path instead of only listing pages.`;
+    };
+
+    const reshuffleLaunchDeck = () => {
+      launchDeckState = buildLaunchDeck().map(({ page }) => page.href);
+      saveLaunchDeck();
+      renderLaunchDeck();
     };
 
     const buildRouteRelay = () => {
@@ -2109,6 +2322,27 @@
     });
 
     runPathfinderBtn.addEventListener('click', runPathfinder);
+    rerollLaunchDeckBtn.addEventListener('click', () => {
+      reshuffleLaunchDeck();
+      setActionStatus('launch deck reshuffled ✓', 'ok');
+    });
+    [launchDeckIntent, launchDeckEnergy, launchDeckTime].forEach((field) => {
+      field.addEventListener('change', renderLaunchDeck);
+    });
+    pinLaunchDeckBtn.addEventListener('click', () => {
+      const current = launchDeckState.length ? launchDeckState : buildLaunchDeck().map(({ page }) => page.href);
+      routebookPinsState = [...new Set([...current, ...routebookPinsState])].slice(0, 6);
+      saveRoutebookPins();
+      renderRoutebook();
+      setActionStatus('launch deck pinned into routebook ✓', 'ok');
+    });
+    copyLaunchDeckBtn.addEventListener('click', async () => {
+      const text = launchDeckSummary.textContent || '';
+      if (navigator.clipboard?.writeText) {
+        try { await navigator.clipboard.writeText(text); } catch { }
+      }
+      setActionStatus('launch deck copied ✓', 'ok');
+    });
 
     try {
       const savedPrefs = JSON.parse(storage.get('roostPathfinderPrefs') || 'null');
@@ -2119,6 +2353,7 @@
 
     renderExplorer('');
     runPathfinder();
+    renderLaunchDeck();
     renderRoutebook();
     renderRouteRelay();
     loadNowTimeline();

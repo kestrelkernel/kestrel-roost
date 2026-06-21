@@ -42,6 +42,8 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Homepage launch deck upgrade:** added an intent-aware launch deck to `index.html` with configurable build/learn/play/reflection/plan filters, a three-stop handoff summary, pinning into the routebook, and copyable route text so the front page can actively shape a next move
+
 - **Roost Weather Deck overhaul:** rebuilt `roost-weather.html` into an interactive planning studio with sortable region scoring, favorite pinning, hourly comparison, and a copyable forecast handoff for quicker session-to-session planning
 - **Roost Handoff launch:** added `roost-handoff.html`, a copyable brief generator that turns the live now/updates/milestones feeds into a next-session plan, with mode switching and launch-page filtering
 
