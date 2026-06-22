@@ -401,6 +401,79 @@
       font:inherit;
       line-height:1.45;
     }
+    .pulse-board {
+      display:grid;
+      gap:12px;
+    }
+    .pulse-stats {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+      gap:10px;
+    }
+    .pulse-stat {
+      border:1px solid #3550a8;
+      border-radius:12px;
+      background:#081231;
+      padding:12px;
+      display:grid;
+      gap:6px;
+    }
+    .pulse-stat strong {
+      font-size:1.3rem;
+      color:#f4f7ff;
+    }
+    .pulse-stat span {
+      color:#aebfff;
+      font-size:.8rem;
+      line-height:1.35;
+    }
+    .pulse-roadmap {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .pulse-roadmap-card {
+      border:1px solid #3550a8;
+      border-radius:12px;
+      background:#081231;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .pulse-roadmap-card h3 {
+      margin:0;
+      font-size:.98rem;
+      color:#f4f7ff;
+    }
+    .pulse-roadmap-card ul {
+      margin:0;
+      padding-left:18px;
+      color:#aebfff;
+      font-size:.92rem;
+      line-height:1.45;
+    }
+    .pulse-roadmap-card li {
+      margin:5px 0;
+    }
+    .pulse-release {
+      border:1px solid #3b53a6;
+      border-radius:12px;
+      background:#08102c;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .pulse-release h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f0f4ff;
+    }
+    .pulse-release p {
+      color:#aebfff;
+    }
+    .pulse-release .meta {
+      justify-content:flex-start;
+    }
     .feed-card h3 {
       margin:0;
       font-size:.95rem;
@@ -688,6 +761,23 @@
       <p>loading latest ship story…</p>
     </section>
 
+    <section class="card" id="releasePulseBoard" aria-live="polite">
+      <h2>release pulse</h2>
+      <p class="tiny" style="margin-bottom:10px;">a quick scan of what just shipped, what is in motion, and where the roadmap is leaning next.</p>
+      <div class="pulse-board">
+        <div class="pulse-stats" id="releasePulseStats">
+          <div class="empty-card">loading pulse stats…</div>
+        </div>
+        <div class="pulse-release" id="releasePulseLatest">
+          <h3>loading latest release…</h3>
+          <p>pulling the most recent ship from the shared update feed.</p>
+        </div>
+        <div class="pulse-roadmap" id="releasePulseRoadmap">
+          <div class="empty-card">loading roadmap…</div>
+        </div>
+      </div>
+    </section>
+
     <section class="card" id="nowBoard" aria-live="polite">
       <h2>focus now</h2>
       <p class="tiny" style="margin-bottom:10px;">live focus feed from the now board.</p>
@@ -889,6 +979,9 @@
 
     const questPoolMeta = document.getElementById('questPoolMeta');
     const storySpotlight = document.getElementById('storySpotlight');
+    const releasePulseStats = document.getElementById('releasePulseStats');
+    const releasePulseLatest = document.getElementById('releasePulseLatest');
+    const releasePulseRoadmap = document.getElementById('releasePulseRoadmap');
     const timelineFilters = document.getElementById('timelineFilters');
     const timelineList = document.getElementById('timelineList');
     const timelineTags = ['all', 'build', 'write', 'learn'];
@@ -1918,6 +2011,90 @@
 
     const normalize = (value) => String(value || '').toLowerCase();
 
+    const renderReleasePulse = (updatesData) => {
+      const roadmap = updatesData?.roadmap || {};
+      const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
+      const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      const counts = {
+        now: Array.isArray(roadmap.now) ? roadmap.now.length : 0,
+        next: Array.isArray(roadmap.next) ? roadmap.next.length : 0,
+        later: Array.isArray(roadmap.later) ? roadmap.later.length : 0
+      };
+
+      if (releasePulseStats) {
+        releasePulseStats.innerHTML = '';
+        [
+          {
+            value: sortedUpdates.length,
+            label: 'shipped updates',
+            note: 'visible releases in the shared changelog feed.'
+          },
+          {
+            value: counts.now,
+            label: 'now bets',
+            note: 'active roadmap items with immediate momentum.'
+          },
+          {
+            value: counts.next,
+            label: 'next bets',
+            note: 'queued work that should land after the current push.'
+          },
+          {
+            value: counts.later,
+            label: 'later bets',
+            note: 'ideas parked for a calmer stretch.'
+          }
+        ].forEach((stat) => {
+          const card = document.createElement('article');
+          card.className = 'pulse-stat';
+          card.innerHTML = `<strong>${stat.value}</strong><span>${stat.label}</span><span>${stat.note}</span>`;
+          releasePulseStats.appendChild(card);
+        });
+      }
+
+      const latest = sortedUpdates[0];
+      if (releasePulseLatest) {
+        if (!latest) {
+          releasePulseLatest.innerHTML = '<h3>no release pulse yet.</h3><p>the changelog feed is empty.</p>';
+        } else {
+          releasePulseLatest.innerHTML = `
+            <h3>${latest.title || 'untitled release'}</h3>
+            <div class="meta"><span class="tag">${latest.type || 'update'}</span><span>${latest.date || 'unknown date'}</span></div>
+            <p>${latest.impact || ''}</p>
+            <div class="link-row">
+              ${latest.page ? `<a class="mini-link" href="${latest.page}">${latest.pageLabel || 'Open page'}</a>` : ''}
+              <a class="mini-link" href="changelog.html#${latest.slug || ''}">Open release entry</a>
+            </div>
+          `;
+        }
+      }
+
+      if (releasePulseRoadmap) {
+        releasePulseRoadmap.innerHTML = '';
+        ['now', 'next', 'later'].forEach((lane) => {
+          const card = document.createElement('article');
+          card.className = 'pulse-roadmap-card';
+          const items = Array.isArray(roadmap[lane]) ? roadmap[lane] : [];
+          card.innerHTML = `<h3>${lane}</h3>`;
+          if (items.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'tiny';
+            empty.textContent = 'nothing queued here yet.';
+            card.appendChild(empty);
+          } else {
+            const list = document.createElement('ul');
+            items.slice(0, 3).forEach((item) => {
+              const li = document.createElement('li');
+              li.textContent = item;
+              list.appendChild(li);
+            });
+            card.appendChild(list);
+          }
+          releasePulseRoadmap.appendChild(card);
+        });
+      }
+    };
+
     const renderStorySpotlight = (updates, notesById) => {
       const latest = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
       if (!latest) {
@@ -2070,6 +2247,7 @@
         const notesById = new Map(notes.map((note) => [note.id, note]));
         const activeFocus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [];
 
+        renderReleasePulse(updatesData);
         renderStorySpotlight(updates, notesById);
         renderLatestShips(updates, notesById);
         renderLatestNotes(notes);
@@ -2107,6 +2285,9 @@
         }
       } catch {
         storySpotlight.innerHTML = '<h2>story spotlight</h2><p>ship story unavailable right now.</p>';
+        releasePulseStats.innerHTML = '<div class="empty-card">release pulse unavailable right now.</div>';
+        releasePulseLatest.innerHTML = '<h3>release pulse unavailable right now.</h3><p>try again once the feed comes back.</p>';
+        releasePulseRoadmap.innerHTML = '<div class="empty-card">roadmap unavailable right now.</div>';
         latestShips.innerHTML = '<div class="empty-card">ship log unavailable right now.</div>';
         latestNotes.innerHTML = '<div class="empty-card">notes unavailable right now.</div>';
         nowFocusGrid.innerHTML = '<div class="empty-card">now board unavailable right now.</div>';
