@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Orbit: a daily planning surface that turns intent into a three-stop flight path." />
+  <title>roost orbit</title>
+  <style>
+    :root {
+      --bg:#07111e;
+      --bg2:#162a52;
+      --card:#0d1835dd;
+      --line:#3958b3;
+      --fg:#edf2ff;
+      --muted:#a7b9f4;
+      --accent:#8ab4ff;
+      --good:#7fe0b0;
+      --warn:#ffd480;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% -6%, #2950a1 0%, transparent 42%),
+        radial-gradient(circle at 92% 112%, #16315c 0%, transparent 46%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1120px, 94vw);
+      margin:32px auto;
+      display:grid;
+      gap:12px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 12px 30px #00000033;
+      backdrop-filter: blur(4px);
+    }
+    h1,h2,h3 { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.2rem); }
+    h2 { font-size:1rem; color:#cfdbff; margin-bottom:10px; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover, a:focus-visible { color:#dbe6ff; outline:none; }
+    .row, .chips, .actions, .meta, .tag-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .grid { display:grid; gap:12px; }
+    .two { grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); }
+    .three { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+    .btn, .chip, .select {
+      border:1px solid #4b67c5;
+      background:#102154;
+      color:#e8edff;
+      border-radius:999px;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .select {
+      border-radius:10px;
+      padding:9px 11px;
+      background:#0a1438;
+    }
+    .btn:hover, .chip:hover, .select:hover,
+    .btn:focus-visible, .chip:focus-visible, .select:focus-visible {
+      border-color:#7f9cff;
+      background:#132865;
+      outline:none;
+    }
+    .chip.is-active {
+      background:#dce6ff;
+      color:#10204f;
+      border-color:#dce6ff;
+    }
+    .stat {
+      border:1px solid #324a94;
+      border-radius:12px;
+      background:#081130;
+      padding:12px;
+      display:grid;
+      gap:5px;
+    }
+    .stat strong { font-size:1.4rem; color:#f4f7ff; }
+    .tiny { font-size:.8rem; color:#9eb1ef; }
+    .signal {
+      border:1px solid #31488f;
+      border-radius:14px;
+      background:#081130;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .signal h3 { font-size:1rem; color:#f3f6ff; }
+    .signal p { font-size:.92rem; }
+    .signal .meta { font-size:.78rem; color:#bed0ff; }
+    .orbit-board {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:12px;
+    }
+    .orbit-leg {
+      border:1px solid #3952a0;
+      border-radius:14px;
+      background:#091332;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .orbit-leg.is-primary {
+      border-color:#7f97e8;
+      background:linear-gradient(155deg, #132965, #091332 72%);
+    }
+    .orbit-leg h3 { font-size:1rem; color:#f4f7ff; }
+    .orbit-leg p { font-size:.92rem; color:#aebfff; }
+    .orbit-leg .meta { font-size:.78rem; color:#bed0ff; }
+    .handoff {
+      border:1px solid #3952a0;
+      border-radius:14px;
+      background:#08112d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    pre {
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      color:#dbe4ff;
+      line-height:1.5;
+    }
+    .empty {
+      border:1px dashed #465ca4;
+      border-radius:12px;
+      padding:14px;
+      color:#a9bbff;
+    }
+    .status { min-height:1.2em; color:#bdd0ff; font-size:.84rem; }
+    .status.ok { color:var(--good); }
+    .status.warn { color:var(--warn); }
+    .lane-list {
+      display:grid;
+      gap:8px;
+      margin:0;
+      padding:0;
+      list-style:none;
+    }
+    .lane-item {
+      border:1px solid #31488f;
+      border-radius:12px;
+      background:#091133;
+      padding:12px;
+      display:grid;
+      gap:6px;
+    }
+    .lane-item strong { color:#f1f5ff; }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <div class="row">
+        <a class="btn" href="index.html">← back home</a>
+        <a class="btn" href="command-center.html">open command center</a>
+        <a class="btn" href="roost-handoff.html">open handoff</a>
+      </div>
+      <h1>roost orbit</h1>
+      <p>A daily flight path for when you want the site to tell you what to do next. Set the mode, and it assembles a three-stop orbit with a copyable handoff note.</p>
+    </section>
+
+    <section class="grid three" aria-live="polite">
+      <article class="stat">
+        <span class="tiny">orbit mode</span>
+        <strong id="orbitModeLabel">loading…</strong>
+        <span class="tiny" id="orbitModeDetail">building the current flight profile.</span>
+      </article>
+      <article class="stat">
+        <span class="tiny">recommended pace</span>
+        <strong id="orbitPaceLabel">loading…</strong>
+        <span class="tiny" id="orbitPaceDetail">matching time and energy to the route.</span>
+      </article>
+      <article class="stat">
+        <span class="tiny">freshest signal</span>
+        <strong id="orbitSignalLabel">loading…</strong>
+        <span class="tiny" id="orbitSignalDetail">pulling from the shared update feed.</span>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>orbit controls</h2>
+        <div class="chips" id="orbitModeChips"></div>
+        <div class="grid three" style="margin-top:12px;">
+          <label class="tiny">energy
+            <select id="energySelect" class="select">
+              <option value="high">high</option>
+              <option value="medium">medium</option>
+              <option value="low">low</option>
+            </select>
+          </label>
+          <label class="tiny">time
+            <select id="timeSelect" class="select">
+              <option value="15">15 min</option>
+              <option value="30">30 min</option>
+              <option value="60">60+ min</option>
+            </select>
+          </label>
+          <label class="tiny">scope
+            <select id="scopeSelect" class="select">
+              <option value="tight">tight</option>
+              <option value="balanced">balanced</option>
+              <option value="expansive">expansive</option>
+            </select>
+          </label>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button class="btn" id="rerollOrbit" type="button">reshuffle orbit</button>
+          <button class="btn" id="copyOrbit" type="button">copy handoff</button>
+          <button class="btn" id="pinOrbit" type="button">pin current orbit</button>
+        </div>
+        <p class="status" id="orbitStatus" aria-live="polite"></p>
+      </article>
+
+      <article class="card">
+        <h2>copyable handoff</h2>
+        <pre id="orbitBrief" aria-live="polite">Loading orbit...</pre>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>flight legs</h2>
+        <div class="orbit-board" id="orbitBoard">
+          <div class="empty">loading orbit legs…</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>why this orbit</h2>
+        <ul class="lane-list" id="orbitReasonList">
+          <li class="empty">loading rationale…</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>saved orbits</h2>
+      <p class="tiny" style="margin-bottom:10px;">your last pinned routes live here so you can repeat a good day without rebuilding it from scratch.</p>
+      <div class="tag-row" id="savedOrbitTags"></div>
+    </section>
+  </main>
+
+  <script>
+    const byId = id => document.getElementById(id);
+    const storageKey = 'kestrel-roost:orbit';
+    const savedKey = 'kestrel-roost:orbit-saved';
+    const orbitModes = [
+      { id: 'build', label: 'build mode', tone: 'ship something visible and finish cleanly' },
+      { id: 'learn', label: 'learn mode', tone: 'read, compare, and turn a small insight into action' },
+      { id: 'play', label: 'play mode', tone: 'lean into a lighter, more surprising surface' },
+      { id: 'reflect', label: 'reflect mode', tone: 'tighten the story and make the next move obvious' },
+      { id: 'plan', label: 'plan mode', tone: 'map the next route so future-you starts faster' }
+    ];
+
+    const pages = [
+      { title: 'home', href: 'index.html', tag: 'launch', note: 'front door and mission control' },
+      { title: 'now board', href: 'now.html', tag: 'focus', note: 'active work and progress snapshots' },
+      { title: 'flight deck', href: 'flight-deck.html', tag: 'roadmap', note: 'ship log and upcoming work' },
+      { title: 'captain\'s log', href: 'captains-log.html', tag: 'digest', note: 'shareable recaps from the ship feed' },
+      { title: 'roost atlas', href: 'roost-atlas.html', tag: 'map', note: 'relationship map between pages and updates' },
+      { title: 'roost handoff', href: 'roost-handoff.html', tag: 'brief', note: 'copyable session brief generator' },
+      { title: 'mission plotter', href: 'mission-plotter.html', tag: 'plan', note: 'drag-and-drop mission sequencing' },
+      { title: 'roost lab', href: 'roost-lab.html', tag: 'style', note: 'visual prototyping and CSS export' },
+      { title: 'roost trails', href: 'roost-trails.html', tag: 'signal', note: 'track shipped and active work patterns' }
+    ];
+
+    const state = {
+      mode: 'build',
+      energy: 'medium',
+      time: '30',
+      scope: 'balanced',
+      orbitSeed: 0,
+      updatedAt: null,
+      now: null,
+      updates: null,
+      milestones: null,
+      saved: []
+    };
+
+    async function loadJSON(path) {
+      const res = await fetch(path, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Failed to load ${path}`);
+      return res.json();
+    }
+
+    function safeLoad(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function safeSave(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+      catch { return false; }
+    }
+
+    function modeMeta(id) {
+      return orbitModes.find(mode => mode.id === id) || orbitModes[0];
+    }
+
+    function choose(list, index) {
+      return list[index % list.length];
+    }
+
+    function scorePage(page) {
+      let score = 0;
+      if (state.mode === 'build' && ['roadmap', 'plan', 'focus'].includes(page.tag)) score += 3;
+      if (state.mode === 'learn' && ['map', 'digest', 'signal'].includes(page.tag)) score += 3;
+      if (state.mode === 'play' && ['style', 'launch'].includes(page.tag)) score += 3;
+      if (state.mode === 'reflect' && ['digest', 'signal', 'brief'].includes(page.tag)) score += 3;
+      if (state.mode === 'plan' && ['plan', 'roadmap', 'brief'].includes(page.tag)) score += 3;
+      if (state.energy === 'high' && ['launch', 'style', 'plan'].includes(page.tag)) score += 1;
+      if (state.energy === 'low' && ['brief', 'digest', 'signal'].includes(page.tag)) score += 1;
+      if (state.time === '15' && ['launch', 'brief', 'signal'].includes(page.tag)) score += 1;
+      if (state.time === '60' && ['roadmap', 'map', 'plan'].includes(page.tag)) score += 1;
+      if (state.scope === 'tight' && ['brief', 'focus'].includes(page.tag)) score += 1;
+      if (state.scope === 'expansive' && ['map', 'launch', 'style'].includes(page.tag)) score += 1;
+      return score + (page.title.length % 3);
+    }
+
+    function buildOrbit() {
+      const mode = modeMeta(state.mode);
+      const sortedPages = [...pages].sort((a, b) => scorePage(b) - scorePage(a));
+      const lead = sortedPages[0];
+      const middle = sortedPages[1];
+      const close = sortedPages[2];
+      const focus = state.now.activeFocus[state.orbitSeed % state.now.activeFocus.length];
+      const latest = state.updates.updates[0];
+      const milestone = state.milestones[state.milestones.length - 1];
+      const landing = state.scope === 'tight'
+        ? 'keep the orbit narrow and leave one clean artifact behind.'
+        : state.scope === 'expansive'
+          ? 'use the orbit to connect a few surfaces and make the site feel bigger.'
+          : 'keep the orbit balanced: one useful change, one useful link, one useful note.';
+
+      const legMeta = [
+        `${state.energy} energy`,
+        `${state.time} min`,
+        `${state.scope} scope`
+      ];
+
+      const legs = [
+        {
+          title: `launch into ${lead.title}`,
+          page: lead,
+          copy: `start with ${lead.note}. this fits ${mode.label} because it helps you ${mode.tone}.`
+        },
+        {
+          title: `cruise through ${middle.title}`,
+          page: middle,
+          copy: `use ${middle.note} to keep the orbit connected to the current narrative instead of drifting into random polishing.`
+        },
+        {
+          title: `land on ${close.title}`,
+          page: close,
+          copy: `finish by saving the shape of the day in ${close.note}, then stop while the route still feels intentional.`
+        }
+      ];
+
+      const brief = [
+        `roost orbit // ${state.updatedAt}`,
+        `mode: ${mode.label}`,
+        `pace: ${legMeta.join(' · ')}`,
+        `anchor: ${focus.title} (${focus.progress}% complete)`,
+        `signal: ${latest.title} (${latest.date})`,
+        '',
+        'flight plan',
+        `1. ${legs[0].title} - ${legs[0].page.note}.`,
+        `2. ${legs[1].title} - ${legs[1].page.note}.`,
+        `3. ${legs[2].title} - ${legs[2].page.note}.`,
+        '',
+        'why this orbit',
+        `- freshest release to keep the route grounded: ${latest.title}.`,
+        `- current focus to keep the orbit honest: ${focus.title}.`,
+        `- next milestone to keep the day pointed forward: ${milestone.date} ${milestone.title}.`,
+        `- landing rule: ${landing}`,
+        '',
+        'returning note',
+        '- reopen this page, pin the orbit if it felt good, and repeat the shape instead of starting from scratch.'
+      ].join('\n');
+
+      byId('orbitModeLabel').textContent = mode.label;
+      byId('orbitModeDetail').textContent = mode.tone;
+      byId('orbitPaceLabel').textContent = `${state.energy}, ${state.time} min`;
+      byId('orbitPaceDetail').textContent = `${state.scope} orbit with a ${focus.horizon} anchor`;
+      byId('orbitSignalLabel').textContent = latest.title;
+      byId('orbitSignalDetail').textContent = `${latest.date} · ${latest.impact}`;
+      byId('orbitBrief').textContent = brief;
+      renderOrbitCards(legs);
+      renderReasons(mode, focus, latest, milestone, landing);
+      renderSavedOrbits(brief);
+      return brief;
+    }
+
+    function renderOrbitCards(legs) {
+      byId('orbitBoard').innerHTML = legs.map((leg, index) => `
+        <article class="orbit-leg ${index === 0 ? 'is-primary' : ''}">
+          <h3>${leg.title}</h3>
+          <p>${leg.copy}</p>
+          <div class="meta">
+            <span>${leg.page.tag}</span>
+            <span>•</span>
+            <a href="${leg.page.href}">${leg.page.title}</a>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderReasons(mode, focus, latest, milestone, landing) {
+      const reasons = [
+        `This orbit favors ${mode.label.replace(' mode', '')} so the page matches the kind of work you want today.`,
+        `The shared focus stays visible by anchoring to ${focus.title.toLowerCase()}.`,
+        `The freshest update is ${latest.title.toLowerCase()}, which keeps the route connected to real momentum.`,
+        `The next milestone watch is ${milestone.date} ${milestone.title.toLowerCase()}, so the day still points forward.`,
+        `Landing rule: ${landing}`
+      ];
+      byId('orbitReasonList').innerHTML = reasons.map(reason => `<li class="lane-item"><strong>signal</strong><span>${reason}</span></li>`).join('');
+    }
+
+    function renderOrbitChips() {
+      byId('orbitModeChips').innerHTML = orbitModes.map(mode => `
+        <button class="chip ${mode.id === state.mode ? 'is-active' : ''}" data-mode="${mode.id}" type="button">${mode.label}</button>
+      `).join('');
+      byId('orbitModeChips').querySelectorAll('[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.mode = btn.dataset.mode;
+          persistState();
+          renderOrbitChips();
+          buildOrbit();
+        });
+      });
+    }
+
+    function renderSavedOrbits(latestBrief) {
+      const saved = state.saved.slice(0, 6);
+      byId('savedOrbitTags').innerHTML = saved.length
+        ? saved.map((entry, index) => `
+          <button class="chip" type="button" data-saved="${index}">${entry.label}</button>
+        `).join('')
+        : '<span class="empty">no saved orbit yet. pin one after a good run.</span>';
+      byId('savedOrbitTags').querySelectorAll('[data-saved]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const item = saved[Number(btn.dataset.saved)];
+          if (!item) return;
+          await copyText(item.brief);
+          byId('orbitStatus').textContent = `Loaded saved orbit: ${item.label}`;
+          byId('orbitStatus').className = 'status ok';
+        });
+      });
+      if (!state.saved.length && latestBrief) return;
+    }
+
+    function persistState() {
+      safeSave(storageKey, {
+        mode: state.mode,
+        energy: state.energy,
+        time: state.time,
+        scope: state.scope,
+        orbitSeed: state.orbitSeed
+      });
+      safeSave(savedKey, state.saved);
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+      }
+    }
+
+    function syncSelects() {
+      byId('energySelect').value = state.energy;
+      byId('timeSelect').value = state.time;
+      byId('scopeSelect').value = state.scope;
+    }
+
+    async function init() {
+      const saved = safeLoad(storageKey, {});
+      state.mode = saved.mode || state.mode;
+      state.energy = saved.energy || state.energy;
+      state.time = saved.time || state.time;
+      state.scope = saved.scope || state.scope;
+      state.orbitSeed = saved.orbitSeed || 0;
+      state.saved = safeLoad(savedKey, []);
+      syncSelects();
+      renderOrbitChips();
+      state.now = await loadJSON('assets/roost-now.json');
+      state.updates = await loadJSON('assets/roost-updates.json');
+      state.milestones = await loadJSON('assets/roost-milestones.json');
+      state.updatedAt = state.now.updatedAt;
+      buildOrbit();
+    }
+
+    function bindControls() {
+      byId('energySelect').addEventListener('change', e => { state.energy = e.target.value; persistState(); buildOrbit(); });
+      byId('timeSelect').addEventListener('change', e => { state.time = e.target.value; persistState(); buildOrbit(); });
+      byId('scopeSelect').addEventListener('change', e => { state.scope = e.target.value; persistState(); buildOrbit(); });
+      byId('rerollOrbit').addEventListener('click', () => { state.orbitSeed += 1; persistState(); buildOrbit(); });
+      byId('copyOrbit').addEventListener('click', async () => {
+        const ok = await copyText(byId('orbitBrief').textContent);
+        byId('orbitStatus').textContent = ok ? 'Orbit copied to clipboard.' : 'Copy failed, but the route is still visible.';
+        byId('orbitStatus').className = `status ${ok ? 'ok' : 'warn'}`;
+      });
+      byId('pinOrbit').addEventListener('click', () => {
+        const label = `${modeMeta(state.mode).label} · ${state.energy} · ${state.time}m`;
+        const brief = byId('orbitBrief').textContent;
+        state.saved = [{ label, brief, at: new Date().toISOString() }, ...state.saved.filter(item => item.label !== label)].slice(0, 8);
+        persistState();
+        renderSavedOrbits(brief);
+        byId('orbitStatus').textContent = `Pinned orbit: ${label}`;
+        byId('orbitStatus').className = 'status ok';
+      });
+    }
+
+    bindControls();
+    init().catch(err => {
+      byId('orbitBrief').textContent = `Failed to load orbit data: ${err.message}`;
+      byId('orbitStatus').textContent = 'Orbit data failed to load.';
+      byId('orbitStatus').className = 'status warn';
+    });
+  </script>
+</body>
+</html>

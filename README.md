@@ -38,6 +38,7 @@ python3 -m http.server 8080
 - `roost-trails.html` — trail intelligence board for filtering shipped/active work and scanning impact patterns over time
 - `roost-storyboard.html` — idea queue studio with impact/effort scoring, shipped toggles, and markdown export for next-build planning
 - `roost-handoff.html` — copyable session brief generator that distills the latest now/updates/milestones data into a next-step handoff
+- `roost-orbit.html` — daily orbit planner that turns intent, energy, and time into a copyable 3-stop route
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
