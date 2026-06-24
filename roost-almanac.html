@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Almanac: convert seasonal, weather, and energy signals into a practical build plan." />
+  <title>Roost Almanac</title>
+  <style>
+    :root { --bg:#08111e; --bg2:#13233a; --card:#0d1730e6; --line:#324d7c; --fg:#eef3ff; --muted:#a8b8d8; --accent:#8fc0ff; --accent2:#9af0c1; --warm:#ffd58d; --cool:#a7c7ff; }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--fg);background:radial-gradient(circle at 15% 0%, #21406f 0%, transparent 36%),radial-gradient(circle at 90% 105%, #133050 0%, transparent 36%),linear-gradient(180deg,var(--bg2),var(--bg))}
+    main{width:min(1160px,92vw);margin:0 auto;padding:28px 0 44px;display:grid;gap:14px}
+    .top,.grid{display:grid;gap:12px}
+    .top{grid-template-columns:minmax(0,1.25fr) minmax(300px,.85fr);align-items:start}
+    .grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .card{border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#13213ae6,var(--card));padding:16px;box-shadow:0 14px 40px #0000002e}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.02}
+    h2{font-size:1rem;color:#d6e1ff}
+    h3{font-size:.95rem;color:#f3f6ff}
+    p{color:var(--muted);line-height:1.55}
+    .lede{margin-top:10px;max-width:66ch}
+    .row,.chips,.nav{display:flex;gap:10px;flex-wrap:wrap}
+    .nav a,.btn,.chip{border:1px solid #4767b0;border-radius:999px;padding:8px 12px;text-decoration:none;color:#e5eeff;background:#11214f;font:inherit;cursor:pointer;transition:.15s ease}
+    .nav a:hover,.btn:hover,.chip:hover,.nav a:focus-visible,.btn:focus-visible,.chip:focus-visible{outline:none;transform:translateY(-1px);border-color:#88a4ef;background:#132861}
+    .chip.is-active{border-color:#94e0be;background:#163553;color:#dffef0}
+    .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+    .stat{border:1px solid #39558d;border-radius:14px;padding:12px;background:#091327}
+    .stat .label{font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:#94a9d9}
+    .stat .value{margin-top:6px;font-size:1.2rem;color:#f2f6ff}
+    .stat .sub{margin-top:4px;font-size:.84rem;color:var(--muted)}
+    .list{margin:10px 0 0;padding-left:18px;color:#d7e0f8}
+    .list li{margin:6px 0}
+    .tone{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:#d0defd;border:1px dashed #5574b7;border-radius:999px;padding:3px 9px}
+    .tone::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent2)}
+    .tone.warm::before{background:var(--warm)}
+    .tone.cool::before{background:var(--cool)}
+    .forecast{display:grid;gap:10px}
+    .forecast-card{border:1px solid #385486;border-radius:14px;padding:12px;background:#081224;display:grid;gap:8px}
+    .bars{display:grid;gap:8px}
+    .bar-row{display:grid;grid-template-columns:56px 1fr 42px;gap:8px;align-items:center;font-size:.82rem;color:#bfd0f4}
+    .bar{height:9px;border-radius:999px;background:#18274b;overflow:hidden}
+    .bar > span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#77dca9,#8eb3ff)}
+    .recipe{border:1px solid #5475ba;border-radius:16px;padding:14px;background:linear-gradient(160deg,#102347,#081225)}
+    .recipe pre{margin:10px 0 0;white-space:pre-wrap;word-break:break-word;color:#ecf2ff;background:#050c1c;border:1px solid #2e4677;border-radius:12px;padding:12px}
+    .muted{color:var(--muted)}
+    .footer{font-size:.82rem;color:#96a8d8}
+    @media (max-width: 860px){.top{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main>
+    <section class="top">
+      <div class="card">
+        <div class="tone" id="seasonTone">season scan</div>
+        <h1>Roost Almanac</h1>
+        <p class="lede">A practical planning compass that blends the yearwheel, time-of-day energy, and current weather patterns into a single recommendation. It is meant to answer one thing fast: build, write, or recover?</p>
+        <div class="row" style="margin-top:14px">
+          <nav class="nav" aria-label="Site">
+            <a href="index.html">home</a>
+            <a href="roost-weather.html">weather deck</a>
+            <a href="roost-yearwheel.html">yearwheel</a>
+            <a href="roost-orbit.html">orbit</a>
+          </nav>
+        </div>
+        <div class="stat-row" id="stats"></div>
+      </div>
+      <aside class="card recipe">
+        <h2>Today’s recipe</h2>
+        <p id="recipeLead" class="muted" style="margin-top:8px">Loading planning cues...</p>
+        <pre id="recipeText">Loading...</pre>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="copyBtn" type="button">copy recipe</button>
+          <button class="btn" id="rerollBtn" type="button">recalculate</button>
+        </div>
+        <p id="copyStatus" class="footer" style="margin-top:10px"></p>
+      </aside>
+    </section>
+    <section class="grid">
+      <article class="card">
+        <h2>Seasonal compass</h2>
+        <div id="seasonList" class="forecast" style="margin-top:10px"></div>
+      </article>
+      <article class="card">
+        <h2>Energy windows</h2>
+        <div class="chips" id="filters" style="margin-top:10px"></div>
+        <div id="windowList" class="forecast" style="margin-top:10px"></div>
+      </article>
+      <article class="card">
+        <h2>Weather fit</h2>
+        <div id="weatherList" class="forecast" style="margin-top:10px"></div>
+      </article>
+    </section>
+  </main>
+  <script>
+    const state = { kind: 'All' };
+    const el = (id) => document.getElementById(id);
+    const kinds = ['All','Build','Code','Comms','Research','Ops','Writing'];
+    const load = async (path) => { const res = await fetch(path, { cache: 'no-store' }); if (!res.ok) throw new Error(path); return res.json(); };
+    const byEnergy = (energy) => ({ Low: 1, Medium: 2, High: 3 }[energy] || 0);
+    const hourScore = (hour, energy) => { const h = new Date(`1970-01-01T${hour}:00Z`).getUTCHours(); const isPeak = h >= 9 && h <= 14; const isGentle = h < 9 || h > 17; if (energy === 'High') return isPeak ? 3 : 1; if (energy === 'Medium') return isPeak || !isGentle ? 3 : 2; return isGentle ? 3 : 2; };
+    const weatherPreference = (mood) => ({ focus:'cool', steady:'', cozy:'warm' }[mood] || '');
+    function renderFilters() {
+      el('filters').innerHTML = kinds.map(kind => `<button class="chip ${state.kind === kind ? 'is-active' : ''}" data-kind="${kind}" type="button">${kind}</button>`).join('');
+      el('filters').querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => { state.kind = btn.dataset.kind; render(dataCache); }));
+    }
+    let dataCache = null;
+    function render(data) {
+      dataCache = data;
+      const { almanac, yearwheel, weather } = data;
+      const month = new Date().toLocaleString('en-US', { month: 'long' });
+      const currentSeason = yearwheel.find(item => item.months.includes(month)) || yearwheel[0];
+      const chosenWeather = [...weather.regions].sort((a, b) => b.gustKph - a.gustKph || b.visibilityKm - a.visibilityKm)[0];
+      const filtered = state.kind === 'All' ? almanac : almanac.filter(item => item.kind === state.kind);
+      const sorted = filtered.map(item => ({ ...item, score: hourScore(item.window.split('-')[0], item.energy) })).sort((a, b) => b.score - a.score || byEnergy(b.energy) - byEnergy(a.energy));
+      const best = sorted[0] || almanac[0];
+      el('seasonTone').className = `tone ${currentSeason.theme.includes('publish') ? 'cool' : currentSeason.theme.includes('review') ? 'warm' : ''}`;
+      el('seasonTone').textContent = `${currentSeason.season} · ${currentSeason.theme}`;
+      el('stats').innerHTML = [
+        { label: 'current month', value: month, sub: currentSeason.moves[0] },
+        { label: 'best block', value: best.window, sub: `${best.title} · ${best.energy} energy` },
+        { label: 'weather fit', value: chosenWeather.name, sub: chosenWeather.advice },
+        { label: 'signal', value: currentSeason.theme, sub: `${currentSeason.moves.length} moves in this season` }
+      ].map(item => `<div class="stat"><div class="label">${item.label}</div><div class="value">${item.value}</div><div class="sub">${item.sub}</div></div>`).join('');
+      el('seasonList').innerHTML = yearwheel.map(season => `<div class="forecast-card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>${season.season}</h3><p>${season.theme}</p></div><span class="tone ${season.theme.includes('publish') ? 'cool' : season.theme.includes('review') ? 'warm' : ''}">${season.months.join(' / ')}</span></div><ul class="list">${season.moves.map(move => `<li>${move}</li>`).join('')}</ul></div>`).join('');
+      el('windowList').innerHTML = sorted.map(item => `<div class="forecast-card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>${item.title}</h3><p>${item.note}</p></div><span class="tone ${item.energy === 'High' ? 'cool' : item.energy === 'Low' ? 'warm' : ''}">${item.kind}</span></div><div class="bars"><div class="bar-row"><span>fit</span><div class="bar"><span style="width:${item.score * 33}%"></span></div><span>${item.score}/3</span></div><div class="bar-row"><span>energy</span><div class="bar"><span style="width:${byEnergy(item.energy) * 33}%"></span></div><span>${item.energy}</span></div></div><p class="footer">${item.date} · ${item.window}</p></div>`).join('');
+      el('weatherList').innerHTML = weather.regions.map(region => {
+        const avgWind = region.timeline.map(slot => slot.windKph).reduce((a, b) => a + b, 0) / region.timeline.length;
+        return `<div class="forecast-card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>${region.name}</h3><p>${region.summary}</p></div><span class="tone ${weatherPreference(region.mood)}">${region.mood}</span></div><p>${region.advice}</p><div class="stat-row" style="margin-top:4px"><div class="stat"><div class="label">wind</div><div class="value">${region.windKph} kph</div><div class="sub">gusts ${region.gustKph}</div></div><div class="stat"><div class="label">temp</div><div class="value">${region.tempC} C</div><div class="sub">avg window ${avgWind.toFixed(0)} kph</div></div><div class="stat"><div class="label">visibility</div><div class="value">${region.visibilityKm} km</div><div class="sub">${region.timeline[0].hour} to ${region.timeline.at(-1).hour}</div></div></div></div>`;
+      }).join('');
+      const recipe = [`Season: ${currentSeason.season} (${currentSeason.theme})`,`Best current task: ${best.title} in the ${best.window} window`,`Weather lean: ${chosenWeather.name} - ${chosenWeather.advice}`,'Recommended mode: ' + best.energy.toLowerCase() + ' intensity','','Three-step plan:',`1. ${currentSeason.moves[0]}`,`2. ${best.note}`,`3. Close with ${currentSeason.moves[1] || currentSeason.moves[0].toLowerCase()}`].join('\n');
+      el('recipeLead').textContent = `Filtered to ${state.kind}. This is the strongest available route from the current planning signals.`;
+      el('recipeText').textContent = recipe;
+      el('copyBtn').onclick = async () => { try { await navigator.clipboard.writeText(recipe); el('copyStatus').textContent = 'Recipe copied to clipboard.'; } catch { el('copyStatus').textContent = 'Clipboard blocked. Select and copy the recipe manually.'; } };
+      el('rerollBtn').onclick = () => render(data);
+    }
+    async function boot() { renderFilters(); const [almanac, yearwheel, weather] = await Promise.all([load('assets/roost-almanac.json'), load('assets/roost-yearwheel.json'), load('assets/roost-weather.json')]); render({ almanac, yearwheel, weather }); }
+    boot().catch(() => { el('recipeLead').textContent = 'Almanac data is unavailable right now.'; el('recipeText').textContent = 'Try reloading the page in a moment.'; });
+  </script>
+</body>
+</html>

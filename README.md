@@ -19,6 +19,7 @@ python3 -m http.server 8080
 - `gallery.html` — image showcase wall + featured art drops
 - `wallpapers.html` — downloadable SVG wallpaper packs in desktop + phone sizes
 - `now.html` — live now board with active focus cards, progress bars, recent wins, and next-up priorities
+- `roost-almanac.html` — planning compass that folds seasonal, energy, and weather signals into a copyable build recipe
 - `changelog.html` — release history + filterable flight log
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
@@ -47,6 +48,7 @@ python3 -m http.server 8080
 - **Homepage launch deck upgrade:** added an intent-aware launch deck to `index.html` with configurable build/learn/play/reflection/plan filters, a three-stop handoff summary, pinning into the routebook, and copyable route text so the front page can actively shape a next move
 
 - **Roost Weather Deck overhaul:** rebuilt `roost-weather.html` into an interactive planning studio with sortable region scoring, favorite pinning, hourly comparison, and a copyable forecast handoff for quicker session-to-session planning
+- **Roost Almanac launch:** added `roost-almanac.html`, a seasonal planning compass that ranks energy windows, compares weather regions, and generates a copyable daily build recipe from the shared almanac feeds
 - **Roost Handoff launch:** added `roost-handoff.html`, a copyable brief generator that turns the live now/updates/milestones feeds into a next-session plan, with mode switching and launch-page filtering
 
 - **Roost Route Relay launch:** added a new homepage guided-tour panel that assembles a 3-stop next-step route, supports reshuffling and pinning, and produces a copyable handoff note for easier session-to-session continuity
