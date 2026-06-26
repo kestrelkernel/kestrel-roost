@@ -5,25 +5,130 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roost Briefing</title>
   <style>
-    :root { color-scheme: dark; --bg:#05070f; --card:#101729; --line:#2b3552; --text:#eaf0ff; --muted:#9eabc9; --accent:#8bb8ff; }
-    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,sans-serif;background:radial-gradient(circle at top,#10172d 0%,var(--bg) 55%);color:var(--text)}
-    main{max-width:980px;margin:0 auto;padding:28px 16px 48px}
-    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
-    .nav a{color:var(--muted);text-decoration:none;margin-right:12px}.nav a:hover{color:var(--accent)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}
-    .card{background:linear-gradient(180deg,#151f36,var(--card));border:1px solid var(--line);border-radius:14px;padding:14px}
-    h1{margin:0 0 6px} h2{margin:0 0 10px;font-size:1.02rem} p{margin:0 0 8px;color:var(--muted)}
-    ul{margin:0;padding-left:18px;color:#cdd7f4} li{margin:6px 0}
-    .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-    .pill{display:inline-block;border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:.75rem;color:#c5d5ff}
+    :root {
+      color-scheme: dark;
+      --bg:#05070f;
+      --bg2:#0d1630;
+      --card:#101729;
+      --card2:#0a1224;
+      --line:#2b3552;
+      --text:#eaf0ff;
+      --muted:#9eabc9;
+      --accent:#8bb8ff;
+      --accent2:#7ef0c3;
+      --warn:#ffd479;
+      --good:#8ef1c0;
+      --shadow: 0 24px 60px rgba(0,0,0,.34);
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, #16214b 0%, transparent 38%),
+        radial-gradient(circle at 85% 10%, #17325f 0%, transparent 35%),
+        linear-gradient(180deg,var(--bg2),var(--bg) 58%);
+    }
+    a{color:inherit}
+    .shell{max-width:1180px;margin:0 auto;padding:26px 16px 48px}
+    .top{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    h1{margin:0 0 8px;font-size:clamp(2.1rem,5vw,3.8rem);letter-spacing:-0.04em}
+    .lede{margin:0;color:var(--muted);max-width:64ch;line-height:1.55}
+    .nav{display:flex;flex-wrap:wrap;gap:10px}
+    .nav a,.chip,.action{
+      text-decoration:none;border:1px solid #415183;border-radius:999px;padding:8px 12px;
+      background:#0e1835;color:#dce6ff;font:inherit;transition:.16s ease;
+    }
+    .nav a:hover,.action:hover,.chip:hover{transform:translateY(-1px);border-color:#6f8dff;background:#12204a}
+    .nav a:focus-visible,.action:focus-visible,.chip:focus-visible{outline:2px solid #9ab4ff;outline-offset:2px}
+    .hero{
+      border:1px solid #405181;background:linear-gradient(155deg,#121d3d,#081025 62%,#12224f);
+      border-radius:22px;padding:20px;box-shadow:var(--shadow);display:grid;gap:14px;position:relative;overflow:hidden;
+    }
+    .hero::after{
+      content:"";position:absolute;inset:auto -80px -120px auto;width:280px;height:280px;border-radius:999px;
+      background:radial-gradient(circle, rgba(139,184,255,.18) 0%, transparent 68%);pointer-events:none;
+    }
+    .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;position:relative;z-index:1}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:relative;z-index:1}
+    .controls .chip[aria-pressed="true"]{border-color:#82a5ff;background:#14285f;color:#f3f7ff}
+    .select{background:#0a1438;border:1px solid #3f56a8;border-radius:999px;color:#e6ecff;font:inherit;padding:8px 12px}
+    .metric{
+      border:1px solid #354571;border-radius:16px;background:rgba(8,16,39,.72);padding:14px;display:grid;gap:5px;
+    }
+    .metric strong{font-size:1.6rem;line-height:1;color:#f4f7ff}
+    .metric span{color:var(--muted);font-size:.82rem;line-height:1.35}
+    .metric small{color:#b8c8ff;font-size:.74rem;letter-spacing:.04em;text-transform:uppercase}
+    .stack{display:grid;gap:14px;margin-top:16px}
+    .band{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;
+    }
+    .panel{
+      border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,var(--card),var(--card2));
+      padding:16px;box-shadow:var(--shadow);display:grid;gap:12px;
+    }
+    .panel h2{margin:0;font-size:1.02rem;letter-spacing:.01em}
+    .panel-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+    .panel-note{margin:0;color:var(--muted);font-size:.84rem}
+    .focus-list,.exp-list,.release-list{display:grid;gap:10px}
+    .update-timeline{display:grid;gap:10px}
+    .timeline-item{border:1px solid #314062;border-radius:14px;background:#0a1227;padding:14px;display:grid;gap:8px}
+    .timeline-item strong{font-size:1rem}
+    .timeline-item p{margin:0;color:#b7c4ea;line-height:1.5;font-size:.92rem}
+    .focus-item,.exp-item,.release-item{
+      border:1px solid #314062;border-radius:14px;background:#0a1227;padding:14px;display:grid;gap:10px;
+    }
+    .focus-item strong,.exp-item strong,.release-item strong{font-size:1rem}
+    .copy{margin:0;color:#b7c4ea;line-height:1.5}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.76rem;color:#bfd0ff}
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;border:1px solid #42568d;border-radius:999px;padding:4px 9px;
+      background:#0f1b3b;text-transform:uppercase;letter-spacing:.06em;font-size:.7rem;color:#d9e4ff;
+    }
+    .badge.good{border-color:#397763;color:#b8ffe0}
+    .badge.warn{border-color:#8b6a2e;color:#ffe0a5}
+    .progress{
+      display:grid;gap:6px;
+    }
+    .track{height:8px;border-radius:999px;background:#1a274b;overflow:hidden}
+    .fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .list{margin:0;padding-left:18px;color:#cfd8f3}
+    .list li{margin:5px 0;line-height:1.45}
+    .summary{
+      border:1px solid #3b4d7c;border-radius:18px;background:linear-gradient(180deg,#0c142c,#08101f);
+      padding:16px;display:grid;gap:12px;box-shadow:var(--shadow);
+    }
+    .summary pre{margin:0;white-space:pre-wrap;font:inherit;color:#e5ecff;line-height:1.55}
+    .summary-actions{display:flex;flex-wrap:wrap;gap:10px}
+    .action{cursor:pointer}
+    .statusline{color:var(--muted);font-size:.82rem;min-height:1.2em}
+    .route{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;
+    }
+    .route-step{
+      border:1px solid #354773;border-radius:14px;background:#0b1328;padding:14px;display:grid;gap:8px;
+    }
+    .route-step strong{font-size:1rem}
+    .route-step p{margin:0;color:#b2c2eb;line-height:1.45;font-size:.92rem}
+    .route-step a{color:var(--accent)}
+    @media (max-width: 720px){
+      .shell{padding:18px 12px 40px}
+      .hero,.panel,.summary{border-radius:16px}
+      h1{font-size:2.2rem}
+    }
   </style>
 </head>
 <body>
-  <main>
-    <div class="top">
+  <main class="shell">
+    <header class="top">
       <div>
         <h1>Roost Briefing</h1>
-        <p>One glance view of what is active, newly shipped, and worth doing next.</p>
+        <p class="lede">A fast daily ops board for the roost: what is active, what just shipped, and what deserves the next move.</p>
       </div>
       <nav class="nav" aria-label="Site">
         <a href="index.html">home</a>
@@ -31,18 +136,224 @@
         <a href="now.html">now board</a>
         <a href="flight-deck.html">flight deck</a>
       </nav>
-    </div>
+    </header>
 
-    <section class="grid" id="briefingGrid"></section>
+    <section class="hero" id="hero">
+      <div class="hero-grid" id="heroMetrics" aria-live="polite"></div>
+      <div class="controls" aria-label="Briefing mode controls">
+        <button class="chip" id="modeAll" type="button" aria-pressed="true">all signals</button>
+        <button class="chip" id="modeFocus" type="button" aria-pressed="false">focus first</button>
+        <button class="chip" id="modeShip" type="button" aria-pressed="false">ship first</button>
+        <select class="select" id="expeditionPick" aria-label="Active expedition"></select>
+      </div>
+    </section>
+
+    <section class="stack">
+      <div class="band">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Today’s focus</h2>
+            <p class="panel-note" id="focusStamp"></p>
+          </div>
+          <div class="focus-list" id="focusList"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Latest ship</h2>
+            <p class="panel-note">Recent release and why it matters</p>
+          </div>
+          <div class="release-list" id="releaseList"></div>
+        </article>
+      </div>
+
+      <div class="band">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Active expedition</h2>
+            <p class="panel-note">Mission health at a glance</p>
+          </div>
+          <div class="exp-list" id="expList"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Next move</h2>
+            <p class="panel-note">Three-step route out of the briefing</p>
+          </div>
+          <div class="route" id="routeList"></div>
+        </article>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Release trail</h2>
+          <p class="panel-note">Recent launches in one scan-friendly stream</p>
+        </div>
+        <div class="update-timeline" id="updateTimeline"></div>
+      </section>
+
+      <section class="summary">
+        <div class="panel-head">
+          <h2>Copyable briefing note</h2>
+          <div class="summary-actions">
+            <button class="action" id="copyBriefing" type="button">copy briefing</button>
+            <a class="chip" href="index.html#siteSearchResults">open explorer</a>
+          </div>
+        </div>
+        <pre id="briefingCopy"></pre>
+        <div class="statusline" id="copyStatus"></div>
+      </section>
+    </section>
   </main>
 
   <script>
-    const q = (s, el=document) => el.querySelector(s);
-    const createCard = (title, body) => `<article class="card"><h2>${title}</h2>${body}</article>`;
+    const q = (s, el = document) => el.querySelector(s);
+    const escapeHTML = (value = '') =>
+      String(value).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const pct = value => `${clamp(Number(value) || 0, 0, 100)}%`;
 
-    async function loadJSON(path){ const r = await fetch(path); if(!r.ok) throw new Error(path); return r.json(); }
+    async function loadJSON(path) {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(path);
+      return response.json();
+    }
 
-    async function run(){
+    function metricCard(label, value, note) {
+      return `<article class="metric"><small>${escapeHTML(label)}</small><strong>${escapeHTML(value)}</strong><span>${escapeHTML(note)}</span></article>`;
+    }
+
+    function renderFocus(focus, index) {
+      const targetText = Array.isArray(focus.targets) ? focus.targets.join(' · ') : '';
+      return `
+        <article class="focus-item">
+          <div class="meta">
+            <span class="badge">${escapeHTML(focus.horizon || 'now')}</span>
+            <span>${escapeHTML(index === 0 ? 'primary' : 'secondary')}</span>
+          </div>
+          <strong>${escapeHTML(focus.title || 'Untitled focus')}</strong>
+          <p class="copy">${escapeHTML(focus.summary || '')}</p>
+          <div class="progress" aria-label="Progress ${pct(focus.progress)}">
+            <div class="track"><div class="fill" style="width:${pct(focus.progress)}"></div></div>
+            <div class="meta"><span>${pct(focus.progress)} complete</span><span>${escapeHTML(targetText)}</span></div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderLatestUpdate(update) {
+      if (!update) return '<p class="copy">No release data found.</p>';
+      return `
+        <article class="release-item">
+          <div class="meta">
+            <span class="badge good">${escapeHTML(update.type || 'update')}</span>
+            <span>${escapeHTML(update.date || '')}</span>
+          </div>
+          <strong>${escapeHTML(update.title || 'Latest ship')}</strong>
+          <p class="copy">${escapeHTML(update.impact || '')}</p>
+          <div class="meta">
+            <a href="${escapeHTML(update.page || '#')}">${escapeHTML(update.pageLabel || 'Open page')}</a>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderExpedition(expedition) {
+      if (!expedition) return '<p class="copy">No active expedition is marked right now.</p>';
+      const milestones = Array.isArray(expedition.milestones) ? expedition.milestones : [];
+      return `
+        <article class="exp-item">
+          <div class="meta">
+            <span class="badge warn">${escapeHTML(expedition.theme || 'mission')}</span>
+            <span>${escapeHTML(expedition.shipTarget || '')}</span>
+          </div>
+          <strong>${escapeHTML(expedition.name || 'Unnamed expedition')}</strong>
+          <p class="copy">${escapeHTML(expedition.summary || '')}</p>
+          <div class="progress">
+            <div class="track"><div class="fill" style="width:${pct(expedition.progress)}"></div></div>
+            <div class="meta"><span>${pct(expedition.progress)} progress</span></div>
+          </div>
+          <ul class="list">${milestones.map(m => `<li>${escapeHTML(m.title)}${m.done ? ' - done' : ''}</li>`).join('')}</ul>
+        </article>
+      `;
+    }
+
+    function renderRoute(routes) {
+      return routes.map((item, index) => `
+        <article class="route-step">
+          <div class="meta"><span class="badge">${index + 1}</span><span>${escapeHTML(item.label || '')}</span></div>
+          <strong>${escapeHTML(item.title || item.label || 'Next move')}</strong>
+          <p>${escapeHTML(item.description || '')}</p>
+          ${item.href ? `<a href="${escapeHTML(item.href)}">${escapeHTML(item.href)}</a>` : ''}
+        </article>
+      `).join('');
+    }
+
+    function renderTimelineItem(update) {
+      return `
+        <article class="timeline-item">
+          <div class="meta">
+            <span class="badge good">${escapeHTML(update.type || 'update')}</span>
+            <span>${escapeHTML(update.date || '')}</span>
+          </div>
+          <strong>${escapeHTML(update.title || 'Untitled update')}</strong>
+          <p>${escapeHTML(update.details || update.impact || '')}</p>
+          <div class="meta">
+            <a href="${escapeHTML(update.page || '#')}">${escapeHTML(update.pageLabel || 'Open page')}</a>
+          </div>
+        </article>
+      `;
+    }
+
+    function getModeLabel(mode) {
+      if (mode === 'focus') return 'focus first';
+      if (mode === 'ship') return 'ship first';
+      return 'all signals';
+    }
+
+    function makeBriefing({ nowData, updatesData, expeditionsData, radioData, mode, selectedExpeditionId }) {
+      const activeFocus = (nowData.activeFocus || []).slice(0, 3);
+      const updates = (updatesData.updates || []).slice(0, 3);
+      const latestUpdate = updates[0];
+      const activeExpedition = (expeditionsData || []).find(item => item.id === selectedExpeditionId)
+        || (expeditionsData || []).find(item => item.status === 'active');
+      const focusTrack = (radioData || []).find(item => item.mood === 'focus') || (radioData || [])[0];
+      const nextMoves = (nowData.nextUp || []).slice(0, 3);
+      const filteredFocus = mode === 'ship' ? activeFocus.slice(0, 1) : activeFocus;
+      const filteredNext = mode === 'focus' ? nextMoves.slice(0, 2) : nextMoves;
+
+      return {
+        metrics: [
+          metricCard('status', getModeLabel(mode), nowData.updatedAt ? `updated ${nowData.updatedAt}` : 'freshly loaded'),
+          metricCard('active focus', String(filteredFocus.length), filteredFocus[0]?.title || 'No focus cards available'),
+          metricCard('next up', String(filteredNext.length), filteredNext[0] || 'No next steps available'),
+          metricCard('soundtrack', focusTrack ? `${focusTrack.artist}` : 'none', focusTrack ? focusTrack.title : 'No cue loaded')
+        ],
+        focusHtml: filteredFocus.length ? filteredFocus.map(renderFocus).join('') : '<p class="copy">No focus cards available.</p>',
+        releaseHtml: renderLatestUpdate(latestUpdate),
+        expeditionHtml: renderExpedition(activeExpedition),
+        routeHtml: filteredNext.length
+          ? renderRoute(filteredNext.map((step, index) => ({
+              label: `step ${index + 1}`,
+              title: step,
+              description: index === 0 ? 'Start with this move before opening anything else.' : index === 1 ? 'Use this as the follow-up after the first task lands.' : 'Keep this queued so the session ends with momentum.',
+              href: index === 0 ? 'command-center.html' : index === 1 ? 'flight-deck.html' : 'now.html'
+            })))
+          : '<p class="copy">No next move entries available.</p>',
+        timelineHtml: updates.map(renderTimelineItem).join(''),
+        briefingText: [
+          `Daily briefing: ${nowData.updatedAt || 'updated recently'} (${getModeLabel(mode)})`,
+          '',
+          `Focus: ${(filteredFocus[0]?.title || 'none')} - ${(filteredFocus[0]?.summary || '')}`,
+          `Latest ship: ${latestUpdate ? `${latestUpdate.title} (${latestUpdate.date})` : 'none'}`,
+          `Expedition: ${activeExpedition ? `${activeExpedition.name} at ${activeExpedition.progress}%` : 'none'}`,
+          `Next: ${filteredNext.join(' | ') || 'none'}`
+        ].join('\n')
+      };
+    }
+
+    async function run() {
       const [nowData, updatesData, expeditionsData, radioData] = await Promise.all([
         loadJSON('assets/roost-now.json'),
         loadJSON('assets/roost-updates.json'),
@@ -50,43 +361,83 @@
         loadJSON('assets/roost-radio.json')
       ]);
 
-      const activeFocus = nowData.activeFocus?.slice(0,2) ?? [];
-      const latestUpdate = updatesData.updates?.[0];
-      const activeExpedition = (expeditionsData || []).find(x => x.status === 'active');
-      const focusTrack = (radioData || []).find(x => x.mood === 'focus') || radioData?.[0];
+      const storageKey = 'roost-briefing-mode';
+      const expeditionKey = 'roost-briefing-expedition';
+      let mode = localStorage.getItem(storageKey) || 'all';
+      let selectedExpeditionId = localStorage.getItem(expeditionKey) || '';
 
-      const cards = [];
+      const modeButtons = {
+        all: q('#modeAll'),
+        focus: q('#modeFocus'),
+        ship: q('#modeShip')
+      };
+      const expeditionPick = q('#expeditionPick');
 
-      cards.push(createCard('Today\'s focus', `
-        <p class="k">${nowData.updatedAt || 'Updated recently'}</p>
-        <ul>${activeFocus.map(item => `<li><strong>${item.title}</strong><br>${item.summary}</li>`).join('')}</ul>
-      `));
+      function syncModeButtons(nextMode) {
+        Object.entries(modeButtons).forEach(([key, button]) => {
+          button.setAttribute('aria-pressed', String(key === nextMode));
+        });
+      }
 
-      if (latestUpdate) cards.push(createCard('Latest ship', `
-        <p><span class="pill">${latestUpdate.type}</span> ${latestUpdate.date}</p>
-        <ul><li><strong>${latestUpdate.title}</strong></li><li>${latestUpdate.impact}</li></ul>
-        <p><a href="${latestUpdate.page}" style="color:var(--accent)">${latestUpdate.pageLabel || 'Open page'}</a></p>
-      `));
+      function render() {
+        const state = makeBriefing({
+          nowData,
+          updatesData,
+          expeditionsData,
+          radioData,
+          mode,
+          selectedExpeditionId
+        });
+        if (!selectedExpeditionId && expeditionsData[0]) selectedExpeditionId = expeditionsData[0].id;
+        expeditionPick.innerHTML = (expeditionsData || []).map(item =>
+          `<option value="${escapeHTML(item.id)}">${escapeHTML(item.name)} (${escapeHTML(item.status)})</option>`
+        ).join('');
+        q('#heroMetrics').innerHTML = state.metrics.join('');
+        q('#focusList').innerHTML = state.focusHtml;
+        q('#releaseList').innerHTML = state.releaseHtml;
+        q('#expList').innerHTML = state.expeditionHtml;
+        q('#routeList').innerHTML = state.routeHtml;
+        q('#updateTimeline').innerHTML = state.timelineHtml;
+        q('#briefingCopy').textContent = state.briefingText;
+        q('#focusStamp').textContent = nowData.updatedAt ? `updated ${nowData.updatedAt}` : 'updated recently';
+        expeditionPick.value = selectedExpeditionId;
+        syncModeButtons(mode);
+        localStorage.setItem(storageKey, mode);
+        localStorage.setItem(expeditionKey, selectedExpeditionId);
+        q('#copyStatus').textContent = `Mode: ${getModeLabel(mode)} · Expedition: ${selectedExpeditionId || 'auto-picked active'}`;
+      }
 
-      if (activeExpedition) cards.push(createCard('Active expedition', `
-        <p><span class="pill">${activeExpedition.theme}</span> target ${activeExpedition.shipTarget}</p>
-        <ul><li><strong>${activeExpedition.name}</strong></li><li>${activeExpedition.summary}</li><li>Progress: ${activeExpedition.progress}%</li></ul>
-      `));
+      render();
 
-      if (focusTrack) cards.push(createCard('Focus track', `
-        <p>${focusTrack.title} · ${focusTrack.artist} · ${focusTrack.duration}</p>
-        <ul><li>${focusTrack.note}</li><li><a href="${focusTrack.link}" target="_blank" rel="noreferrer" style="color:var(--accent)">Play track</a></li></ul>
-      `));
+      Object.entries(modeButtons).forEach(([nextMode, button]) => {
+        button.addEventListener('click', () => {
+          mode = nextMode;
+          render();
+        });
+      });
 
-      cards.push(createCard('Next move queue', `
-        <ul>${(nowData.nextUp || []).slice(0,4).map(item => `<li>${item}</li>`).join('')}</ul>
-      `));
+      expeditionPick.addEventListener('change', () => {
+        selectedExpeditionId = expeditionPick.value;
+        render();
+      });
 
-      q('#briefingGrid').innerHTML = cards.join('');
+      q('#copyBriefing').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(q('#briefingCopy').textContent);
+          q('#copyStatus').textContent = 'Briefing copied to clipboard.';
+        } catch {
+          q('#copyStatus').textContent = 'Clipboard blocked, but the briefing text is ready to select manually.';
+        }
+      });
     }
 
     run().catch(() => {
-      q('#briefingGrid').innerHTML = createCard('Briefing offline', '<p>Could not load one or more data feeds. Try refreshing in a moment.</p>');
+      q('#heroMetrics').innerHTML = metricCard('offline', 'feed error', 'Could not load one or more data feeds');
+      q('#focusList').innerHTML = '<p class="copy">Could not load the briefing feed. Refresh the page in a moment.</p>';
+      q('#releaseList').innerHTML = '<p class="copy">Could not load the release feed.</p>';
+      q('#expList').innerHTML = '<p class="copy">Could not load the expedition feed.</p>';
+      q('#routeList').innerHTML = '<p class="copy">Could not load the next-step route.</p>';
+      q('#briefingCopy').textContent = 'Briefing unavailable because a feed failed to load.';
     });
   </script>
 </body>
