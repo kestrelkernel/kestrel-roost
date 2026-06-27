@@ -25,6 +25,7 @@ python3 -m http.server 8080
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
+- `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
 - `roost-lab.html` — interactive style prototyping studio with live token controls, contrast checks, and CSS export
 - `captains-log.html` — digest studio that generates shareable markdown recaps from ships + notes

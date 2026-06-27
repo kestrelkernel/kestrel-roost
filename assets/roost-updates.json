@@ -16,6 +16,20 @@
   },
   "updates": [
     {
+      "slug": "release-radar-forward-forecast",
+      "date": "2026-06-27",
+      "title": "Expanded Release Radar with forward forecast and theme pressure",
+      "type": "feature",
+      "impact": "Visitors can now see not just what shipped, but which roadmap themes and note signals are most likely to shape the next build, making the dashboard more useful for planning.",
+      "details": "Added a forward radar panel that blends release mix with roadmap items, plus a theme pressure section that scores recurring note tags and shows the strongest recurring topics.",
+      "page": "release-radar.html",
+      "pageLabel": "Open release radar",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "roost-vision-01"
+      ]
+    },
+    {
       "slug": "expedition-planner-launch",
       "date": "2026-05-23",
       "title": "Launched Roost Expedition Planner for guided site tours",

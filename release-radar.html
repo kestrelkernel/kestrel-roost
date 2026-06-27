@@ -63,6 +63,16 @@
       grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
       gap:12px;
     }
+    .forward-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .theme-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+    }
     .btn,
     .nav-link,
     .chip {
@@ -170,6 +180,42 @@
       display:grid;
       gap:9px;
     }
+    .forecast {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .forecast h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f0f4ff;
+    }
+    .forecast p {
+      font-size:.9rem;
+    }
+    .theme {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:#0a1333;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .theme strong {
+      font-size:1.05rem;
+      color:#eff3ff;
+    }
+    .theme .count {
+      color:#8fffcd;
+      font-size:.84rem;
+    }
+    .theme .line {
+      color:#a8bbf4;
+      font-size:.82rem;
+    }
     .muted { color:#9fb0ff; font-size:.82rem; }
 
     footer { text-align:center; color:#8fa3ec; font-size:.85rem; padding:6px 0 20px; }
@@ -233,6 +279,18 @@
         <div class="pulse" id="latestPulse"></div>
       </article>
     </section>
+
+    <section class="card">
+      <h2>forward radar</h2>
+      <p class="muted">This layer uses the release mix and note archive to suggest what the site should probably build next.</p>
+      <div class="forward-grid" id="forwardRadar"></div>
+    </section>
+
+    <section class="card">
+      <h2>theme pressure</h2>
+      <p class="muted">Topics that keep showing up in the notes, ranked by how often they connect to recent shipping work.</p>
+      <div class="theme-grid" id="themeGrid"></div>
+    </section>
   </main>
 
   <footer>release radar · numbers from roost-updates.json</footer>
@@ -253,8 +311,11 @@
     const roadmapNowEl = document.getElementById('roadmapNow');
     const roadmapNextEl = document.getElementById('roadmapNext');
     const latestPulseEl = document.getElementById('latestPulse');
+    const forwardRadarEl = document.getElementById('forwardRadar');
+    const themeGridEl = document.getElementById('themeGrid');
 
     let updates = [];
+    let notes = [];
     let roadmap = { now: [], next: [] };
     let currentWindow = 30;
 
@@ -387,12 +448,96 @@
       `;
     };
 
+    const renderForwardRadar = (windowed) => {
+      const typeCounts = new Map();
+      for (const entry of windowed) {
+        typeCounts.set(entry.type, (typeCounts.get(entry.type) ?? 0) + 1);
+      }
+      const noteSignals = new Map();
+      for (const note of notes) {
+        for (const tag of note.tags ?? []) {
+          noteSignals.set(tag, (noteSignals.get(tag) ?? 0) + 1);
+        }
+      }
+
+      const strongestType = [...typeCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'feature';
+      const roadmapHeads = [...(roadmap.now ?? []), ...(roadmap.next ?? [])].slice(0, 4);
+      const noteHeadlines = [...noteSignals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+      const cards = [
+        {
+          title: 'bias check',
+          body: `Recent shipping leans toward ${strongestType} work. The next move should probably balance that with a new interaction or content surface so the site keeps feeling fresh.`,
+          tag: `${windowed.length} releases in window`
+        },
+        {
+          title: 'roadmap anchor',
+          body: roadmapHeads.length ? roadmapHeads.join(' ') : 'No roadmap items were found to anchor the next build.',
+          tag: 'shared roadmap'
+        },
+        {
+          title: 'note signal',
+          body: noteHeadlines.length
+            ? `The strongest recurring note themes are ${noteHeadlines.map(([tag]) => `#${tag}`).join(', ')}.`
+            : 'No note themes were available to score.',
+          tag: 'archive-driven'
+        }
+      ];
+
+      forwardRadarEl.innerHTML = '';
+      for (const card of cards) {
+        const node = document.createElement('article');
+        node.className = 'forecast';
+        node.innerHTML = `
+          <h3>${card.title}</h3>
+          <p>${card.body}</p>
+          <span class="muted">${card.tag}</span>
+        `;
+        forwardRadarEl.append(node);
+      }
+    };
+
+    const renderThemePressure = () => {
+      const themeMap = new Map();
+      for (const note of notes) {
+        for (const tag of note.tags ?? []) {
+          const current = themeMap.get(tag) ?? { count: 0, notes: [] };
+          current.count += 1;
+          if (current.notes.length < 3) current.notes.push(note.title);
+          themeMap.set(tag, current);
+        }
+      }
+
+      const rows = [...themeMap.entries()]
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 6);
+
+      themeGridEl.innerHTML = '';
+      if (rows.length === 0) {
+        themeGridEl.innerHTML = '<p class="muted">No note tags found to score yet.</p>';
+        return;
+      }
+
+      for (const [tag, data] of rows) {
+        const node = document.createElement('article');
+        node.className = 'theme';
+        node.innerHTML = `
+          <strong>#${tag}</strong>
+          <div class="count">${data.count} note${data.count === 1 ? '' : 's'}</div>
+          <div class="line">${data.notes.join(' · ')}</div>
+        `;
+        themeGridEl.append(node);
+      }
+    };
+
     const render = () => {
       const windowed = filterByWindow();
       renderStats(windowed);
       renderTypeBars(windowed);
       renderMonths(windowed);
       renderLatestPulse();
+      renderForwardRadar(windowed);
+      renderThemePressure();
     };
 
     const setWindow = (value) => {
@@ -420,6 +565,12 @@
           .map((entry) => ({ ...entry, ms: toMs(entry) }))
           .filter((entry) => Number.isFinite(entry.ms))
           .sort((a, b) => b.ms - a.ms);
+
+        const notesResponse = await fetch('assets/roost-notes.json', { cache: 'no-store' });
+        if (notesResponse.ok) {
+          const notesData = await notesResponse.json();
+          notes = notesData.notes ?? [];
+        }
 
         renderRoadmap();
         render();
