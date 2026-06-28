@@ -474,6 +474,130 @@
     .pulse-release .meta {
       justify-content:flex-start;
     }
+    .radio-console {
+      border:1px solid #4360b8;
+      background:linear-gradient(160deg, #0d173b, #09122d 55%, #13245a);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .radio-console::before {
+      content:"";
+      position:absolute;
+      inset:auto -60px -100px auto;
+      width:260px;
+      height:260px;
+      border-radius:999px;
+      background:radial-gradient(circle, #8fdcff2f 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .radio-console-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .radio-console-head h2 { margin:0; }
+    .radio-console-note {
+      margin:0;
+      color:#aac2ff;
+      font-size:.85rem;
+    }
+    .radio-controls {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      z-index:1;
+    }
+    .radio-select {
+      background:#091533;
+      border:1px solid #4260b8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:9px 11px;
+    }
+    .radio-layout {
+      display:grid;
+      grid-template-columns:minmax(250px, 1fr) minmax(220px, .8fr);
+      gap:12px;
+      z-index:1;
+    }
+    .radio-player,
+    .radio-queue {
+      border:1px solid #3550a8;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .radio-player h3,
+    .radio-queue h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f0f4ff;
+    }
+    .radio-track {
+      display:grid;
+      gap:6px;
+    }
+    .radio-track strong {
+      font-size:1.1rem;
+      color:#f4f7ff;
+    }
+    .radio-track p {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+    }
+    .radio-meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .radio-queue-list {
+      display:grid;
+      gap:8px;
+    }
+    .radio-queue-item {
+      border:1px solid #314788;
+      border-radius:10px;
+      background:#0a1438;
+      padding:10px;
+      display:grid;
+      gap:4px;
+    }
+    .radio-queue-item strong {
+      color:#f3f6ff;
+      font-size:.94rem;
+    }
+    .radio-queue-item span {
+      color:#a8b9ff;
+      font-size:.8rem;
+    }
+    .radio-setlist {
+      border:1px solid #3550a8;
+      border-radius:12px;
+      background:#08102c;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .radio-setlist pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .feed-card h3 {
       margin:0;
       font-size:.95rem;
@@ -677,6 +801,7 @@
           <li>small tools and side-quests that do one thing well</li>
           <li>new pages so the homepage stays a launch pad, not a scroll pit</li>
           <li>roost radio for mood-based background signals while building</li>
+          <li>radio console on the homepage for mood-filtered setlists and quick copying</li>
           <li>repeatable ops routines that are easy to track without extra tools</li>
           <li>drag-and-drop mission plotting with local save and export</li>
           <li>shipyard roadmap cockpit with sortable build queue + pinned ideas</li>
@@ -751,6 +876,7 @@
         <a class="btn" href="captains-log.html">open captain's log</a>
         <a class="btn" href="weekly-review.html">open weekly review</a>
         <a class="btn" href="roost-soundscapes.html">open roost soundscapes</a>
+        <a class="btn" href="#radioConsoleBoard">open radio console</a>
         <a class="btn" href="roost-trails.html">open roost trails</a>
         <a class="btn" href="roost-storyboard.html">open roost storyboard</a>
         <a class="btn" href="roost-momentum-map.html">open roost momentum map</a>
@@ -779,6 +905,45 @@
         <div class="pulse-roadmap" id="releasePulseRoadmap">
           <div class="empty-card">loading roadmap…</div>
         </div>
+      </div>
+    </section>
+
+    <section class="card radio-console" id="radioConsoleBoard" aria-live="polite">
+      <div class="radio-console-head">
+        <h2>roost radio console</h2>
+        <p class="radio-console-note">a mood-filtered setlist generator for the background while the site keeps shipping.</p>
+      </div>
+      <div class="radio-controls">
+        <select id="radioMood" class="radio-select">
+          <option value="any">any mood</option>
+          <option value="focus">focus</option>
+          <option value="flow">flow</option>
+          <option value="calm">calm</option>
+          <option value="energy">energy</option>
+        </select>
+        <button class="btn" id="radioShuffle">reshuffle set</button>
+        <button class="btn" id="radioCopy">copy setlist</button>
+        <a class="btn" href="roost-radio.html">open roost radio</a>
+      </div>
+      <div class="radio-layout">
+        <article class="radio-player">
+          <h3>now tuned</h3>
+          <div id="radioNowTrack" class="radio-track">
+            <strong>loading radio…</strong>
+            <p>pulling the playlist feed and picking the first signal.</p>
+          </div>
+          <div id="radioNowMeta" class="radio-meta"></div>
+        </article>
+        <article class="radio-queue">
+          <h3>queue</h3>
+          <div id="radioQueue" class="radio-queue-list">
+            <div class="empty-card">loading queue…</div>
+          </div>
+        </article>
+      </div>
+      <div class="radio-setlist">
+        <h3 style="margin:0; font-size:.98rem; color:#f0f4ff;">copyable setlist</h3>
+        <pre id="radioSetlist">loading setlist…</pre>
       </div>
     </section>
 
@@ -986,6 +1151,13 @@
     const releasePulseStats = document.getElementById('releasePulseStats');
     const releasePulseLatest = document.getElementById('releasePulseLatest');
     const releasePulseRoadmap = document.getElementById('releasePulseRoadmap');
+    const radioMood = document.getElementById('radioMood');
+    const radioShuffleBtn = document.getElementById('radioShuffle');
+    const radioCopyBtn = document.getElementById('radioCopy');
+    const radioNowTrack = document.getElementById('radioNowTrack');
+    const radioNowMeta = document.getElementById('radioNowMeta');
+    const radioQueue = document.getElementById('radioQueue');
+    const radioSetlist = document.getElementById('radioSetlist');
     const timelineFilters = document.getElementById('timelineFilters');
     const timelineList = document.getElementById('timelineList');
     const timelineTags = ['all', 'build', 'write', 'learn'];
@@ -2015,6 +2187,92 @@
 
     const normalize = (value) => String(value || '').toLowerCase();
 
+    let radioLibrary = [];
+    let radioState = {
+      mood: 'any',
+      featured: null,
+      queue: []
+    };
+    const radioStorageKey = 'roostRadioConsoleState';
+
+    const loadRadioConsoleState = () => {
+      try {
+        const saved = JSON.parse(storage.get(radioStorageKey) || 'null');
+        if (saved?.mood) radioState.mood = saved.mood;
+      } catch { }
+      if (radioMood) radioMood.value = radioState.mood;
+    };
+
+    const saveRadioConsoleState = () => {
+      storage.set(radioStorageKey, JSON.stringify({ mood: radioState.mood }));
+    };
+
+    const pickRadioTracks = () => {
+      const filtered = radioState.mood === 'any'
+        ? radioLibrary
+        : radioLibrary.filter((track) => track.mood === radioState.mood);
+      const pool = filtered.length ? filtered : radioLibrary;
+      if (!pool.length) {
+        radioState.featured = null;
+        radioState.queue = [];
+        return;
+      }
+
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      radioState.featured = shuffled[0] || null;
+      radioState.queue = shuffled.slice(1, 5);
+    };
+
+    const renderRadioConsole = () => {
+      if (!radioNowTrack || !radioQueue || !radioSetlist) return;
+
+      if (!radioLibrary.length) {
+        radioNowTrack.innerHTML = '<strong>radio feed unavailable.</strong><p>the playlist JSON did not load.</p>';
+        radioNowMeta.innerHTML = '';
+        radioQueue.innerHTML = '<div class="empty-card">no tracks available.</div>';
+        radioSetlist.textContent = 'radio unavailable.';
+        return;
+      }
+
+      if (!radioState.featured) pickRadioTracks();
+
+      const featured = radioState.featured;
+      const queue = radioState.queue;
+
+      radioNowTrack.innerHTML = `
+        <strong>${featured.title}</strong>
+        <p>${featured.note}</p>
+      `;
+      radioNowMeta.innerHTML = `
+        <span class="tag">${featured.mood}</span>
+        <span>${featured.artist}</span>
+        <span>${featured.duration}</span>
+      `;
+
+      radioQueue.innerHTML = queue.map((track, idx) => `
+        <article class="radio-queue-item">
+          <strong>${idx + 2}. ${track.title}</strong>
+          <span>${track.artist} · ${track.mood} · ${track.duration}</span>
+        </article>
+      `).join('') || '<div class="empty-card">queue is empty.</div>';
+
+      radioSetlist.textContent = [
+        `roost radio / mood: ${radioState.mood}`,
+        `1. ${featured.title} - ${featured.artist} (${featured.duration})`,
+        ...queue.map((track, idx) => `${idx + 2}. ${track.title} - ${track.artist} (${track.duration})`),
+        '',
+        'notes:',
+        `- featured mood: ${featured.mood}`,
+        `- opener cue: ${featured.note}`
+      ].join('\n');
+    };
+
+    const reshuffleRadioConsole = () => {
+      pickRadioTracks();
+      renderRadioConsole();
+      saveRadioConsoleState();
+    };
+
     const renderReleasePulse = (updatesData) => {
       const roadmap = updatesData?.roadmap || {};
       const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
@@ -2246,15 +2504,20 @@
         const updatesData = await updatesResponse.json();
         const notesData = await notesResponse.json();
         const nowData = await nowResponse.json();
+        const radioResponse = await fetch('assets/roost-radio.json', { cache: 'no-store' });
         const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
         const notes = Array.isArray(notesData?.notes) ? notesData.notes : [];
         const notesById = new Map(notes.map((note) => [note.id, note]));
         const activeFocus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [];
+        radioLibrary = radioResponse.ok ? await radioResponse.json() : [];
+        radioLibrary = Array.isArray(radioLibrary) ? radioLibrary : [];
+        pickRadioTracks();
 
         renderReleasePulse(updatesData);
         renderStorySpotlight(updates, notesById);
         renderLatestShips(updates, notesById);
         renderLatestNotes(notes);
+        renderRadioConsole();
 
         nowFocusGrid.innerHTML = '';
         for (const entry of activeFocus.slice(0, 3)) {
@@ -2292,6 +2555,10 @@
         releasePulseStats.innerHTML = '<div class="empty-card">release pulse unavailable right now.</div>';
         releasePulseLatest.innerHTML = '<h3>release pulse unavailable right now.</h3><p>try again once the feed comes back.</p>';
         releasePulseRoadmap.innerHTML = '<div class="empty-card">roadmap unavailable right now.</div>';
+        radioNowTrack.innerHTML = '<strong>radio unavailable.</strong><p>try again once the playlist feed comes back.</p>';
+        radioNowMeta.innerHTML = '';
+        radioQueue.innerHTML = '<div class="empty-card">queue unavailable right now.</div>';
+        radioSetlist.textContent = 'radio unavailable right now.';
         latestShips.innerHTML = '<div class="empty-card">ship log unavailable right now.</div>';
         latestNotes.innerHTML = '<div class="empty-card">notes unavailable right now.</div>';
         nowFocusGrid.innerHTML = '<div class="empty-card">now board unavailable right now.</div>';
@@ -2503,6 +2770,23 @@
       const pick = roostPages[Math.floor(Math.random() * roostPages.length)];
       if (pick) {
         window.location.href = pick.href;
+      }
+    });
+
+    loadRadioConsoleState();
+    radioMood?.addEventListener('change', () => {
+      radioState.mood = radioMood.value;
+      reshuffleRadioConsole();
+    });
+    radioShuffleBtn?.addEventListener('click', reshuffleRadioConsole);
+    radioCopyBtn?.addEventListener('click', async () => {
+      const text = radioSetlist.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('radio setlist copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for radio setlist.', 'warn');
       }
     });
 

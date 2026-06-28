@@ -28,6 +28,7 @@ python3 -m http.server 8080
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
 - `roost-lab.html` — interactive style prototyping studio with live token controls, contrast checks, and CSS export
+- `roost-radio.html` — ambient playlist surface with mood-based listening and copyable setlists
 - `captains-log.html` — digest studio that generates shareable markdown recaps from ships + notes
 - `timeline.html` — interactive milestone timeline with type filters, search, and impact summaries
 - `expeditions.html` — mission board for active/planned/shipped product expeditions with progress tracking
@@ -47,6 +48,7 @@ python3 -m http.server 8080
 
 - **Roost Briefing command surface upgrade:** expanded `roost-briefing.html` with mode toggles, expedition selection, and a release trail so the briefing can adapt to focus-first or ship-first sessions instead of acting like a static summary
 - **Homepage release pulse:** added a new momentum board to `index.html` that turns the shared roadmap and update feed into scan-friendly stats, a latest-release callout, and now/next/later lanes
+- **Homepage radio console:** added a new `index.html` radio panel that filters the shared playlist by mood, shows a live queue, and outputs a copyable setlist
 - **Homepage launch deck upgrade:** added an intent-aware launch deck to `index.html` with configurable build/learn/play/reflection/plan filters, a three-stop handoff summary, pinning into the routebook, and copyable route text so the front page can actively shape a next move
 
 - **Roost Weather Deck overhaul:** rebuilt `roost-weather.html` into an interactive planning studio with sortable region scoring, favorite pinning, hourly comparison, and a copyable forecast handoff for quicker session-to-session planning
