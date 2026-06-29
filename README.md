@@ -23,6 +23,7 @@ python3 -m http.server 8080
 - `changelog.html` — release history + filterable flight log
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
+- `roost-lens.html` — daily build brief generator that turns updates, notes, and roadmap pressure into a concrete next move
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure

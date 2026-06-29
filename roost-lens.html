@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A build lens that turns roost signals into a daily brief." />
+  <title>roost lens</title>
+  <style>
+    :root { color-scheme: dark; --bg:#07101f; --bg2:#0c1932; --panel:#0b1630cc; --line:#344f93; --line2:#5f7fe0; --fg:#e6ecff; --muted:#9eb1ff; --good:#8fffcd; --warn:#ffd479; }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color:var(--fg); background:radial-gradient(circle at 12% 0%, #1f3d7a 0%, transparent 34%), radial-gradient(circle at 92% 8%, #1a6f8c26 0%, transparent 24%), linear-gradient(180deg, var(--bg2), var(--bg)); }
+    main { width:min(1120px, 92vw); margin:0 auto; padding:32px 0 42px; display:grid; gap:14px; }
+    .hero,.panel,.brief,.roadmap { border:1px solid var(--line); border-radius:18px; background:var(--panel); box-shadow:0 16px 40px #0000002e; backdrop-filter:blur(4px); }
+    .hero { padding:22px; display:grid; gap:12px; position:relative; overflow:hidden; }
+    .hero::after { content:""; position:absolute; inset:auto -80px -120px auto; width:300px; height:300px; border-radius:999px; background:radial-gradient(circle, #8ec5ff22 0%, transparent 68%); pointer-events:none; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.4rem); line-height:1; }
+    .lede { color:var(--muted); line-height:1.55; max-width:72ch; }
+    .topline { display:flex; flex-wrap:wrap; gap:8px; align-items:center; color:#bfd0ff; font-size:.82rem; }
+    .pill { border:1px solid var(--line); border-radius:999px; padding:5px 10px; background:#0f1d44; }
+    .pill.is-accent { border-color:var(--line2); color:#f1f5ff; }
+    .grid,.split { display:grid; grid-template-columns:1.2fr .9fr; gap:14px; }
+    .panel,.brief,.roadmap { padding:16px; display:grid; gap:12px; }
+    .brief { background:linear-gradient(160deg, #10254f, #081228 72%); border-color:#6683dc; }
+    .roadmap { background:linear-gradient(160deg, #0d1b3a, #081123 72%); }
+    .controls,.brief-actions,.chips { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    select,button,a.button { font:inherit; color:var(--fg); background:#0f1f49; border:1px solid #4360b8; border-radius:11px; padding:9px 12px; }
+    button,a.button { cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+    button:hover,button:focus-visible,a.button:hover,a.button:focus-visible,select:focus-visible { outline:none; border-color:var(--line2); box-shadow:0 0 0 2px #9ab4ff33; }
+    .stats,.roadmap-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
+    .roadmap-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+    .stat,.roadmap-card,.signal { border:1px solid var(--line); border-radius:14px; background:#09152d; padding:12px; display:grid; gap:6px; }
+    .stat strong { font-size:1.2rem; color:#f4f7ff; }
+    .stat span,.signal p,.signal li,.roadmap p,.brief p { color:var(--muted); line-height:1.55; }
+    .signal-list,.path-list { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+    .signal-meta { display:flex; flex-wrap:wrap; gap:8px; color:#bfd0ff; font-size:.78rem; }
+    .chip { border:1px solid #4b68c4; border-radius:999px; padding:5px 10px; background:#0f1d49; color:#dce6ff; font-size:.8rem; cursor:pointer; }
+    .chip.is-active { background:#dce6ff; color:#12244f; border-color:#dce6ff; }
+    .brief pre { margin:0; white-space:pre-wrap; font:inherit; line-height:1.5; color:#eaf0ff; }
+    .statusline { color:#b8c7ff; font-size:.82rem; min-height:1.2em; }
+    .roadmap-card ul { margin:0; padding-left:18px; color:var(--muted); line-height:1.5; }
+    footer { text-align:center; color:#91a6eb; font-size:.85rem; padding:4px 0 10px; }
+    .muted { color:var(--muted); } .good { color:var(--good); } .warn { color:var(--warn); }
+    @media (max-width: 860px) { .grid,.split { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div class="topline"><span class="pill is-accent">roost lens</span><span class="pill">daily build brief</span><span class="pill">shared data, no backend</span></div>
+    <h1>turn the roost into a decision engine.</h1>
+    <p class="lede">This surface reads the same update, note, and roadmap feeds the rest of the site uses, then distills them into a daily build brief. It answers the useful question fast: what should I make today, and why does it matter?</p>
+    <div class="controls">
+      <label class="muted" for="modeSelect">mode</label>
+      <select id="modeSelect"><option value="ship">ship-first</option><option value="story">story-first</option><option value="signal">signal-first</option></select>
+      <button id="shuffleBtn" type="button">reshuffle lens</button>
+      <button id="copyBtn" type="button">copy brief</button>
+      <a class="button" href="index.html">back home</a>
+    </div>
+    <div class="topline" id="lensMeta"><span>loading roost signals…</span></div>
+  </section>
+  <section class="grid">
+    <article class="brief" aria-live="polite">
+      <h2>today's brief</h2>
+      <p class="muted">The current mode nudges the shape of the brief, but the content stays grounded in live roost data.</p>
+      <div class="brief-actions"><span class="pill" id="briefBadge">building…</span><span class="statusline" id="copyStatus"></span></div>
+      <pre id="briefOutput">Loading brief…</pre>
+    </article>
+    <article class="panel">
+      <h2>signal stack</h2>
+      <div class="stats" id="stats"><div class="stat"><strong>--</strong><span>loading</span></div></div>
+      <div class="chips" id="tagChips"></div>
+    </article>
+  </section>
+  <section class="split">
+    <article class="roadmap">
+      <h2>what the roost is leaning toward</h2>
+      <div class="roadmap-grid" id="roadmapGrid"><div class="roadmap-card"><h3>loading roadmap…</h3></div></div>
+    </article>
+    <article class="panel">
+      <h2>signal picks</h2>
+      <ul class="signal-list" id="signalList"><li class="signal"><h3>loading signals…</h3></li></ul>
+    </article>
+  </section>
+</main>
+<footer>Built from the shared roost feeds so the homepage can point at a sharper next move.</footer>
+<script>
+(() => {
+  const modeSelect = document.getElementById('modeSelect');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const briefOutput = document.getElementById('briefOutput');
+  const briefBadge = document.getElementById('briefBadge');
+  const copyStatus = document.getElementById('copyStatus');
+  const lensMeta = document.getElementById('lensMeta');
+  const stats = document.getElementById('stats');
+  const tagChips = document.getElementById('tagChips');
+  const roadmapGrid = document.getElementById('roadmapGrid');
+  const signalList = document.getElementById('signalList');
+  const state = { updates: [], notes: [], roadmap: { now: [], next: [], later: [] } };
+  const modeConfig = { ship: { badge: 'ship-first', tone: 'Ship the smallest visible improvement that moves the roadmap.' }, story: { badge: 'story-first', tone: 'Tell the story of the work and make the why easier to share.' }, signal: { badge: 'signal-first', tone: 'Surface the strongest patterns and let the next move follow from the data.' } };
+  const priorityWeight = { feature: 3, interaction: 2, content: 2, redesign: 3, tooling: 2, maintenance: 1 };
+  const loadJson = async (path) => { const res = await fetch(path, { cache: 'no-store' }); if (!res.ok) throw new Error(`failed to load ${path}`); return res.json(); };
+  const uniqTags = () => { const tags = new Map(); for (const note of state.notes) for (const tag of (note.tags || [])) tags.set(tag, (tags.get(tag) || 0) + 1); return [...tags.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7); };
+  const scoreUpdate = (update) => (priorityWeight[update.type] || 1) * 4 + Math.max(0, 12 - Math.max(1, Math.round((Date.now() - Date.parse(update.date)) / 86400000)));
+  const pickLeadUpdate = () => [...state.updates].sort((a, b) => scoreUpdate(b) - scoreUpdate(a))[0] || null;
+  const pickNoteForMode = (mode, leadUpdate) => { const preferredTag = mode === 'story' ? 'workflow' : mode === 'signal' ? 'product' : 'design'; const matches = state.notes.filter(note => (note.tags || []).includes(preferredTag)); if (matches.length) return matches[0]; if (leadUpdate?.relatedNotes?.length) return state.notes.find(note => leadUpdate.relatedNotes.includes(note.id)) || null; return state.notes[0] || null; };
+  const roadmapBuckets = () => [['now', state.roadmap.now || []], ['next', state.roadmap.next || []], ['later', state.roadmap.later || []]];
+  const buildBrief = (mode, leadUpdate, note) => { const cfg = modeConfig[mode]; const updateLine = leadUpdate ? `${leadUpdate.date}: ${leadUpdate.title}` : 'No release data loaded yet.'; const noteLine = note ? `${note.title} - ${note.summary}` : 'No note selected.'; return [`Mode: ${cfg.badge}`, '', `Focus: ${cfg.tone}`, '', `Primary signal: ${updateLine}`, `Context note: ${noteLine}`, '', `Today: ${leadUpdate ? `expand ${leadUpdate.pageLabel || leadUpdate.page || 'the lead page'} and close one meaningful loop.` : 'pick one surface and make it sharper.'}`, 'Why: keep visible progress moving while the site remains easy to explore.', '', 'Suggested next step:', leadUpdate ? `- Add one user-visible improvement to ${leadUpdate.page || 'the lead surface'} and document the change in the shared story trail.` : '- Pick a page with the most friction and give it one stronger interaction.', note ? `- Fold in the note: ${note.title}.` : '- Reuse the strongest recurring pattern from the roadmap.'].join('\n'); };
+  function render() {
+    const mode = modeSelect.value, leadUpdate = pickLeadUpdate(), note = pickNoteForMode(mode, leadUpdate), topTags = uniqTags(), cfg = modeConfig[mode];
+    briefBadge.textContent = cfg.badge;
+    briefOutput.textContent = buildBrief(mode, leadUpdate, note);
+    const totalUpdates = state.updates.length, featureCount = state.updates.filter(u => u.type === 'feature').length, recentWindow = state.updates.filter(u => Math.max(0, (Date.now() - Date.parse(u.date)) / 86400000) <= 30).length;
+    stats.innerHTML = [`<div class="stat"><strong>${totalUpdates}</strong><span>shared updates in the roost story stream</span></div>`,`<div class="stat"><strong>${featureCount}</strong><span>feature-shaped releases in the log</span></div>`,`<div class="stat"><strong>${recentWindow}</strong><span>updates in the last 30 days</span></div>`].join('');
+    tagChips.innerHTML = topTags.length ? topTags.map(([tag, count]) => `<button class="chip" type="button" data-tag="${tag}">${tag} · ${count}</button>`).join('') : '<span class="muted">no note tags loaded yet.</span>';
+    roadmapGrid.innerHTML = roadmapBuckets().map(([label, items]) => `<section class="roadmap-card"><h3>${label}</h3><ul>${items.map(item => `<li>${item}</li>`).join('') || '<li class="muted">nothing queued.</li>'}</ul></section>`).join('');
+    const relatedUpdates = leadUpdate?.relatedNotes?.slice(0, 2) || [], noteMatches = note?.relatedUpdates?.slice(0, 2) || [];
+    signalList.innerHTML = [leadUpdate && `<li class="signal"><div class="signal-meta"><span>${leadUpdate.date}</span><span>${leadUpdate.type}</span><span>${leadUpdate.pageLabel || leadUpdate.page}</span></div><h3>${leadUpdate.title}</h3><p>${leadUpdate.impact}</p><p class="muted">${leadUpdate.details}</p></li>`, note && `<li class="signal"><div class="signal-meta"><span>${note.date}</span><span>${(note.tags || []).slice(0, 3).join(', ')}</span></div><h3>${note.title}</h3><p>${note.summary}</p><p class="muted">${note.body?.[0] || ''}</p></li>`, relatedUpdates.length ? `<li class="signal"><div class="signal-meta"><span>related signals</span></div><h3>next references to open</h3><p>${relatedUpdates.join(' · ') || 'none'}</p><p class="muted">${noteMatches.join(' · ') || 'Use the lead update and roadmap to pick the next page.'}</p></li>` : ''].filter(Boolean).join('');
+    lensMeta.innerHTML = [`<span class="pill">mode ${cfg.badge}</span>`,`<span class="pill">updates ${totalUpdates}</span>`,`<span class="pill">notes ${state.notes.length}</span>`, leadUpdate ? `<span class="pill is-accent">lead ${leadUpdate.title}</span>` : '<span class="pill">lead pending</span>'].join('');
+  }
+  async function boot() {
+    try {
+      const [updates, notes, roadmapData] = await Promise.all([loadJson('assets/roost-updates.json'), loadJson('assets/roost-notes.json'), loadJson('assets/roost-updates.json')]);
+      state.updates = updates.updates || [];
+      state.notes = notes.notes || [];
+      state.roadmap = roadmapData.roadmap || { now: [], next: [], later: [] };
+      render();
+    } catch (error) {
+      briefOutput.textContent = 'Failed to load roost signals. Start a local server and try again.';
+      copyStatus.textContent = error.message;
+      lensMeta.innerHTML = '<span class="pill">offline</span>';
+    }
+  }
+  modeSelect.addEventListener('change', render);
+  shuffleBtn.addEventListener('click', () => { modeSelect.value = ['ship', 'story', 'signal'][Math.floor(Math.random() * 3)]; render(); });
+  copyBtn.addEventListener('click', async () => { try { await navigator.clipboard.writeText(briefOutput.textContent); copyStatus.textContent = 'brief copied to clipboard.'; } catch { copyStatus.textContent = 'clipboard blocked, copy manually from the brief.'; } });
+  tagChips.addEventListener('click', (event) => { const btn = event.target.closest('button[data-tag]'); if (!btn) return; copyStatus.textContent = `signal tag selected: ${btn.dataset.tag}`; });
+  boot();
+})();
+</script>
+</body>
+</html>
