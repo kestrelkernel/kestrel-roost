@@ -47,6 +47,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Roost Atlas share links:** upgraded `roost-atlas.html` with URL-synced scope, search, selected node, route, and camera state plus a one-click copyable share link so map sessions can be reopened exactly as shared
 - **Roost Briefing command surface upgrade:** expanded `roost-briefing.html` with mode toggles, expedition selection, and a release trail so the briefing can adapt to focus-first or ship-first sessions instead of acting like a static summary
 - **Homepage release pulse:** added a new momentum board to `index.html` that turns the shared roadmap and update feed into scan-friendly stats, a latest-release callout, and now/next/later lanes
 - **Homepage radio console:** added a new `index.html` radio panel that filters the shared playlist by mood, shows a live queue, and outputs a copyable setlist

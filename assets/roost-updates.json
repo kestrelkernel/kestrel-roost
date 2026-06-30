@@ -1,6 +1,7 @@
 {
   "roadmap": {
     "now": [
+      "Add bookmarkable share links and URL-synced state to Roost Atlas",
       "Add one-click publish targets (Discord/GitHub) to Captain's Log output",
       "Add path-highlighting modes and URL-shareable filters to Roost Atlas",
       "Add auto-generated mission suggestions based on release velocity and note tags in Flight Deck"
@@ -15,6 +16,20 @@
     ]
   },
   "updates": [
+    {
+      "slug": "atlas-share-links",
+      "date": "2026-06-30",
+      "title": "Added bookmarkable share links to Roost Atlas",
+      "type": "feature",
+      "impact": "Visitors can now reopen the atlas with the same scope, search, selected node, route, zoom, and pan state instead of rebuilding the view by hand.",
+      "details": "Upgraded roost-atlas.html with URL-synced filters and camera state plus a copy-share control so map sessions are easier to revisit and share.",
+      "page": "roost-atlas.html",
+      "pageLabel": "Open roost atlas",
+      "relatedNotes": [
+        "roost-linking-system",
+        "ship-log-strategy"
+      ]
+    },
     {
       "slug": "release-radar-forward-forecast",
       "date": "2026-06-27",

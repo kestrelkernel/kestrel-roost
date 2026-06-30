@@ -103,6 +103,13 @@
       align-items:center;
       margin-bottom:10px;
     }
+    .share-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-bottom:10px;
+    }
     .search-wrap {
       display:flex;
       align-items:center;
@@ -262,11 +269,15 @@
           </div>
           <button id="shuffleBtn" type="button">reshuffle map</button>
           <button id="centerBtn" type="button">center view</button>
+          <button id="shareBtn" type="button">copy share link</button>
           <div class="legend" aria-label="Node legend">
             <span><i class="dot" style="background:var(--update)"></i>ship</span>
             <span><i class="dot" style="background:var(--note)"></i>note</span>
             <span><i class="dot" style="background:var(--page)"></i>page</span>
           </div>
+        </div>
+        <div class="share-controls">
+          <p id="shareStatus" style="font-size:.8rem; color:#a8b9ff;">Atlas state is ready to share.</p>
         </div>
         <div class="atlas-shell">
           <canvas id="atlas" aria-label="Roost relationship graph"></canvas>
@@ -316,6 +327,8 @@
     const scopeSelect = document.getElementById('scope');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const centerBtn = document.getElementById('centerBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const shareStatus = document.getElementById('shareStatus');
 
     const detailTitle = document.getElementById('detailTitle');
     const detailText = document.getElementById('detailText');
@@ -342,6 +355,8 @@
     let hoveredId = null;
     let routePathIds = [];
     let searchTerm = '';
+    let pendingState = null;
+    let hasUrlState = false;
 
     let view = { x: 0, y: 0, zoom: 1 };
     let dragging = false;
@@ -358,6 +373,44 @@
 
     function parseDate(dateStr) {
       return Number.isNaN(Date.parse(dateStr)) ? null : new Date(dateStr + 'T00:00:00Z');
+    }
+
+    function encodeState() {
+      const params = new URLSearchParams();
+      if (scopeSelect.value !== 'all') params.set('scope', scopeSelect.value);
+      if (atlasSearch.value.trim()) params.set('q', atlasSearch.value.trim());
+      if (selectedId) params.set('node', selectedId);
+      if (routeFrom.value) params.set('from', routeFrom.value);
+      if (routeTo.value) params.set('to', routeTo.value);
+      if (routePathIds.length > 1) params.set('route', routePathIds.join(','));
+      if (Math.abs(view.zoom - 1) > 0.001) params.set('zoom', view.zoom.toFixed(3));
+      if (Math.abs(view.x) > 1 || Math.abs(view.y) > 1) {
+        params.set('pan', `${Math.round(view.x)},${Math.round(view.y)}`);
+      }
+      return params;
+    }
+
+    function syncUrlState({ replace = true } = {}) {
+      const nextUrl = `${location.pathname}?${encodeState().toString()}${location.hash || ''}`;
+      history[replace ? 'replaceState' : 'pushState']({ atlas: true }, '', nextUrl);
+    }
+
+    function applyUrlState() {
+      const params = new URLSearchParams(location.search);
+      hasUrlState = params.toString().length > 0;
+      pendingState = {
+        scope: params.get('scope'),
+        q: params.get('q') || '',
+        node: params.get('node') || '',
+        from: params.get('from') || '',
+        to: params.get('to') || '',
+        route: params.get('route') || '',
+        zoom: params.get('zoom') || '',
+        pan: params.get('pan') || ''
+      };
+      if (pendingState.scope) scopeSelect.value = pendingState.scope;
+      atlasSearch.value = pendingState.q;
+      searchTerm = pendingState.q.toLowerCase();
     }
 
     function filterUpdates(updates, scope) {
@@ -651,6 +704,39 @@
       }
     }
 
+    function applyPendingSelection() {
+      const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+      if (pendingState?.from && nodeById.has(pendingState.from)) {
+        routeFrom.value = pendingState.from;
+      }
+      if (pendingState?.to && nodeById.has(pendingState.to)) {
+        routeTo.value = pendingState.to;
+      }
+      if (pendingState?.route) {
+        const ids = pendingState.route.split(',').filter((id) => nodeById.has(id));
+        routePathIds = ids;
+        if (ids.length) {
+          routeResult.textContent = ids.map((id) => nodeById.get(id)?.label || id).join(' → ');
+        }
+      }
+      if (pendingState?.node && nodeById.has(pendingState.node)) {
+        selectedId = pendingState.node;
+        setDetails(nodeById.get(selectedId));
+      }
+      if (pendingState?.zoom) {
+        const zoom = Number(pendingState.zoom);
+        if (Number.isFinite(zoom) && zoom > 0.2 && zoom < 4) view.zoom = zoom;
+      }
+      if (pendingState?.pan) {
+        const [x, y] = pendingState.pan.split(',').map(Number);
+        if (Number.isFinite(x) && Number.isFinite(y)) {
+          view.x = x;
+          view.y = y;
+        }
+      }
+      pendingState = null;
+    }
+
     function updateStats() {
       const counts = {
         update: graph.nodes.filter((n) => n.type === 'update').length,
@@ -723,11 +809,13 @@
       routeFrom.innerHTML = options;
       routeTo.innerHTML = options;
       if (graph.nodes.length > 1) {
-        routeFrom.value = graph.nodes[0].id;
-        routeTo.value = graph.nodes[1].id;
+        routeFrom.value = pendingState?.from || graph.nodes[0].id;
+        routeTo.value = pendingState?.to || graph.nodes[1].id;
       }
       routePathIds = [];
-      routeResult.textContent = 'Select two points to map a route.';
+      if (!pendingState?.route) {
+        routeResult.textContent = 'Select two points to map a route.';
+      }
     }
 
     function shortestPath(fromId, toId) {
@@ -776,11 +864,15 @@
 
       graph = buildGraph(updates, notes, scopeSelect.value);
       runLayout();
-      selectedId = graph.nodes[0]?.id || null;
       refreshRouteOptions();
-      setDetails(graph.nodes[0] || null);
       updateStats();
-      centerView();
+      applyPendingSelection();
+      if (!selectedId) {
+        selectedId = graph.nodes[0]?.id || null;
+        setDetails(graph.nodes[0] || null);
+      }
+      if (!hasUrlState) centerView();
+      syncUrlState();
     }
 
     routeBtn.addEventListener('click', () => {
@@ -797,6 +889,7 @@
       selectedId = routePathIds[0];
       setDetails(nodeById.get(selectedId));
       draw();
+      syncUrlState();
     });
 
     scopeSelect.addEventListener('change', loadData);
@@ -807,12 +900,20 @@
       });
       runLayout(220);
       draw();
+      syncUrlState();
     });
-    centerBtn.addEventListener('click', centerView);
-    focusBtn.addEventListener('click', focusFirstMatch);
+    centerBtn.addEventListener('click', () => {
+      centerView();
+      syncUrlState();
+    });
+    focusBtn.addEventListener('click', () => {
+      focusFirstMatch();
+      syncUrlState();
+    });
     atlasSearch.addEventListener('input', () => {
       searchTerm = atlasSearch.value.trim().toLowerCase();
       draw();
+      syncUrlState();
     });
     atlasSearch.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
@@ -854,6 +955,7 @@
       selectedId = node?.id || null;
       setDetails(node || null);
       draw();
+      syncUrlState();
     });
 
     CANVAS.addEventListener('wheel', (event) => {
@@ -868,6 +970,7 @@
       view.x += sx - after.x;
       view.y += sy - after.y;
       draw();
+      syncUrlState();
     }, { passive: false });
 
     window.addEventListener('resize', () => {
@@ -875,6 +978,18 @@
       draw();
     });
 
+    shareBtn.addEventListener('click', async () => {
+      const url = new URL(location.href);
+      url.search = encodeState().toString();
+      try {
+        await navigator.clipboard.writeText(url.toString());
+        shareStatus.textContent = 'Share link copied with the current atlas state.';
+      } catch {
+        shareStatus.textContent = 'Could not copy automatically, but the address bar now reflects the atlas state.';
+      }
+    });
+
+    applyUrlState();
     setCanvasSize();
     loadData().catch((error) => {
       detailTitle.textContent = 'Atlas offline';
