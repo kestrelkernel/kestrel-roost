@@ -1,6 +1,7 @@
 {
   "roadmap": {
     "now": [
+      "Turn Roost Briefing into a mode-aware planning console with stronger route suggestions",
       "Add bookmarkable share links and URL-synced state to Roost Atlas",
       "Add one-click publish targets (Discord/GitHub) to Captain's Log output",
       "Add path-highlighting modes and URL-shareable filters to Roost Atlas",
@@ -16,6 +17,20 @@
     ]
   },
   "updates": [
+    {
+      "slug": "briefing-signal-console",
+      "date": "2026-07-01",
+      "title": "Expanded Roost Briefing into a signal-rich planning console",
+      "type": "feature",
+      "impact": "Visitors can now scan the briefing by signal source, see a more opinionated next-step route, and copy route guidance without reconstructing the session by hand.",
+      "details": "Upgraded roost-briefing.html with source-aware signal cards, stronger mode-specific route suggestions, and copyable route prompts that sit beside the existing briefing summary.",
+      "page": "roost-briefing.html",
+      "pageLabel": "Open roost briefing",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "roost-linking-system"
+      ]
+    },
     {
       "slug": "atlas-share-links",
       "date": "2026-06-30",

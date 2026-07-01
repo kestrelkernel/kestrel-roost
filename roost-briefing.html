@@ -116,6 +116,53 @@
     .route-step strong{font-size:1rem}
     .route-step p{margin:0;color:#b2c2eb;line-height:1.45;font-size:.92rem}
     .route-step a{color:var(--accent)}
+    .signal-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:10px;
+    }
+    .signal-card{
+      border:1px solid #304062;
+      border-radius:14px;
+      background:#0a1227;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .signal-card strong{font-size:1.15rem}
+    .signal-card p{margin:0;color:#b7c4ea;line-height:1.45;font-size:.9rem}
+    .signal-list{
+      margin:0;
+      padding-left:18px;
+      color:#cfd8f3;
+    }
+    .signal-list li{margin:5px 0;line-height:1.45}
+    .suggestions{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:12px;
+    }
+    .suggestion{
+      border:1px solid #354773;
+      border-radius:14px;
+      background:#0b1328;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .suggestion h3{margin:0;font-size:1rem}
+    .suggestion p{margin:0;color:#b2c2eb;line-height:1.45;font-size:.92rem}
+    .suggestion .action-row{display:flex;gap:8px;flex-wrap:wrap}
+    .ghost{
+      border:1px solid #415183;
+      border-radius:999px;
+      padding:6px 10px;
+      background:transparent;
+      color:#dce6ff;
+      font:inherit;
+      cursor:pointer;
+    }
+    .ghost:hover,.ghost:focus-visible{border-color:#6f8dff;background:#132668;outline:none}
     @media (max-width: 720px){
       .shell{padding:18px 12px 40px}
       .hero,.panel,.summary{border-radius:16px}
@@ -187,6 +234,14 @@
 
       <section class="panel">
         <div class="panel-head">
+          <h2>Signal breakdown</h2>
+          <p class="panel-note">A quick read on what is driving the briefing today</p>
+        </div>
+        <div class="signal-grid" id="signalGrid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
           <h2>Release trail</h2>
           <p class="panel-note">Recent launches in one scan-friendly stream</p>
         </div>
@@ -203,6 +258,14 @@
         </div>
         <pre id="briefingCopy"></pre>
         <div class="statusline" id="copyStatus"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Recommended route</h2>
+          <p class="panel-note">Suggested starting points based on the current mode</p>
+        </div>
+        <div class="suggestions" id="suggestions"></div>
       </section>
     </section>
   </main>
@@ -306,6 +369,92 @@
       `;
     }
 
+    function buildSignalCards({ nowData, updatesData, expeditionsData, radioData }) {
+      const activeFocus = (nowData.activeFocus || []).slice(0, 3);
+      const releases = (updatesData.updates || []).slice(0, 4);
+      const activeExpeditions = (expeditionsData || []).filter(item => item.status === 'active');
+      const favoriteCue = (radioData || []).find(item => item.mood === 'focus') || (radioData || [])[0];
+      const strongestRelease = releases[0];
+      const avgProgress = activeExpeditions.length
+        ? Math.round(activeExpeditions.reduce((sum, item) => sum + (Number(item.progress) || 0), 0) / activeExpeditions.length)
+        : 0;
+
+      return [
+        {
+          title: 'focus stack',
+          value: String(activeFocus.length),
+          note: activeFocus.length
+            ? activeFocus.map(item => item.title).join(' · ')
+            : 'no active focus cards are loaded yet.'
+        },
+        {
+          title: 'release pressure',
+          value: String(releases.length),
+          note: strongestRelease
+            ? `${strongestRelease.title} is the latest ship shaping the briefing.`
+            : 'no recent releases are available.'
+        },
+        {
+          title: 'mission health',
+          value: `${avgProgress}%`,
+          note: activeExpeditions.length
+            ? `${activeExpeditions.length} active expeditions are feeding the route planner.`
+            : 'no active expeditions are marked right now.'
+        },
+        {
+          title: 'soundtrack cue',
+          value: favoriteCue ? favoriteCue.artist : 'silent',
+          note: favoriteCue
+            ? `${favoriteCue.title} is the likely focus soundtrack for this session.`
+            : 'no cue was loaded from the radio feed.'
+        }
+      ];
+    }
+
+    function renderSuggestions({ nowData, updatesData, expeditionsData, radioData, mode }) {
+      const activeFocus = (nowData.activeFocus || []).slice(0, 3);
+      const nextMoves = (nowData.nextUp || []).slice(0, 3);
+      const releases = (updatesData.updates || []).slice(0, 3);
+      const activeExpedition = (expeditionsData || []).find(item => item.status === 'active') || (expeditionsData || [])[0];
+      const cue = (radioData || []).find(item => item.mood === 'focus') || (radioData || [])[0];
+
+      const route = [
+        {
+          title: mode === 'ship' ? 'open the newest ship' : 'start with the top focus card',
+          body: mode === 'ship'
+            ? 'Use the latest release as your anchor, then branch into the linked page or note trail.'
+            : 'Open the strongest active focus first so the session starts with a clear build target.',
+          action: mode === 'ship' && releases[0] ? releases[0].page : 'command-center.html'
+        },
+        {
+          title: activeExpedition ? `check ${activeExpedition.name}` : 'check mission health',
+          body: activeExpedition
+            ? `The ${activeExpedition.theme} expedition is sitting at ${activeExpedition.progress}% progress.`
+            : 'There is no active expedition selected, so the route should stay lightweight.',
+          action: activeExpedition && activeExpedition.links && activeExpedition.links[0] ? activeExpedition.links[0].href : 'flight-deck.html'
+        },
+        {
+          title: cue ? `listen to ${cue.title}` : 'pick a quiet follow-up',
+          body: cue
+            ? `${cue.artist} is the best soundtrack match for the current briefing mode.`
+            : 'Move into the next-step lane and let the route finish with momentum.',
+          action: 'now.html'
+        }
+      ];
+
+      return route.map((item, index) => `
+        <article class="suggestion">
+          <div class="meta"><span class="badge">${index + 1}</span><span>${escapeHTML(mode === 'all' ? 'balanced' : getModeLabel(mode))}</span></div>
+          <h3>${escapeHTML(item.title)}</h3>
+          <p>${escapeHTML(item.body)}</p>
+          <div class="action-row">
+            <a class="ghost" href="${escapeHTML(item.action)}">open page</a>
+            <button class="ghost" type="button" data-copy-route="${escapeHTML(item.title)}">copy route text</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
     function getModeLabel(mode) {
       if (mode === 'focus') return 'focus first';
       if (mode === 'ship') return 'ship first';
@@ -398,6 +547,15 @@
         q('#expList').innerHTML = state.expeditionHtml;
         q('#routeList').innerHTML = state.routeHtml;
         q('#updateTimeline').innerHTML = state.timelineHtml;
+        q('#signalGrid').innerHTML = buildSignalCards({ nowData, updatesData, expeditionsData, radioData })
+          .map(card => `
+            <article class="signal-card">
+              <div class="meta"><span class="badge">${escapeHTML(card.title)}</span></div>
+              <strong>${escapeHTML(card.value)}</strong>
+              <p>${escapeHTML(card.note)}</p>
+            </article>
+          `).join('');
+        q('#suggestions').innerHTML = renderSuggestions({ nowData, updatesData, expeditionsData, radioData, mode });
         q('#briefingCopy').textContent = state.briefingText;
         q('#focusStamp').textContent = nowData.updatedAt ? `updated ${nowData.updatedAt}` : 'updated recently';
         expeditionPick.value = selectedExpeditionId;
@@ -419,6 +577,18 @@
       expeditionPick.addEventListener('change', () => {
         selectedExpeditionId = expeditionPick.value;
         render();
+      });
+
+      q('#suggestions').addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-copy-route]');
+        if (!button) return;
+        const text = `${button.getAttribute('data-copy-route')} - open the suggested page, then keep momentum rolling.`;
+        try {
+          await navigator.clipboard.writeText(text);
+          q('#copyStatus').textContent = 'Copied a suggested route note.';
+        } catch {
+          q('#copyStatus').textContent = 'Clipboard blocked, but the route note is selected in the page.';
+        }
       });
 
       q('#copyBriefing').addEventListener('click', async () => {
