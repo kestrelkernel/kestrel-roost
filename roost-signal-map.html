@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kestrel Roost signal map: roadmap pressure, recent releases, and note-driven next moves." />
+  <title>Roost Signal Map · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#07101d;
+      --bg2:#101d3f;
+      --card:#0c1428f0;
+      --card2:#081024f0;
+      --line:#32457e;
+      --text:#eaf0ff;
+      --muted:#9dadd9;
+      --accent:#89b6ff;
+      --accent2:#7ef0c3;
+      --warm:#ffd27d;
+      --shadow:0 22px 60px rgba(0,0,0,.34);
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    body{
+      margin:0;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 12% 0%, #24407f 0%, transparent 36%),
+        radial-gradient(circle at 88% 12%, #16396a 0%, transparent 33%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+    a{color:inherit}
+    .wrap{width:min(1180px,92vw);margin:30px auto 44px;display:grid;gap:14px}
+    .hero,.panel{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .hero{
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:14px;
+    }
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:auto -70px -110px auto;
+      width:280px;
+      height:280px;
+      border-radius:999px;
+      background:radial-gradient(circle, rgba(126,240,195,.14) 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .top{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      position:relative;
+      z-index:1;
+    }
+    h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3.5rem)}
+    .lede{margin:0;color:var(--muted);max-width:70ch;line-height:1.55}
+    .nav,.controls,.meta-row,.stat-grid,.lane-grid,.source-grid,.action-row{display:flex;gap:10px;flex-wrap:wrap}
+    .nav a,.chip,.btn{
+      text-decoration:none;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:8px 12px;
+      background:#102155;
+      color:#dce6ff;
+      font:inherit;
+      cursor:pointer;
+    }
+    .nav a:hover,.chip:hover,.btn:hover,
+    .nav a:focus-visible,.chip:focus-visible,.btn:focus-visible{
+      outline:none;
+      transform:translateY(-1px);
+      background:#14306e;
+      border-color:#7f9dff;
+    }
+    .chip[aria-pressed="true"]{background:#dce6ff;color:#10204f;border-color:#dce6ff}
+    .hero-stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:10px;
+      position:relative;
+      z-index:1;
+    }
+    .stat,.lane,.source,.summary,.note{
+      border:1px solid #30437e;
+      border-radius:14px;
+      background:#091126;
+      padding:14px;
+    }
+    .stat strong{display:block;font-size:1.5rem;color:#fff;margin-bottom:4px}
+    .stat span,.muted{color:var(--muted);font-size:.82rem;line-height:1.4}
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      margin-bottom:12px;
+    }
+    .section-head h2{margin:0;font-size:1rem;color:#dfe7ff}
+    .section-head p{margin:0;color:var(--muted);font-size:.84rem}
+    .lane-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:12px;
+    }
+    .lane h3,.source h3,.summary h3,.note h3{margin:0 0 10px;font-size:.96rem;color:#f2f6ff}
+    .lane ul,.source ul,.summary ul,.note ul{margin:0;padding-left:18px;color:#cbd6f8}
+    .lane li,.source li,.summary li,.note li{margin:6px 0;line-height:1.45}
+    .lane .tag-row,.source .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .tag{
+      border:1px dashed #455ca2;
+      border-radius:999px;
+      padding:3px 8px;
+      background:#101d4d;
+      color:#cfe0ff;
+      font-size:.74rem;
+    }
+    .board{
+      display:grid;
+      gap:12px;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    }
+    .entry{
+      border:1px solid #30437e;
+      border-radius:14px;
+      background:#091126;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .entry strong{font-size:1rem}
+    .entry p{margin:0;color:#b8c6ed;line-height:1.5}
+    .entry-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      font-size:.76rem;
+      color:#b8c6ed;
+    }
+    .pill{
+      border:1px solid #4460b9;
+      border-radius:999px;
+      padding:3px 8px;
+      background:#101d4d;
+      color:#d5e1ff;
+    }
+    .pill.good{border-color:#387b60;color:#aef7d2}
+    .pill.warm{border-color:#8d6a2d;color:#ffe0a5}
+    .summary pre{
+      margin:0;
+      white-space:pre-wrap;
+      font:inherit;
+      color:#e6eeff;
+      line-height:1.55;
+    }
+    .source-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .note-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+    .statusline{min-height:1.2em;color:var(--muted);font-size:.82rem}
+    @media (max-width:720px){
+      .wrap{width:min(94vw,1180px);margin:18px auto 36px}
+      .hero,.panel{border-radius:16px;padding:16px}
+      h1{font-size:2.2rem}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="top">
+        <div>
+          <h1>Roost Signal Map</h1>
+          <p class="lede">A planning board that fuses roadmap pressure, shipped releases, and field notes into one view. It is meant to answer a simple question fast: what deserves the next block of attention?</p>
+        </div>
+        <nav class="nav" aria-label="Site">
+          <a href="index.html">home</a>
+          <a href="flight-deck.html">flight deck</a>
+          <a href="signal-board.html">signal board</a>
+          <a href="release-radar.html">release radar</a>
+        </nav>
+      </div>
+      <div class="controls" aria-label="Signal mode controls">
+        <button class="chip" id="modeAll" type="button" aria-pressed="true">all signals</button>
+        <button class="chip" id="modeRoadmap" type="button" aria-pressed="false">roadmap first</button>
+        <button class="chip" id="modeShip" type="button" aria-pressed="false">ship-first</button>
+        <button class="chip" id="modeNotes" type="button" aria-pressed="false">note-led</button>
+        <button class="btn" id="copySummary" type="button">copy brief</button>
+      </div>
+      <div class="hero-stats" id="heroStats"></div>
+      <div class="statusline" id="statusLine" aria-live="polite"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <h2>Signal lanes</h2>
+        <p>What is leaning now, what should happen next, and what the site is already hinting at.</p>
+      </div>
+      <div class="lane-grid" id="laneGrid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <h2>Recent releases</h2>
+        <p>Shipped entries ranked for current planning relevance.</p>
+      </div>
+      <div class="board" id="releaseBoard"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <h2>Note signals</h2>
+        <p>Field notes that explain the why behind the next move.</p>
+      </div>
+      <div class="note-grid" id="noteGrid"></div>
+    </section>
+
+    <section class="panel summary">
+      <div class="section-head">
+        <h2>Copyable brief</h2>
+        <p id="briefStamp"></p>
+      </div>
+      <pre id="summaryText">loading signal brief...</pre>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      mode: 'all',
+      updates: [],
+      notes: [],
+      roadmap: null,
+    };
+
+    const heroStats = document.getElementById('heroStats');
+    const laneGrid = document.getElementById('laneGrid');
+    const releaseBoard = document.getElementById('releaseBoard');
+    const noteGrid = document.getElementById('noteGrid');
+    const summaryText = document.getElementById('summaryText');
+    const briefStamp = document.getElementById('briefStamp');
+    const statusLine = document.getElementById('statusLine');
+
+    const setMode = (mode) => {
+      state.mode = mode;
+      for (const button of document.querySelectorAll('.chip[id^="mode"]')) {
+        button.setAttribute('aria-pressed', String(button.id === `mode${mode[0].toUpperCase()}${mode.slice(1)}`));
+      }
+      render();
+    };
+
+    const scoreRelease = (update) => {
+      const typeBonus = update.type === 'feature' ? 3 : update.type === 'interaction' ? 2 : 1;
+      const noteBonus = update.relatedNotes?.length ? 2 : 0;
+      return typeBonus + noteBonus + Math.min((update.details || '').length / 80, 4);
+    };
+
+    const scoreNote = (note) => {
+      const keywordBonus = note.tags?.some((tag) => ['workflow', 'product', 'content'].includes(tag)) ? 3 : 1;
+      return keywordBonus + Math.min((note.summary || '').length / 90, 3);
+    };
+
+    const scoreLaneItem = (text) => {
+      if (!text) return 0;
+      const lower = String(text).toLowerCase();
+      let score = 1;
+      if (lower.includes('ship') || lower.includes('release') || lower.includes('publish')) score += 2;
+      if (lower.includes('plan') || lower.includes('roadmap') || lower.includes('move')) score += 2;
+      if (lower.includes('note') || lower.includes('context') || lower.includes('signal')) score += 2;
+      return score;
+    };
+
+    const roadmapItems = () => {
+      const roadmap = state.roadmap?.roadmap || { now: [], next: [], later: [] };
+      const now = [...(roadmap.now || [])].sort((a, b) => scoreLaneItem(b) - scoreLaneItem(a));
+      const next = [...(roadmap.next || [])].sort((a, b) => scoreLaneItem(b) - scoreLaneItem(a));
+      const later = [...(roadmap.later || [])].sort((a, b) => scoreLaneItem(b) - scoreLaneItem(a));
+      return [
+        {
+          label: 'now',
+          items: state.mode === 'ship' ? now.slice(0, 3) : now,
+          tone: 'good',
+          blurb: 'things demanding attention this week',
+        },
+        {
+          label: 'next',
+          items: state.mode === 'roadmap' ? next.slice(0, 4) : next,
+          tone: 'warm',
+          blurb: 'likely follow-up moves',
+        },
+        {
+          label: 'later',
+          items: state.mode === 'notes' ? later.slice().reverse() : later,
+          tone: '',
+          blurb: 'longer horizon ideas',
+        },
+      ];
+    };
+
+    const topUpdates = () => [...state.updates].sort((a, b) => scoreRelease(b) - scoreRelease(a)).slice(0, 3);
+    const topNotes = () => [...state.notes].sort((a, b) => scoreNote(b) - scoreNote(a)).slice(0, 3);
+
+    const renderHero = () => {
+      const roadmap = state.roadmap?.roadmap || { now: [], next: [], later: [] };
+      const counts = [
+        { label: 'now items', value: roadmap.now?.length ?? 0, copy: 'active pressure on the roadmap' },
+        { label: 'recent ships', value: state.updates.length, copy: 'shared release feed loaded' },
+        { label: 'signal notes', value: state.notes.length, copy: 'context notes shaping the next move' },
+        { label: 'preferred lane', value: state.mode.replace(/^\w/, (c) => c.toUpperCase()), copy: 'current filter on the board' },
+      ];
+      heroStats.innerHTML = counts.map((item) => `
+        <article class="stat">
+          <strong>${item.value}</strong>
+          <span>${item.label}</span>
+          <span>${item.copy}</span>
+        </article>
+      `).join('');
+    };
+
+    const renderLanes = () => {
+      const lanes = roadmapItems();
+      laneGrid.innerHTML = lanes.map((lane) => `
+        <article class="lane">
+          <h3>${lane.label} lane</h3>
+          <p class="muted">${lane.blurb}</p>
+          <ul>${lane.items.slice(0, 4).map((item) => `<li>${item}</li>`).join('') || '<li>nothing in this lane yet</li>'}</ul>
+          <div class="tag-row">${lane.items.slice(0, 3).map((item) => `<span class="tag">${item}</span>`).join('')}</div>
+        </article>
+      `).join('');
+    };
+
+    const renderReleases = () => {
+      const releaseSet = topUpdates();
+      releaseBoard.innerHTML = releaseSet.map((update, index) => `
+        <article class="entry">
+          <div class="entry-meta">
+            <span class="pill ${index === 0 ? 'good' : ''}">#${index + 1}</span>
+            <span class="pill">${update.date}</span>
+            <span class="pill">${update.type}</span>
+            <a class="pill" href="${update.page}">${update.pageLabel || 'open page'}</a>
+          </div>
+          <strong>${update.title}</strong>
+          <p>${update.impact}</p>
+          <p>${update.details}</p>
+          <div class="entry-meta">
+            <span>${update.relatedNotes?.length || 0} linked notes</span>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const renderNotes = () => {
+      const noteSet = topNotes();
+      noteGrid.innerHTML = noteSet.map((note, index) => `
+        <article class="source">
+          <h3>${index === 0 ? 'lead note' : 'supporting note'}: ${note.title}</h3>
+          <p class="muted">${note.summary}</p>
+          <ul>${note.body.slice(0, 2).map((line) => `<li>${line}</li>`).join('')}</ul>
+          <div class="tag-row">
+            ${note.tags.slice(0, 3).map((tag) => `<span class="tag">${tag}</span>`).join('')}
+            <a class="tag" href="${note.relatedPage}">${note.relatedPageLabel || 'open note page'}</a>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const renderSummary = () => {
+      const roadmap = state.roadmap?.roadmap || { now: [], next: [] };
+      const leadUpdate = topUpdates()[0];
+      const leadNote = topNotes()[0];
+      const laneHint = state.mode === 'roadmap'
+        ? (roadmap.next?.[0] || roadmap.now?.[0] || 'keep pressure on the roadmap')
+        : state.mode === 'ship'
+          ? (leadUpdate?.title || 'prioritize the clearest release signal')
+          : state.mode === 'notes'
+            ? (leadNote?.title || 'use the strongest note context')
+            : (roadmap.now?.[0] || 'no top pressure detected');
+      const brief = [
+        `Signal map brief for ${new Date().toISOString().slice(0, 10)}:`,
+        '',
+        `Current pressure: ${laneHint}.`,
+        `Best release signal: ${leadUpdate ? `${leadUpdate.title} (${leadUpdate.type})` : 'no release loaded yet'}.`,
+        `Best note signal: ${leadNote ? `${leadNote.title}` : 'no note loaded yet'}.`,
+        `Next move: ${roadmap.next?.[0] || 'keep the next lane pointed at the highest-impact page'}.`,
+        '',
+        'Why it matters: this board collapses the roadmap, release history, and explanatory notes into one scan-friendly planning surface.'
+      ];
+      summaryText.textContent = brief.join('\n');
+      briefStamp.textContent = `last refreshed ${new Date().toLocaleString()}`;
+    };
+
+    const render = () => {
+      if (!state.updates.length || !state.notes.length || !state.roadmap) return;
+      renderHero();
+      renderLanes();
+      renderReleases();
+      renderNotes();
+      renderSummary();
+      statusLine.textContent = `mode: ${state.mode} · ${state.updates.length} releases · ${state.notes.length} notes`;
+    };
+
+    async function loadData() {
+      const [updatesRes, notesRes] = await Promise.all([
+        fetch('assets/roost-updates.json'),
+        fetch('assets/roost-notes.json'),
+      ]);
+      state.roadmap = await updatesRes.clone().json();
+      state.updates = (await updatesRes.json()).updates || [];
+      state.notes = (await notesRes.json()).notes || [];
+      render();
+    }
+
+    document.getElementById('modeAll').addEventListener('click', () => setMode('all'));
+    document.getElementById('modeRoadmap').addEventListener('click', () => setMode('roadmap'));
+    document.getElementById('modeShip').addEventListener('click', () => setMode('ship'));
+    document.getElementById('modeNotes').addEventListener('click', () => setMode('notes'));
+    document.getElementById('copySummary').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(summaryText.textContent || '');
+        statusLine.textContent = 'copy brief copied to clipboard ✓';
+      } catch {
+        statusLine.textContent = 'clipboard copy failed, but the brief is still visible.';
+      }
+    });
+
+    loadData().catch(() => {
+      statusLine.textContent = 'signal map unavailable right now.';
+      summaryText.textContent = 'signal map unavailable.';
+    });
+  </script>
+</body>
+</html>

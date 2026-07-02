@@ -1,6 +1,7 @@
 {
   "roadmap": {
     "now": [
+      "Launch Roost Signal Map as a roadmap-aware planning board for the homepage",
       "Turn Roost Briefing into a mode-aware planning console with stronger route suggestions",
       "Add bookmarkable share links and URL-synced state to Roost Atlas",
       "Add one-click publish targets (Discord/GitHub) to Captain's Log output",
@@ -17,6 +18,20 @@
     ]
   },
   "updates": [
+    {
+      "slug": "signal-map-launch",
+      "date": "2026-07-02",
+      "title": "Launched Roost Signal Map as a roadmap-aware planning board",
+      "type": "feature",
+      "impact": "Visitors can now scan roadmap pressure, release history, and note context in one place instead of stitching the next move together from three separate pages.",
+      "details": "Added roost-signal-map.html with roadmap-first lanes, release ranking, note-driven context cards, and a copyable brief so the homepage ecosystem has one more real planning surface.",
+      "page": "roost-signal-map.html",
+      "pageLabel": "Open roost signal map",
+      "relatedNotes": [
+        "signal-board-rationale",
+        "now-board-principles"
+      ]
+    },
     {
       "slug": "briefing-signal-console",
       "date": "2026-07-01",

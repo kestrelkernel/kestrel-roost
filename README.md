@@ -24,6 +24,7 @@ python3 -m http.server 8080
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
 - `roost-lens.html` — daily build brief generator that turns updates, notes, and roadmap pressure into a concrete next move
+- `roost-signal-map.html` — roadmap-aware planning board that fuses releases, notes, and pressure lanes into a copyable brief
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
@@ -49,6 +50,7 @@ python3 -m http.server 8080
 
 - **Roost Atlas share links:** upgraded `roost-atlas.html` with URL-synced scope, search, selected node, route, and camera state plus a one-click copyable share link so map sessions can be reopened exactly as shared
 - **Roost Briefing signal console:** expanded `roost-briefing.html` with signal breakdown cards, more opinionated route suggestions, and copyable route prompts so the briefing can adapt to focus-first or ship-first sessions instead of acting like a static summary
+- **Roost Signal Map launch:** added `roost-signal-map.html`, a roadmap-first planning board that ranks recent releases, surfaces note-driven context, and exports a copyable brief so the homepage ecosystem has one more high-signal planning surface
 - **Homepage release pulse:** added a new momentum board to `index.html` that turns the shared roadmap and update feed into scan-friendly stats, a latest-release callout, and now/next/later lanes
 - **Homepage radio console:** added a new `index.html` radio panel that filters the shared playlist by mood, shows a live queue, and outputs a copyable setlist
 - **Homepage launch deck upgrade:** added an intent-aware launch deck to `index.html` with configurable build/learn/play/reflection/plan filters, a three-stop handoff summary, pinning into the routebook, and copyable route text so the front page can actively shape a next move
