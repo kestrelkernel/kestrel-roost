@@ -30,6 +30,7 @@ python3 -m http.server 8080
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
 - `roost-lab.html` — interactive style prototyping studio with live token controls, contrast checks, and CSS export
+- `roost-constellations.html` — ritual selector with URL-synced filters, bookmarkable state, and a focused detail panel
 - `roost-radio.html` — ambient playlist surface with mood-based listening and copyable setlists
 - `captains-log.html` — digest studio that generates shareable markdown recaps from ships + notes
 - `timeline.html` — interactive milestone timeline with type filters, search, and impact summaries
@@ -51,6 +52,7 @@ python3 -m http.server 8080
 - **Roost Atlas share links:** upgraded `roost-atlas.html` with URL-synced scope, search, selected node, route, and camera state plus a one-click copyable share link so map sessions can be reopened exactly as shared
 - **Roost Briefing signal console:** expanded `roost-briefing.html` with signal breakdown cards, more opinionated route suggestions, and copyable route prompts so the briefing can adapt to focus-first or ship-first sessions instead of acting like a static summary
 - **Roost Signal Map launch:** added `roost-signal-map.html`, a roadmap-first planning board that ranks recent releases, surfaces note-driven context, and exports a copyable brief so the homepage ecosystem has one more high-signal planning surface
+- **Roost Constellations share links:** upgraded `roost-constellations.html` with bookmarkable filters, selected-star state, and a richer detail panel so rituals can be reopened or shared as a session instead of a flat list
 - **Homepage release pulse:** added a new momentum board to `index.html` that turns the shared roadmap and update feed into scan-friendly stats, a latest-release callout, and now/next/later lanes
 - **Homepage radio console:** added a new `index.html` radio panel that filters the shared playlist by mood, shows a live queue, and outputs a copyable setlist
 - **Homepage launch deck upgrade:** added an intent-aware launch deck to `index.html` with configurable build/learn/play/reflection/plan filters, a three-stop handoff summary, pinning into the routebook, and copyable route text so the front page can actively shape a next move

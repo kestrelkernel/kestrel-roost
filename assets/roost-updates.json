@@ -1,6 +1,7 @@
 {
   "roadmap": {
     "now": [
+      "Upgrade Roost Constellations with bookmarkable ritual sessions and a detail panel",
       "Launch Roost Signal Map as a roadmap-aware planning board for the homepage",
       "Turn Roost Briefing into a mode-aware planning console with stronger route suggestions",
       "Add bookmarkable share links and URL-synced state to Roost Atlas",
@@ -18,6 +19,20 @@
     ]
   },
   "updates": [
+    {
+      "slug": "constellations-share-links",
+      "date": "2026-07-03",
+      "title": "Upgraded Roost Constellations with bookmarkable ritual sessions",
+      "type": "interaction",
+      "impact": "Visitors can now keep a chosen sky lane in the URL, reopen the same ritual selection later, and use the page as a real session brief instead of a flat list.",
+      "details": "Rebuilt roost-constellations.html with URL-synced filters, search, selected-star state, a copyable share link, and a richer detail panel for the active ritual.",
+      "page": "roost-constellations.html",
+      "pageLabel": "Open roost constellations",
+      "relatedNotes": [
+        "roost-linking-system",
+        "ship-log-strategy"
+      ]
+    },
     {
       "slug": "signal-map-launch",
       "date": "2026-07-02",

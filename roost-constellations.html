@@ -3,37 +3,472 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>roost constellations</title>
+  <meta name="description" content="Practical rituals for Kestrel's Roost" />
+  <title>Roost Constellations</title>
   <style>
-    :root { --bg:#0a1024; --card:#0f1a3bcc; --line:#344e9a; --fg:#e6ecff; --muted:#a9b9ff; --accent:#8fb0ff; }
-    *{box-sizing:border-box} body{margin:0;font-family:ui-monospace,monospace;color:var(--fg);background:radial-gradient(circle at 10% -10%,#22387a,transparent 38%),radial-gradient(circle at 95% 115%,#1f326f,transparent 40%),#0a1024}
-    .wrap{width:min(980px,92vw);margin:30px auto;display:grid;gap:12px}
-    .card{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:18px}
-    .row{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#0d1c4a;border:1px solid #4863b8;border-radius:999px;padding:6px 10px;color:#dce6ff;cursor:pointer}.chip.active{background:#16317a}
-    .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-    .star{border:1px solid #3e57a8;border-radius:12px;padding:12px;background:#091230}
-    a{color:var(--accent)} p{color:var(--muted)}
+    :root {
+      --bg:#090f22;
+      --bg2:#111c40;
+      --fg:#eef3ff;
+      --muted:#a8b8ff;
+      --accent:#8fb0ff;
+      --card:#0f1838d9;
+      --line:#35509f;
+      --good:#8effcc;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% -10%, #274285 0%, transparent 34%),
+        radial-gradient(circle at 96% 110%, #172b63 0%, transparent 40%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1120px, 92vw);
+      margin:32px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:18px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(1.8rem, 4.6vw, 3rem); }
+    h2 { margin:0 0 10px; font-size:1.02rem; color:#d6e0ff; }
+    p { margin:0; color:var(--muted); line-height:1.5; }
+    a { color:var(--accent); }
+    .topbar,
+    .toolbar,
+    .chip-row,
+    .meta-row,
+    .stat-row,
+    .detail-row {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .topbar { margin-top:10px; }
+    .btn,
+    .chip,
+    .nav-link {
+      border:1px solid #4965bb;
+      border-radius:999px;
+      background:#0f1d4d;
+      color:#dfe8ff;
+      text-decoration:none;
+      font:inherit;
+      font-size:.82rem;
+      padding:7px 11px;
+      cursor:pointer;
+      transition:.16s ease;
+    }
+    .btn:hover,
+    .btn:focus-visible,
+    .chip:hover,
+    .chip:focus-visible,
+    .nav-link:hover,
+    .nav-link:focus-visible {
+      transform:translateY(-1px);
+      background:#152a6f;
+      border-color:#7a95ea;
+      outline:none;
+    }
+    .chip.active {
+      background:#173273;
+      border-color:#8da8ff;
+      color:#fff;
+    }
+    .nav-link { padding:6px 10px; }
+    .toolbar {
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .toolbar small { color:#9eb1ef; }
+    .summary-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:12px;
+    }
+    .summary-card {
+      border:1px solid #31509f;
+      border-radius:12px;
+      background:#0b1434;
+      padding:14px;
+      display:grid;
+      gap:6px;
+    }
+    .summary-card strong {
+      font-size:1.5rem;
+      color:#fff;
+    }
+    .summary-card span {
+      color:#a9bbff;
+      font-size:.84rem;
+      line-height:1.4;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns:1.35fr .9fr;
+      gap:14px;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+    }
+    .star {
+      border:1px solid #3b54a9;
+      border-radius:12px;
+      padding:14px;
+      background:#091230;
+      display:grid;
+      gap:10px;
+    }
+    .star.selected {
+      border-color:#8aa4f3;
+      background:linear-gradient(160deg, #132d69, #091230 76%);
+      box-shadow:0 0 0 1px #91a8ff33 inset;
+    }
+    .star h3,
+    .detail h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .star p,
+    .detail p,
+    .detail li {
+      color:#b4c3ff;
+      line-height:1.45;
+      font-size:.92rem;
+    }
+    .tag {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid #4960b2;
+      border-radius:999px;
+      padding:3px 9px;
+      background:#0f1b49;
+      color:#dce6ff;
+      font-size:.74rem;
+      width:max-content;
+    }
+    .detail {
+      position:sticky;
+      top:16px;
+      display:grid;
+      gap:10px;
+      align-self:start;
+    }
+    .detail-box {
+      border:1px solid #33529c;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .detail-list {
+      margin:0;
+      padding-left:18px;
+      color:#b4c3ff;
+    }
+    .detail-list li { margin:5px 0; }
+    .callout {
+      border-left:3px solid #8fb0ff;
+      padding:10px 12px;
+      background:#0c1737;
+      border-radius:10px;
+      color:#dbe4ff;
+    }
+    .status {
+      min-height:1.2em;
+      color:#b9c8ff;
+      font-size:.84rem;
+    }
+    .empty {
+      border:1px dashed #4760aa;
+      border-radius:12px;
+      padding:16px;
+      color:#a9bbff;
+      background:#08102d;
+    }
+    footer {
+      text-align:center;
+      color:#8fa3ec;
+      font-size:.84rem;
+      padding:2px 0 18px;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns:1fr; }
+      .detail { position:static; }
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
       <h1>roost constellations</h1>
-      <p>choose a sky lane and get a practical ritual to keep momentum.</p>
-      <div class="row" id="filters"></div>
+      <p>pick a sky lane, then copy the ritual. This page now keeps its filter in the URL so a chosen mood can be reopened and shared.</p>
+      <nav class="topbar" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="roost-lab.html">roost lab</a>
+        <a class="nav-link" href="roost-handoff.html">handoff</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+      </nav>
     </section>
+
+    <section class="card summary-grid" aria-label="Constellation summary">
+      <article class="summary-card">
+        <strong id="visibleCount">--</strong>
+        <span>visible constellations after filters and search.</span>
+      </article>
+      <article class="summary-card">
+        <strong id="domainCount">--</strong>
+        <span>lanes across build, write, maintain, learn, and play.</span>
+      </article>
+      <article class="summary-card">
+        <strong id="selectedEnergy">--</strong>
+        <span>energy level for the selected ritual.</span>
+      </article>
+      <article class="summary-card">
+        <strong id="shareCount">--</strong>
+        <span>shareable URL state pieces currently active.</span>
+      </article>
+    </section>
+
     <section class="card">
-      <div class="grid" id="grid"><p>loading constellations...</p></div>
+      <div class="toolbar">
+        <div>
+          <h2>constellation lanes</h2>
+          <small>filter by domain, search the ritual text, or click one star for the session brief.</small>
+        </div>
+        <div class="meta-row">
+          <button class="btn" id="copyShare" type="button">copy share link</button>
+          <button class="btn" id="clearFilters" type="button">clear filters</button>
+        </div>
+      </div>
+      <div class="chip-row" id="filters" role="toolbar" aria-label="Filter constellations by domain"></div>
+      <input id="search" type="search" placeholder="search name, signal, ritual, or linked page" aria-label="Search constellations" style="margin-top:10px;width:100%;border:1px solid #4360b8;border-radius:10px;padding:10px 12px;font:inherit;color:#e6ecff;background:#091432;" />
+      <p class="status" id="status">loading constellations…</p>
+      <div class="layout">
+        <div class="grid" id="grid" aria-live="polite"></div>
+        <aside class="detail" aria-live="polite">
+          <div class="detail-box" id="detail">
+            <div class="callout">Select a constellation to see its ritual brief.</div>
+          </div>
+        </aside>
+      </div>
     </section>
+
+    <footer>roost constellations now supports bookmarkable ritual picks.</footer>
   </main>
-<script>
-const grid = document.getElementById('grid');
-const filters = document.getElementById('filters');
-let data = []; let active = 'all';
-const domains = ['all','build','write','maintain','learn','play'];
-function renderFilters(){filters.innerHTML='';domains.forEach(d=>{const b=document.createElement('button');b.className='chip'+(d===active?' active':'');b.textContent=d;b.onclick=()=>{active=d;renderFilters();render()};filters.appendChild(b);});}
-function render(){const rows=data.filter(x=>active==='all'||x.domain===active);grid.innerHTML = rows.map(x=>`<article class="star"><h3>${x.name}</h3><p><strong>${x.domain}</strong> · ${x.energy} energy · ${x.cadence}</p><p>${x.signal}</p><p><em>${x.ritual}</em></p><p>${x.links.map(l=>`<a href="${l}">${l.replace('.html','')}</a>`).join(' · ')}</p></article>`).join('') || '<p>no matches</p>';}
-fetch('assets/roost-constellations.json').then(r=>r.json()).then(j=>{data=j;renderFilters();render();}).catch(()=>{grid.innerHTML='<p>could not load data.</p>';});
-</script>
+  <script>
+    const grid = document.getElementById('grid');
+    const filters = document.getElementById('filters');
+    const detail = document.getElementById('detail');
+    const status = document.getElementById('status');
+    const searchInput = document.getElementById('search');
+    const visibleCount = document.getElementById('visibleCount');
+    const domainCount = document.getElementById('domainCount');
+    const selectedEnergy = document.getElementById('selectedEnergy');
+    const shareCount = document.getElementById('shareCount');
+    const copyShare = document.getElementById('copyShare');
+    const clearFilters = document.getElementById('clearFilters');
+
+    const domains = ['all', 'build', 'write', 'maintain', 'learn', 'play'];
+    const params = new URLSearchParams(location.search);
+    const state = {
+      domain: params.get('domain') || 'all',
+      q: params.get('q') || '',
+      selected: params.get('selected') || ''
+    };
+
+    let data = [];
+
+    function setStatus(text) {
+      status.textContent = text;
+    }
+
+    function syncUrl() {
+      const next = new URLSearchParams();
+      if (state.domain !== 'all') next.set('domain', state.domain);
+      if (state.q.trim()) next.set('q', state.q.trim());
+      if (state.selected) next.set('selected', state.selected);
+      const url = `${location.pathname}${next.toString() ? `?${next.toString()}` : ''}`;
+      history.replaceState({}, '', url);
+      shareCount.textContent = String(next.size);
+      return new URL(url, location.href).href;
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('share link copied.');
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        setStatus('share link copied.');
+      }
+    }
+
+    function renderFilters() {
+      filters.innerHTML = '';
+      domains.forEach(domain => {
+        const btn = document.createElement('button');
+        btn.className = 'chip' + (state.domain === domain ? ' active' : '');
+        btn.textContent = domain;
+        btn.type = 'button';
+        btn.addEventListener('click', () => {
+          state.domain = domain;
+          render();
+        });
+        filters.appendChild(btn);
+      });
+    }
+
+    function filteredData() {
+      const needle = state.q.trim().toLowerCase();
+      return data.filter(item => {
+        const domainOk = state.domain === 'all' || item.domain === state.domain;
+        const haystack = [
+          item.name,
+          item.domain,
+          item.energy,
+          item.cadence,
+          item.signal,
+          item.ritual,
+          ...(item.links || [])
+        ].join(' ').toLowerCase();
+        return domainOk && (!needle || haystack.includes(needle));
+      });
+    }
+
+    function renderDetail(item) {
+      if (!item) {
+        detail.innerHTML = '<div class="callout">Select a constellation to see its ritual brief.</div>';
+        selectedEnergy.textContent = '--';
+        return;
+      }
+
+      selectedEnergy.textContent = item.energy;
+      detail.innerHTML = `
+        <div>
+          <h3>${item.name}</h3>
+          <p>${item.domain} lane · ${item.energy} energy · ${item.cadence}</p>
+        </div>
+        <div class="callout">${item.signal}</div>
+        <div>
+          <h4 style="margin:0 0 6px;color:#dbe4ff;font-size:.9rem;">ritual</h4>
+          <p>${item.ritual}</p>
+        </div>
+        <div>
+          <h4 style="margin:0 0 6px;color:#dbe4ff;font-size:.9rem;">linked surfaces</h4>
+          <div class="detail-row">
+            ${(item.links || []).map(link => `<a class="btn" href="${link}">${link.replace('.html', '')}</a>`).join('')}
+          </div>
+        </div>
+        <div class="status">selected: ${item.name} · state saved in the URL.</div>
+      `;
+    }
+
+    function selectItem(item) {
+      state.selected = item ? item.name : '';
+      render();
+    }
+
+    function render() {
+      renderFilters();
+      searchInput.value = state.q;
+      const rows = filteredData();
+      visibleCount.textContent = String(rows.length);
+      domainCount.textContent = String(new Set(data.map(x => x.domain)).size);
+      const shareUrl = syncUrl();
+
+      if (!rows.length) {
+        grid.innerHTML = '<div class="empty">No constellations matched. Try a different lane or clear the search.</div>';
+        renderDetail(null);
+        setStatus('no matches for the current filters.');
+        return;
+      }
+
+      if (state.selected && !rows.some(item => item.name === state.selected)) {
+        state.selected = rows[0].name;
+      }
+      const selectedItem = rows.find(item => item.name === state.selected) || rows[0];
+      if (!state.selected) state.selected = selectedItem.name;
+
+      grid.innerHTML = rows.map(item => `
+        <article class="star${item.name === state.selected ? ' selected' : ''}">
+          <div class="chip-row">
+            <span class="tag">${item.domain}</span>
+            <span class="tag">${item.energy} energy</span>
+            <span class="tag">${item.cadence}</span>
+          </div>
+          <h3>${item.name}</h3>
+          <p><strong>signal:</strong> ${item.signal}</p>
+          <p><strong>ritual:</strong> ${item.ritual}</p>
+          <div class="detail-row">
+            ${(item.links || []).map(link => `<a class="nav-link" href="${link}">${link.replace('.html', '')}</a>`).join('')}
+          </div>
+          <button class="btn" type="button" data-name="${item.name}">focus this star</button>
+        </article>
+      `).join('');
+
+      grid.querySelectorAll('[data-name]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selected = btn.getAttribute('data-name');
+          render();
+        });
+      });
+
+      renderDetail(selectedItem);
+      setStatus(`showing ${rows.length} constellation${rows.length === 1 ? '' : 's'} with a shareable session URL.`);
+      copyShare.onclick = () => copyText(shareUrl);
+    }
+
+    searchInput.addEventListener('input', () => {
+      state.q = searchInput.value;
+      state.selected = '';
+      render();
+    });
+
+    clearFilters.addEventListener('click', () => {
+      state.domain = 'all';
+      state.q = '';
+      state.selected = '';
+      render();
+    });
+
+    fetch('assets/roost-constellations.json')
+      .then(response => response.json())
+      .then(json => {
+        data = json;
+        render();
+      })
+      .catch(() => {
+        status.textContent = 'could not load constellations.';
+        grid.innerHTML = '<div class="empty">Could not load constellation data.</div>';
+      });
+  </script>
 </body>
 </html>
