@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Opinionated daily build cockpit for Kestrel's Roost" />
+  <title>Roost Build Cockpit</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#050813;
+      --bg2:#0d1632;
+      --card:#0c1327;
+      --card2:#09101f;
+      --line:#33416b;
+      --text:#edf2ff;
+      --muted:#a0afd0;
+      --accent:#8db5ff;
+      --accent2:#7ef0c3;
+      --warn:#ffd479;
+      --good:#8ef1c0;
+      --shadow:0 22px 58px rgba(0,0,0,.36);
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(95,127,255,.24) 0%, transparent 34%),
+        radial-gradient(circle at 90% 14%, rgba(126,240,195,.12) 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+    a{color:inherit}
+    .shell{max-width:1220px;margin:0 auto;padding:28px 16px 48px}
+    .hero{
+      border:1px solid #405085;
+      border-radius:24px;
+      padding:22px;
+      background:linear-gradient(150deg,#121e41,#08101f 64%,#162b63);
+      box-shadow:var(--shadow);
+      display:grid;
+      gap:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:auto -90px -110px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, rgba(141,181,255,.22) 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .top{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      position:relative;
+      z-index:1;
+    }
+    h1{margin:0 0 8px;font-size:clamp(2.2rem,5vw,4rem);letter-spacing:-0.04em}
+    .lede{margin:0;max-width:68ch;color:var(--muted);line-height:1.55}
+    .nav{display:flex;flex-wrap:wrap;gap:10px}
+    .nav a,.chip,.action{
+      text-decoration:none;
+      border:1px solid #44558a;
+      border-radius:999px;
+      padding:8px 12px;
+      background:#0d1837;
+      color:#dce6ff;
+      font:inherit;
+      transition:.16s ease;
+    }
+    .nav a:hover,.chip:hover,.action:hover{transform:translateY(-1px);border-color:#6f8dff;background:#12214b}
+    .nav a:focus-visible,.chip:focus-visible,.action:focus-visible{outline:2px solid #9ab4ff;outline-offset:2px}
+    .metrics{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:10px;
+      position:relative;
+      z-index:1;
+    }
+    .metric{
+      border:1px solid #34446f;
+      border-radius:16px;
+      background:rgba(6,12,29,.72);
+      padding:14px;
+      display:grid;
+      gap:6px;
+    }
+    .metric strong{font-size:1.7rem;line-height:1}
+    .metric span{color:var(--muted);font-size:.83rem;line-height:1.35}
+    .metric small{color:#bfd0ff;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      position:relative;
+      z-index:1;
+    }
+    .select{
+      background:#0b1533;
+      border:1px solid #40538c;
+      border-radius:999px;
+      color:#eaf0ff;
+      font:inherit;
+      padding:8px 12px;
+    }
+    .layout{display:grid;gap:14px;margin-top:16px}
+    .band{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+    .panel{
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      padding:16px;
+      box-shadow:var(--shadow);
+      display:grid;
+      gap:12px;
+    }
+    .panel-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+    .panel h2{margin:0;font-size:1.02rem}
+    .panel-note{margin:0;color:var(--muted);font-size:.84rem}
+    .list{display:grid;gap:10px}
+    .item{
+      border:1px solid #304064;
+      border-radius:14px;
+      background:#0a1227;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .item strong{font-size:1rem}
+    .item p{margin:0;color:#b7c4ea;line-height:1.5;font-size:.92rem}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:#bfd0ff;font-size:.76rem}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid #41548a;
+      border-radius:999px;
+      padding:4px 9px;
+      background:#0f1b3b;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      font-size:.7rem;
+    }
+    .badge.good{border-color:#397763;color:#b8ffe0}
+    .badge.warn{border-color:#8b6a2e;color:#ffe0a5}
+    .badge.info{border-color:#4a68bf;color:#d7e2ff}
+    .score{
+      display:grid;
+      gap:8px;
+    }
+    .track{height:8px;border-radius:999px;background:#162146;overflow:hidden}
+    .fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .route{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:12px;
+    }
+    .route-step{
+      border:1px solid #324269;
+      border-radius:14px;
+      background:#0b1328;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .route-step strong{font-size:1rem}
+    .route-step p{margin:0;color:#b2c2eb;line-height:1.45;font-size:.92rem}
+    .route-step a{color:var(--accent)}
+    .summary{
+      border:1px solid #3c4e7d;
+      border-radius:20px;
+      background:linear-gradient(180deg,#0a1226,#08111d);
+      padding:16px;
+      display:grid;
+      gap:12px;
+      box-shadow:var(--shadow);
+    }
+    .summary pre{
+      margin:0;
+      white-space:pre-wrap;
+      font:inherit;
+      color:#edf2ff;
+      line-height:1.55;
+    }
+    .statusline{color:var(--muted);font-size:.82rem;min-height:1.2em}
+    .empty{
+      border:1px dashed #41558a;
+      border-radius:14px;
+      padding:14px;
+      color:#9fb0ff;
+    }
+    footer{text-align:center;color:#8fa3ec;font-size:.85rem;padding:6px 0 20px}
+    @media (max-width:720px){
+      .shell{padding:18px 12px 40px}
+      .hero,.panel,.summary{border-radius:16px}
+      h1{font-size:2.2rem}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="top">
+        <div>
+          <h1>Roost Build Cockpit</h1>
+          <p class="lede">A daily decision surface for the roost. It reads the roadmap, watches the active expeditions, and turns both into one opinionated next build.</p>
+        </div>
+        <nav class="nav" aria-label="Site">
+          <a href="index.html">home</a>
+          <a href="roost-briefing.html">briefing</a>
+          <a href="flight-deck.html">flight deck</a>
+          <a href="command-center.html">command center</a>
+        </nav>
+      </div>
+      <div class="metrics" id="metrics" aria-live="polite"></div>
+      <div class="toolbar">
+        <select id="intent" class="select" aria-label="Build intent">
+          <option value="build">build first</option>
+          <option value="stabilize">stabilize first</option>
+          <option value="sprint">sprint first</option>
+        </select>
+        <select id="horizon" class="select" aria-label="Roadmap horizon">
+          <option value="near">near horizon</option>
+          <option value="mid">mid horizon</option>
+          <option value="far">far horizon</option>
+          <option value="all">all horizons</option>
+        </select>
+        <button class="action" id="reshuffle" type="button">reshuffle decision</button>
+        <button class="action" id="copyBrief" type="button">copy build brief</button>
+        <a class="action" href="index.html#siteSearchResults">open explorer</a>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="band">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Today’s build decision</h2>
+            <p class="panel-note" id="decisionStamp"></p>
+          </div>
+          <div class="list" id="decisionList"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Why now</h2>
+            <p class="panel-note">the signals behind the recommendation</p>
+          </div>
+          <div class="list" id="signalList"></div>
+        </article>
+      </div>
+
+      <div class="band">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Nearby work</h2>
+            <p class="panel-note">roadmap items closest to shipping</p>
+          </div>
+          <div class="list" id="roadmapList"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Active expeditions</h2>
+            <p class="panel-note">where momentum already exists</p>
+          </div>
+          <div class="list" id="expeditionList"></div>
+        </article>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Three-step route</h2>
+          <p class="panel-note">a practical next movement after the decision</p>
+        </div>
+        <div class="route" id="routeList"></div>
+      </section>
+
+      <section class="summary">
+        <div class="panel-head">
+          <h2>Copyable build brief</h2>
+          <p class="panel-note">paste this into a note or send it to future-you</p>
+        </div>
+        <pre id="briefCopy">loading build brief…</pre>
+        <div class="statusline" id="copyStatus"></div>
+      </section>
+    </section>
+
+    <footer>plain html, actual opinions, and one more place to decide what ships next.</footer>
+  </main>
+
+  <script>
+    const state = {
+      updates: [],
+      expeditions: [],
+      roadmap: [],
+      decision: null
+    };
+
+    const metricsEl = document.getElementById('metrics');
+    const decisionList = document.getElementById('decisionList');
+    const signalList = document.getElementById('signalList');
+    const roadmapList = document.getElementById('roadmapList');
+    const expeditionList = document.getElementById('expeditionList');
+    const routeList = document.getElementById('routeList');
+    const briefCopy = document.getElementById('briefCopy');
+    const copyStatus = document.getElementById('copyStatus');
+    const decisionStamp = document.getElementById('decisionStamp');
+    const intentSelect = document.getElementById('intent');
+    const horizonSelect = document.getElementById('horizon');
+    const reshuffleBtn = document.getElementById('reshuffle');
+    const copyBriefBtn = document.getElementById('copyBrief');
+
+    const fmtDate = (value) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(value));
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const escapeHtml = (value) => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+    const weightFor = (item, intent) => {
+      const base = (item.impact * 2) - item.effort;
+      const boost = intent === 'build' ? (item.status === 'building' ? 3 : 1) : intent === 'stabilize' ? (item.status === 'building' ? 2 : 0) : 0;
+      return base + boost;
+    };
+
+    const pickDecision = () => {
+      const intent = intentSelect.value;
+      const horizon = horizonSelect.value;
+      const candidates = state.roadmap
+        .filter((item) => horizon === 'all' || item.horizon === horizon)
+        .slice()
+        .sort((a, b) => weightFor(b, intent) - weightFor(a, intent));
+      const lead = candidates[0] || state.roadmap[0];
+      const secondary = candidates[1] || state.roadmap[1];
+      const expedition = state.expeditions
+        .slice()
+        .sort((a, b) => b.progress - a.progress)
+        .find((item) => item.status !== 'shipped') || state.expeditions[0];
+      const latest = state.updates[0];
+
+      return {
+        intent,
+        horizon,
+        lead,
+        secondary,
+        expedition,
+        latest,
+        reason: [
+          `${lead?.title || 'No roadmap item'} sits closest to the current lane.`,
+          expedition ? `${expedition.name} already has ${expedition.progress}% progress to compound.` : 'No expedition data is available yet.',
+          latest ? `The latest ship, ${latest.title}, makes ${lead?.title || 'the next build'} feel like the cleanest follow-up.` : 'No ship data is available yet.'
+        ]
+      };
+    };
+
+    const render = () => {
+      state.decision = pickDecision();
+      const { decision } = state;
+
+      metricsEl.innerHTML = [
+        { value: state.roadmap.length, label: 'roadmap items', note: 'from shipyard' },
+        { value: state.expeditions.length, label: 'expeditions tracked', note: 'active + shipped' },
+        { value: state.updates.length, label: 'recent releases', note: 'shared update feed' },
+        { value: `${decision.lead?.impact ?? 0}/${decision.lead?.effort ?? 0}`, label: 'impact / effort', note: 'for the lead choice' }
+      ].map((entry) => `
+        <div class="metric">
+          <small>${entry.note}</small>
+          <strong>${escapeHtml(entry.value)}</strong>
+          <span>${escapeHtml(entry.label)}</span>
+        </div>
+      `).join('');
+
+      decisionStamp.textContent = `${fmtDate(new Date())} · ${decision.intent} · ${decision.horizon === 'all' ? 'all horizons' : `${decision.horizon} horizon`}`;
+
+      decisionList.innerHTML = `
+        <article class="item">
+          <div class="meta">
+            <span class="badge good">recommended</span>
+            <span class="badge info">${escapeHtml(decision.lead?.status || 'roadmap')}</span>
+          </div>
+          <strong>${escapeHtml(decision.lead?.title || 'No roadmap item found')}</strong>
+          <p>${escapeHtml(decision.lead?.summary || 'No roadmap summary available.')}</p>
+          <div class="meta">
+            <span>impact ${decision.lead?.impact ?? 0}</span>
+            <span>effort ${decision.lead?.effort ?? 0}</span>
+            <span>${escapeHtml(decision.lead?.horizon || 'n/a')} horizon</span>
+            <a href="${escapeHtml(decision.lead?.link || 'index.html')}">open page</a>
+          </div>
+        </article>
+      `;
+
+      signalList.innerHTML = decision.reason.map((line, index) => `
+        <article class="item">
+          <div class="meta"><span class="badge">${index + 1}</span></div>
+          <p>${escapeHtml(line)}</p>
+        </article>
+      `).join('');
+
+      roadmapList.innerHTML = state.roadmap.slice(0, 4).map((item, index) => `
+        <article class="item">
+          <div class="meta">
+            <span class="badge ${item.status === 'building' ? 'good' : item.status === 'prototype' ? 'info' : 'warn'}">${escapeHtml(item.status)}</span>
+            <span>${escapeHtml(item.horizon)} horizon</span>
+          </div>
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.summary)}</p>
+          <div class="score">
+            <div class="meta"><span>score ${item.impact - item.effort + 5}</span></div>
+            <div class="track" aria-hidden="true"><div class="fill" style="width:${clamp((item.impact / 5) * 100, 15, 100)}%"></div></div>
+          </div>
+        </article>
+      `).join('');
+
+      expeditionList.innerHTML = state.expeditions.slice(0, 4).map((item) => `
+        <article class="item">
+          <div class="meta">
+            <span class="badge ${item.status === 'active' ? 'good' : item.status === 'shipped' ? 'info' : 'warn'}">${escapeHtml(item.status)}</span>
+            <span>${escapeHtml(item.theme)}</span>
+          </div>
+          <strong>${escapeHtml(item.name)}</strong>
+          <p>${escapeHtml(item.summary)}</p>
+          <div class="score">
+            <div class="meta"><span>${item.progress}% complete</span><span>ships ${escapeHtml(item.shipTarget)}</span></div>
+            <div class="track" aria-hidden="true"><div class="fill" style="width:${clamp(item.progress, 3, 100)}%"></div></div>
+          </div>
+          <div class="meta">${item.links.map((link) => `<a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`).join(' · ')}</div>
+        </article>
+      `).join('');
+
+      routeList.innerHTML = [
+        {
+          title: `Open ${decision.lead?.title || 'the lead item'}`,
+          text: 'Work the highest-value page first so the day has one visible ship-shaped outcome.',
+          href: decision.lead?.link || 'index.html'
+        },
+        {
+          title: `Check ${decision.expedition?.name || 'the nearest expedition'}`,
+          text: 'Use the active mission to decide whether this build should stabilize, extend, or unblock.',
+          href: decision.expedition?.links?.[0]?.href || 'expeditions.html'
+        },
+        {
+          title: 'Copy a tiny handoff note',
+          text: 'Leave a short decision record so the next session starts with momentum instead of archaeology.',
+          href: 'captains-log.html'
+        }
+      ].map((step, index) => `
+        <article class="route-step">
+          <div class="meta"><span class="badge">${index + 1}</span></div>
+          <strong>${escapeHtml(step.title)}</strong>
+          <p>${escapeHtml(step.text)}</p>
+          <a href="${escapeHtml(step.href)}">open destination</a>
+        </article>
+      `).join('');
+
+      briefCopy.textContent = [
+        `build intent: ${decision.intent}`,
+        `horizon: ${decision.horizon}`,
+        `today's build: ${decision.lead?.title || 'none'}`,
+        `why now: ${decision.reason.join(' ')}`
+      ].join('\n');
+    };
+
+    const loadData = async () => {
+      const [updatesRes, expeditionsRes, roadmapRes] = await Promise.all([
+        fetch('assets/roost-updates.json'),
+        fetch('assets/roost-expeditions.json'),
+        fetch('assets/roost-shipyard.json')
+      ]);
+      state.updates = (await updatesRes.json()).updates || [];
+      state.expeditions = await expeditionsRes.json();
+      state.roadmap = await roadmapRes.json();
+      render();
+    };
+
+    const copyBrief = async () => {
+      try {
+        await navigator.clipboard.writeText(briefCopy.textContent);
+        copyStatus.textContent = 'build brief copied.';
+      } catch {
+        copyStatus.textContent = 'clipboard blocked, but the brief is ready to copy manually.';
+      }
+    };
+
+    reshuffleBtn.addEventListener('click', render);
+    copyBriefBtn.addEventListener('click', copyBrief);
+    intentSelect.addEventListener('change', render);
+    horizonSelect.addEventListener('change', render);
+
+    loadData().catch((error) => {
+      console.error(error);
+      metricsEl.innerHTML = '<div class="empty">failed to load build data.</div>';
+      decisionList.innerHTML = '<div class="empty">could not build a decision right now.</div>';
+      roadmapList.innerHTML = '<div class="empty">roadmap feed unavailable.</div>';
+      expeditionList.innerHTML = '<div class="empty">expedition feed unavailable.</div>';
+      routeList.innerHTML = '<div class="empty">route unavailable.</div>';
+      briefCopy.textContent = 'unable to load build cockpit data.';
+      copyStatus.textContent = 'check the console for the fetch error.';
+    });
+  </script>
+</body>
+</html>
