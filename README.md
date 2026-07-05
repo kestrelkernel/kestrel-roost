@@ -49,6 +49,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks
 - **Roost Atlas share links:** upgraded `roost-atlas.html` with URL-synced scope, search, selected node, route, and camera state plus a one-click copyable share link so map sessions can be reopened exactly as shared
 - **Roost Briefing signal console:** expanded `roost-briefing.html` with signal breakdown cards, more opinionated route suggestions, and copyable route prompts so the briefing can adapt to focus-first or ship-first sessions instead of acting like a static summary
 - **Roost Signal Map launch:** added `roost-signal-map.html`, a roadmap-first planning board that ranks recent releases, surfaces note-driven context, and exports a copyable brief so the homepage ecosystem has one more high-signal planning surface

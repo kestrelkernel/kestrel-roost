@@ -346,6 +346,124 @@
       font:inherit;
       line-height:1.45;
     }
+    .workbench {
+      border:1px solid #4d69c5;
+      background:linear-gradient(155deg, #0c1738, #09112a 58%, #12265d);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .workbench::before {
+      content:"";
+      position:absolute;
+      inset:auto auto -120px -90px;
+      width:300px;
+      height:300px;
+      border-radius:999px;
+      background:radial-gradient(circle, #91adff2e 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .workbench-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .workbench-head h2 { margin:0; }
+    .workbench-note {
+      margin:0;
+      color:#a8b9ff;
+      font-size:.85rem;
+    }
+    .workbench-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .workbench-panel {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .workbench-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f0f4ff;
+    }
+    .workbench-copy {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .workbench-card {
+      border:1px solid #314788;
+      border-radius:10px;
+      background:#0a1438;
+      padding:10px;
+      display:grid;
+      gap:6px;
+    }
+    .workbench-card strong {
+      color:#f3f6ff;
+      font-size:.95rem;
+    }
+    .workbench-card span {
+      color:#a8b9ff;
+      font-size:.8rem;
+      line-height:1.35;
+    }
+    .workbench-plan {
+      display:grid;
+      gap:10px;
+    }
+    .workbench-inputs {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+      gap:8px;
+    }
+    .workbench-input,
+    .workbench-textarea {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:10px 12px;
+    }
+    .workbench-textarea {
+      min-height:92px;
+      resize:vertical;
+    }
+    .workbench-textarea:focus-visible,
+    .workbench-input:focus-visible {
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+      border-color:#6f8dff;
+    }
+    .workbench-brief {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .workbench-brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .relay-board {
       display:grid;
       gap:12px;
@@ -783,6 +901,7 @@
         <a class="nav-link" href="roost-lens.html">roost lens</a>
         <a class="nav-link" href="roost-signal-map.html">roost signal map</a>
         <a class="nav-link" href="roost-build-cockpit.html">roost build cockpit</a>
+        <a class="nav-link" href="#workbenchBoard">roost workbench</a>
         <a class="nav-link" href="captains-log.html">captain's log</a>
         <a class="nav-link" href="weekly-review.html">weekly review</a>
         <a class="nav-link" href="roost-soundscapes.html">roost soundscapes</a>
@@ -822,9 +941,10 @@
           <li>council prompt deck for fast decision-making when momentum stalls</li>
           <li>daily quest deck with local streak tracking and quick focus tuning</li>
           <li>weekly momentum map for balancing build/care/spark blocks across the week</li>
-        <li>roost lens for turning the live update and note feeds into a daily build brief</li>
-        <li>roost signal map for compressing roadmap pressure, release history, and note context into one planning surface</li>
-        <li>roost build cockpit for making the roadmap, expedition health, and latest ships point at one clear next build</li>
+          <li>roost workbench on the homepage for turning roadmap pressure into a local daily brief</li>
+          <li>roost lens for turning the live update and note feeds into a daily build brief</li>
+          <li>roost signal map for compressing roadmap pressure, release history, and note context into one planning surface</li>
+          <li>roost build cockpit for making the roadmap, expedition health, and latest ships point at one clear next build</li>
       </ul>
       </article>
 
@@ -882,6 +1002,7 @@
         <a class="btn" href="roost-lens.html">open roost lens</a>
         <a class="btn" href="roost-signal-map.html">open roost signal map</a>
         <a class="btn" href="roost-build-cockpit.html">open roost build cockpit</a>
+        <a class="btn" href="#workbenchBoard">open roost workbench</a>
         <a class="btn" href="captains-log.html">open captain's log</a>
         <a class="btn" href="weekly-review.html">open weekly review</a>
         <a class="btn" href="roost-soundscapes.html">open roost soundscapes</a>
@@ -1068,6 +1189,43 @@
       </div>
     </section>
 
+    <section class="card workbench" id="workbenchBoard" aria-live="polite">
+      <div class="workbench-head">
+        <h2>roost workbench</h2>
+        <p class="workbench-note">a daily build surface that turns roadmap pressure into one concrete next move.</p>
+      </div>
+      <div class="workbench-grid">
+        <article class="workbench-panel">
+          <h3>site pressure</h3>
+          <p class="workbench-copy">the strongest signals currently shaping what should ship next.</p>
+          <div id="workbenchPressure" class="workbench-plan">
+            <div class="empty-card">loading pressure signals…</div>
+          </div>
+        </article>
+        <article class="workbench-panel">
+          <h3>today’s build card</h3>
+          <p class="workbench-copy">capture one build, one care, and one spark before the day gets noisy.</p>
+          <div class="workbench-plan">
+            <div class="workbench-inputs">
+              <input id="workbenchBuild" class="workbench-input" type="text" placeholder="build focus" />
+              <input id="workbenchCare" class="workbench-input" type="text" placeholder="care task" />
+              <input id="workbenchSpark" class="workbench-input" type="text" placeholder="spark task" />
+            </div>
+            <textarea id="workbenchNote" class="workbench-textarea" placeholder="what should future-you know?"></textarea>
+            <div class="links">
+              <button class="btn" id="workbenchSave">save brief</button>
+              <button class="btn" id="workbenchRefresh">refresh suggestion</button>
+              <button class="btn" id="workbenchCopy">copy brief</button>
+            </div>
+          </div>
+        </article>
+      </div>
+      <div class="workbench-brief">
+        <h3 style="margin:0; font-size:.98rem; color:#f0f4ff;">copyable build brief</h3>
+        <pre id="workbenchBrief">loading workbench…</pre>
+      </div>
+    </section>
+
     <section class="card" id="routeRelayBoard" aria-live="polite">
       <h2>roost route relay</h2>
       <p class="tiny" style="margin-bottom:10px;">a 3-stop tour for when you want the homepage to hand you a real next move, not a wall of options.</p>
@@ -1172,6 +1330,14 @@
     const timelineTags = ['all', 'build', 'write', 'learn'];
     let timelineEntries = [];
     let timelineFilter = 'all';
+    let workbenchSignals = {
+      focus: [],
+      pressure: [],
+      note: '',
+      build: '',
+      care: '',
+      spark: ''
+    };
 
     const revealTimelineItems = () => {
       const cards = timelineList.querySelectorAll('.timeline-item');
@@ -1390,6 +1556,15 @@
     const copyLaunchDeckBtn = document.getElementById('copyLaunchDeck');
     const launchDeckCards = document.getElementById('launchDeckCards');
     const launchDeckSummary = document.getElementById('launchDeckSummary');
+    const workbenchPressure = document.getElementById('workbenchPressure');
+    const workbenchBuild = document.getElementById('workbenchBuild');
+    const workbenchCare = document.getElementById('workbenchCare');
+    const workbenchSpark = document.getElementById('workbenchSpark');
+    const workbenchNote = document.getElementById('workbenchNote');
+    const workbenchSave = document.getElementById('workbenchSave');
+    const workbenchRefresh = document.getElementById('workbenchRefresh');
+    const workbenchCopy = document.getElementById('workbenchCopy');
+    const workbenchBrief = document.getElementById('workbenchBrief');
     const storageStatus = document.getElementById('storageStatus');
     const siteSearchInput = document.getElementById('siteSearch');
     const siteSearchResults = document.getElementById('siteSearchResults');
@@ -2391,6 +2566,151 @@
       `;
     };
 
+    const renderWorkbench = () => {
+      if (!workbenchPressure || !workbenchBrief) return;
+
+      if (!workbenchSignals.pressure.length) {
+        workbenchPressure.innerHTML = '<div class="empty-card">pressure feed unavailable.</div>';
+      } else {
+        workbenchPressure.innerHTML = workbenchSignals.pressure.map((item) => `
+          <article class="workbench-card">
+            <strong>${item.title}</strong>
+            <span>${item.detail}</span>
+          </article>
+        `).join('');
+      }
+
+      const build = workbenchBuild?.value.trim() || workbenchSignals.build;
+      const care = workbenchCare?.value.trim() || workbenchSignals.care;
+      const spark = workbenchSpark?.value.trim() || workbenchSignals.spark;
+      const note = workbenchNote?.value.trim() || workbenchSignals.note;
+
+      workbenchBrief.textContent = [
+        'roost workbench / today',
+        '',
+        `build: ${build || 'pick one visible improvement.'}`,
+        `care: ${care || 'document the path.'}`,
+        `spark: ${spark || 'add one detail with personality.'}`,
+        '',
+        note ? `note: ${note}` : 'note: keep the scope tight and ship something the homepage can show.'
+      ].join('\n');
+    };
+
+    const loadWorkbenchState = () => {
+      try {
+        const saved = JSON.parse(storage.get('roostWorkbenchState') || 'null');
+        if (saved && typeof saved === 'object') {
+          workbenchSignals.build = saved.build || workbenchSignals.build;
+          workbenchSignals.care = saved.care || workbenchSignals.care;
+          workbenchSignals.spark = saved.spark || workbenchSignals.spark;
+          workbenchSignals.note = saved.note || workbenchSignals.note;
+        }
+      } catch { }
+
+      if (workbenchBuild) workbenchBuild.value = workbenchSignals.build;
+      if (workbenchCare) workbenchCare.value = workbenchSignals.care;
+      if (workbenchSpark) workbenchSpark.value = workbenchSignals.spark;
+      if (workbenchNote) workbenchNote.value = workbenchSignals.note;
+    };
+
+    const saveWorkbenchState = () => {
+      storage.set('roostWorkbenchState', JSON.stringify({
+        build: workbenchBuild?.value || '',
+        care: workbenchCare?.value || '',
+        spark: workbenchSpark?.value || '',
+        note: workbenchNote?.value || ''
+      }));
+    };
+
+    const refreshWorkbenchSuggestion = () => {
+      if (!workbenchSignals.focus.length) return;
+      const pick = workbenchSignals.focus[Math.floor(Math.random() * workbenchSignals.focus.length)];
+      if (workbenchBuild) workbenchBuild.value = pick;
+      if (workbenchCare && !workbenchCare.value.trim()) workbenchCare.value = workbenchSignals.care;
+      if (workbenchSpark && !workbenchSpark.value.trim()) workbenchSpark.value = workbenchSignals.spark;
+      saveWorkbenchState();
+      renderWorkbench();
+    };
+
+    const copyWorkbenchBrief = async () => {
+      const text = workbenchBrief?.textContent || '';
+      if (!text.trim()) return false;
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+      }
+    };
+
+    const loadWorkbenchSignals = async () => {
+      const [updatesRes, shipyardRes, expeditionsRes, notesRes] = await Promise.allSettled([
+        fetch('assets/roost-updates.json', { cache: 'no-store' }),
+        fetch('assets/roost-shipyard.json', { cache: 'no-store' }),
+        fetch('assets/roost-expeditions.json', { cache: 'no-store' }),
+        fetch('assets/roost-notes.json', { cache: 'no-store' })
+      ]);
+
+      let roadmap = null;
+      let shipyard = [];
+      let expeditions = [];
+      let notes = [];
+
+      try {
+        if (updatesRes.status === 'fulfilled' && updatesRes.value.ok) roadmap = await updatesRes.value.json();
+      } catch { roadmap = null; }
+      try {
+        if (shipyardRes.status === 'fulfilled' && shipyardRes.value.ok) shipyard = await shipyardRes.value.json();
+      } catch { shipyard = []; }
+      try {
+        if (expeditionsRes.status === 'fulfilled' && expeditionsRes.value.ok) expeditions = await expeditionsRes.value.json();
+      } catch { expeditions = []; }
+      try {
+        if (notesRes.status === 'fulfilled' && notesRes.value.ok) notes = await notesRes.value.json();
+      } catch { notes = []; }
+
+      const nowItems = Array.isArray(roadmap?.roadmap?.now) ? roadmap.roadmap.now : [];
+      const recentUpdates = Array.isArray(roadmap?.updates) ? roadmap.updates.slice(0, 3) : [];
+      const activeExpeditions = Array.isArray(expeditions) ? expeditions.filter((item) => item.status === 'active').slice(0, 2) : [];
+      const pressureNotes = Array.isArray(notes?.notes) ? notes.notes.slice(0, 2) : [];
+      const shipyardPressure = Array.isArray(shipyard) ? shipyard.slice(0, 2) : [];
+
+      const pressure = [
+        ...nowItems.slice(0, 3).map((item) => ({ title: 'roadmap now', detail: item })),
+        ...recentUpdates.map((item) => ({ title: item.title, detail: item.impact })),
+        ...activeExpeditions.map((item) => ({ title: item.name, detail: item.summary })),
+        ...pressureNotes.map((item) => ({ title: item.title || item.slug, detail: item.summary || item.note || '' })),
+        ...shipyardPressure.map((item) => ({ title: item.title, detail: item.summary }))
+      ].filter((item) => item.detail);
+
+      const suggested = [
+        nowItems[0] || 'tighten one surface that is already close to shippable.',
+        recentUpdates[0]?.impact || 'use a recent ship to guide the next visible improvement.',
+        activeExpeditions[0]?.summary || 'clear one roadmap lane so the next build has less drag.'
+      ];
+
+      workbenchSignals = {
+        focus: suggested,
+        pressure,
+        note: `roadmap now: ${nowItems.length} · active expeditions: ${activeExpeditions.length} · recent updates: ${recentUpdates.length}`,
+        build: suggested[0] || '',
+        care: 'document the change path so the next daily run stays easy to pick up.',
+        spark: 'add one tiny interaction or line of copy that makes the page feel alive.'
+      };
+
+      loadWorkbenchState();
+      renderWorkbench();
+    };
+
     const renderLatestShips = (updates, notesById) => {
       if (!latestShips) return;
 
@@ -2822,6 +3142,26 @@
       setActionStatus('launch deck copied ✓', 'ok');
     });
 
+    [workbenchBuild, workbenchCare, workbenchSpark, workbenchNote].forEach((field) => {
+      field?.addEventListener('input', () => {
+        saveWorkbenchState();
+        renderWorkbench();
+      });
+    });
+    workbenchSave?.addEventListener('click', () => {
+      saveWorkbenchState();
+      renderWorkbench();
+      setActionStatus('workbench brief saved ✓', 'ok');
+    });
+    workbenchRefresh?.addEventListener('click', () => {
+      refreshWorkbenchSuggestion();
+      setActionStatus('workbench suggestion refreshed ✓', 'ok');
+    });
+    workbenchCopy?.addEventListener('click', async () => {
+      const copied = await copyWorkbenchBrief();
+      setActionStatus(copied ? 'workbench brief copied ✓' : 'clipboard blocked for workbench brief.', copied ? 'ok' : 'warn');
+    });
+
     try {
       const savedPrefs = JSON.parse(storage.get('roostPathfinderPrefs') || 'null');
       if (savedPrefs?.intent) pathfinderIntent.value = savedPrefs.intent;
@@ -2832,6 +3172,7 @@
     renderExplorer('');
     runPathfinder();
     renderLaunchDeck();
+    loadWorkbenchSignals();
     renderRoutebook();
     renderRouteRelay();
     loadNowTimeline();
