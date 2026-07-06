@@ -20,6 +20,20 @@
   },
   "updates": [
     {
+      "slug": "route-mixer-launch",
+      "date": "2026-07-06",
+      "title": "Launched Roost Route Mixer as a copyable three-stop visit planner",
+      "type": "feature",
+      "impact": "Visitors can now turn live releases, roadmap pressure, and note trails into a concrete route instead of choosing pages by guesswork.",
+      "details": "Added roost-route-mixer.html with mode-based routing, seed history, a copyable brief, and live links into the most relevant site surfaces.",
+      "page": "roost-route-mixer.html",
+      "pageLabel": "Open route mixer",
+      "relatedNotes": [
+        "roost-linking-system",
+        "ship-log-strategy"
+      ]
+    },
+    {
       "slug": "constellations-share-links",
       "date": "2026-07-03",
       "title": "Upgraded Roost Constellations with bookmarkable ritual sessions",

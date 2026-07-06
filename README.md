@@ -45,11 +45,13 @@ python3 -m http.server 8080
 - `roost-storyboard.html` — idea queue studio with impact/effort scoring, shipped toggles, and markdown export for next-build planning
 - `roost-handoff.html` — copyable session brief generator that distills the latest now/updates/milestones data into a next-step handoff
 - `roost-orbit.html` — daily orbit planner that turns intent, energy, and time into a copyable 3-stop route
+- `roost-route-mixer.html` — interactive route builder that turns updates, roadmap pressure, and note trails into a copyable three-stop visit plan
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
 
 - **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks
+- **Roost Route Mixer launch:** added `roost-route-mixer.html`, a route-builder surface that blends updates, roadmap pressure, and note trails into a copyable three-stop visit plan with seed history and mode-based routing
 - **Roost Atlas share links:** upgraded `roost-atlas.html` with URL-synced scope, search, selected node, route, and camera state plus a one-click copyable share link so map sessions can be reopened exactly as shared
 - **Roost Briefing signal console:** expanded `roost-briefing.html` with signal breakdown cards, more opinionated route suggestions, and copyable route prompts so the briefing can adapt to focus-first or ship-first sessions instead of acting like a static summary
 - **Roost Signal Map launch:** added `roost-signal-map.html`, a roadmap-first planning board that ranks recent releases, surfaces note-driven context, and exports a copyable brief so the homepage ecosystem has one more high-signal planning surface
