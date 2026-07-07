@@ -1,104 +1,566 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Roost Council | Kestrel Roost</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Council: a decision studio for choosing the next meaningful move." />
+  <title>Roost Council</title>
   <style>
-    :root { color-scheme: dark; }
+    :root {
+      --bg:#07111f;
+      --bg2:#11244d;
+      --card:#0c1632de;
+      --card-strong:#11214a;
+      --line:#3857ab;
+      --line-soft:#2a3e7a;
+      --fg:#edf2ff;
+      --muted:#a6b8f4;
+      --accent:#8fb4ff;
+      --good:#84e0b2;
+      --warn:#ffd18b;
+    }
+    * { box-sizing:border-box; }
     body {
-      margin: 0;
-      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-      background: radial-gradient(circle at top, #20344d, #0a111a 55%);
-      color: #e8f0ff;
-      min-height: 100vh;
+      margin:0;
+      min-height:100vh;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% -10%, #29438d 0%, transparent 42%),
+        radial-gradient(circle at 88% 110%, #1a2d66 0%, transparent 44%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
     }
-    .wrap { max-width: 860px; margin: 0 auto; padding: 3rem 1.2rem 4rem; }
-    .crumb { color: #9fb6d8; text-decoration: none; }
-    h1 { font-size: clamp(2rem, 6vw, 3rem); margin-bottom: .5rem; }
-    .lead { color: #c4d3ea; margin-bottom: 1.2rem; }
+    main {
+      width:min(1140px, 92vw);
+      margin:32px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      padding:18px;
+      box-shadow:0 18px 40px #00000030;
+      backdrop-filter: blur(5px);
+    }
+    .hero {
+      display:grid;
+      gap:12px;
+      background:linear-gradient(150deg, #132a66, #08102a 68%);
+      border-color:#6885de;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2.1rem, 6vw, 3.6rem); line-height:1.02; }
+    h2 { font-size:1rem; color:#d2dcff; }
+    p { color:var(--muted); line-height:1.55; }
+    .row {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .navlink,
+    button,
+    .chip,
+    .pill {
+      font:inherit;
+      color:#dce6ff;
+      text-decoration:none;
+      border:1px solid #4d6ed5;
+      background:#10245c;
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+    }
+    .navlink:hover,
+    .navlink:focus-visible,
+    button:hover,
+    button:focus-visible,
+    .chip:hover,
+    .chip:focus-visible {
+      outline:none;
+      border-color:#89a9ff;
+      background:#183174;
+    }
+    .chip[aria-pressed="true"] {
+      background:#24478f;
+      border-color:#9ebcff;
+      color:#f2f6ff;
+    }
+    .chip.ghost {
+      background:transparent;
+      border-style:dashed;
+      color:#c7d6ff;
+    }
+    .grid {
+      display:grid;
+      gap:12px;
+    }
+    .three {
+      grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+    }
+    .two {
+      grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
+    }
     .panel {
-      background: rgba(13, 24, 37, .88);
-      border: 1px solid rgba(154, 183, 222, .25);
-      border-radius: 18px;
-      padding: 1.2rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 20px 40px rgba(0,0,0,.25);
+      border:1px solid var(--line-soft);
+      border-radius:14px;
+      background:rgba(8, 15, 38, .78);
+      padding:14px;
+      display:grid;
+      gap:10px;
     }
-    .prompt { font-size: 1.2rem; line-height: 1.5; margin: 0; }
-    .meta { color: #aac1df; font-size: .95rem; margin-top: .8rem; }
-    .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
-    button {
-      background: #5ea5ff;
-      border: none;
-      color: #04111f;
-      font-weight: 700;
-      padding: .68rem .92rem;
-      border-radius: 12px;
-      cursor: pointer;
+    .panel strong { color:#f4f7ff; }
+    .prompt {
+      border:1px solid #4c6cd5;
+      background:linear-gradient(180deg, #0f1e4c, #0a132f);
+      border-radius:16px;
+      padding:18px;
+      display:grid;
+      gap:12px;
     }
-    button.secondary { background: #223956; color: #d9e8ff; border: 1px solid #4e6f98; }
-    ul { margin: 0; padding-left: 1.2rem; color: #c9d9ef; }
+    .prompt-copy {
+      color:#ecf2ff;
+      font-size:1.02rem;
+      line-height:1.6;
+    }
+    .meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      font-size:.8rem;
+      color:#bfd0ff;
+    }
+    .stat {
+      border:1px solid #3955ab;
+      border-radius:14px;
+      padding:14px;
+      background:rgba(9, 16, 41, .9);
+      display:grid;
+      gap:6px;
+    }
+    .stat .value {
+      font-size:1.5rem;
+      color:#f3f7ff;
+      line-height:1;
+    }
+    .stat .label {
+      font-size:.82rem;
+      color:#adc0ff;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .stat .copy {
+      font-size:.84rem;
+      color:#c6d3ff;
+      line-height:1.45;
+    }
+    .season-card {
+      border:1px solid #3c57aa;
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(12, 22, 55, .95), rgba(8, 14, 34, .95));
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .season-card.active {
+      border-color:#8aa8ff;
+      box-shadow:0 0 0 1px rgba(138, 168, 255, .15) inset;
+    }
+    .season-months,
+    .ritual-list,
+    .history-list {
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+    }
+    .season-months li,
+    .ritual-list li,
+    .history-list li { margin:6px 0; }
+    .history-list button {
+      width:100%;
+      text-align:left;
+      padding:10px 12px;
+      border-radius:12px;
+      background:#0c1639;
+      border:1px solid #314a92;
+    }
+    .history-list button:hover { background:#112255; }
+    .history-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .tiny { font-size:.82rem; color:#aac0ff; }
+    .good { color:var(--good); }
+    .warn { color:var(--warn); }
+    textarea {
+      width:100%;
+      min-height:160px;
+      resize:vertical;
+      border-radius:14px;
+      border:1px solid #4060c1;
+      background:#091433;
+      color:#eff4ff;
+      padding:14px;
+      font:inherit;
+      line-height:1.55;
+    }
+    .footer-note {
+      font-size:.86rem;
+      color:#9fb4ef;
+    }
+    @media (max-width:720px) {
+      main { width:min(94vw, 1140px); }
+      .hero { gap:10px; }
+    }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <a class="crumb" href="index.html">← Back to Kestrel Roost</a>
-    <h1>Roost Council</h1>
-    <p class="lead">Daily decision prompts from your advisory table. Use this to cut through indecision and choose your next meaningful move.</p>
-
-    <section class="panel">
-      <p id="prompt" class="prompt">Loading council guidance...</p>
-      <p id="meta" class="meta"></p>
-      <div class="actions">
-        <button id="newPrompt">Draw New Prompt</button>
-        <button id="copyPrompt" class="secondary">Copy Prompt</button>
+  <main>
+    <section class="card hero">
+      <div class="row">
+        <a class="navlink" href="index.html">back home</a>
+        <a class="navlink" href="roost-yearwheel.html">season wheel</a>
+        <a class="navlink" href="roost-orbit.html">daily orbit</a>
+        <a class="navlink" href="roost-lens.html">build brief</a>
+      </div>
+      <div class="grid two">
+        <div class="grid" style="gap:10px">
+          <h1>roost council</h1>
+          <p>Turn uncertainty into a concrete move. Draw a prompt, check the season lens, and leave with a copyable decision brief instead of a vague intention.</p>
+          <div class="row" id="modeChips" aria-label="council modes"></div>
+        </div>
+        <div class="grid three">
+          <article class="stat">
+            <div class="label">current season</div>
+            <div class="value" id="seasonLabel">loading...</div>
+            <div class="copy" id="seasonCopy">season context will appear here.</div>
+          </article>
+          <article class="stat">
+            <div class="label">active mode</div>
+            <div class="value" id="modeLabel">all</div>
+            <div class="copy" id="modeCopy">draws are filtered to the selected council lens.</div>
+          </article>
+          <article class="stat">
+            <div class="label">draw streak</div>
+            <div class="value" id="streakLabel">0</div>
+            <div class="copy" id="streakCopy">consecutive days with at least one council draw.</div>
+          </article>
+        </div>
       </div>
     </section>
 
-    <section class="panel">
-      <h2>How to use it</h2>
-      <ul>
-        <li>Draw a prompt when stuck or overloaded.</li>
-        <li>Set a 20-minute timer and execute the first concrete step.</li>
-        <li>If blocked, draw exactly one more and continue.</li>
+    <section class="grid two">
+      <article class="card prompt">
+        <div class="meta">
+          <span class="pill" id="promptSeason">season</span>
+          <span class="pill" id="promptMode">mode</span>
+          <span class="pill" id="promptType">prompt type</span>
+        </div>
+        <p class="prompt-copy" id="promptText">Loading council guidance...</p>
+        <div class="row">
+          <button id="drawPrompt" type="button">draw prompt</button>
+          <button id="copyPrompt" type="button">copy brief</button>
+          <button id="pinPrompt" type="button" class="chip ghost">pin prompt</button>
+        </div>
+        <p class="tiny" id="promptStatus" aria-live="polite"></p>
+      </article>
+
+      <article class="card">
+        <div class="history-head">
+          <h2>pinned brief</h2>
+          <button id="clearPinned" type="button" class="chip ghost">clear</button>
+        </div>
+        <textarea id="briefOutput" spellcheck="false" aria-label="copyable council brief"></textarea>
+        <p class="footer-note">Edit the brief before copying if you want to sharpen the next step.</p>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>season compass</h2>
+        <div id="seasonGrid" class="grid" style="margin-top:12px"></div>
+      </article>
+
+      <article class="card">
+        <div class="history-head">
+          <h2>draw history</h2>
+          <span class="tiny" id="historyCount">0 draws saved</span>
+        </div>
+        <ol class="history-list" id="historyList"></ol>
+        <p class="footer-note">Click any history item to restore it into the main prompt and brief.</p>
+      </article>
+    </section>
+
+    <section class="card">
+      <div class="history-head">
+        <h2>how to use the council</h2>
+        <span class="tiny">decision hygiene, not decision theater</span>
+      </div>
+      <ul class="ritual-list">
+        <li>Pick a mode when the day has a shape: clarity, scope, momentum, risk, or learning.</li>
+        <li>Draw one prompt, then answer it in one sentence before you do anything else.</li>
+        <li>Use the pinned brief as a handshake with your next work session.</li>
       </ul>
     </section>
   </main>
 
   <script>
-    const promptEl = document.getElementById('prompt');
-    const metaEl = document.getElementById('meta');
-    const newBtn = document.getElementById('newPrompt');
-    const copyBtn = document.getElementById('copyPrompt');
+    const byId = (id) => document.getElementById(id);
+    const storageKey = 'roostCouncilStateV2';
+    const modeOrder = ['all', 'clarity', 'scope', 'momentum', 'risk', 'learning'];
+    const modeMeta = {
+      all: { label: 'all', copy: 'mixed prompt lane for general decision support.' },
+      clarity: { label: 'clarity', copy: 'asks what outcome actually matters today.' },
+      scope: { label: 'scope', copy: 'pushes the task down to a shippable size.' },
+      momentum: { label: 'momentum', copy: 'finds the first action that unblocks motion.' },
+      risk: { label: 'risk', copy: 'checks for silent failure before it bites later.' },
+      learning: { label: 'learning', copy: 'turns yesterday into a smarter next move.' }
+    };
 
     let prompts = [];
-    let current = null;
+    let seasons = [];
+    let state = loadState();
 
-    function drawPrompt() {
-      if (!prompts.length) return;
-      current = prompts[Math.floor(Math.random() * prompts.length)];
-      promptEl.textContent = current.prompt;
-      metaEl.textContent = `${current.councilor} • ${current.mode}`;
+    function loadState() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) || 'null') || {
+          mode: 'all',
+          pinned: '',
+          currentPromptId: '',
+          history: [],
+          streak: 0,
+          lastDrawDate: '',
+          lastPromptByMode: {}
+        };
+      } catch {
+        return {
+          mode: 'all',
+          pinned: '',
+          currentPromptId: '',
+          history: [],
+          streak: 0,
+          lastDrawDate: '',
+          lastPromptByMode: {}
+        };
+      }
     }
 
-    async function loadPrompts() {
-      const res = await fetch('assets/roost-council-prompts.json');
-      prompts = await res.json();
-      drawPrompt();
+    function saveState() {
+      localStorage.setItem(storageKey, JSON.stringify(state));
     }
 
-    newBtn.addEventListener('click', drawPrompt);
-    copyBtn.addEventListener('click', async () => {
-      if (!current) return;
-      await navigator.clipboard.writeText(`${current.prompt} (${current.councilor}, ${current.mode})`);
-      copyBtn.textContent = 'Copied';
-      setTimeout(() => (copyBtn.textContent = 'Copy Prompt'), 1200);
+    function todayStamp() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function seasonForToday() {
+      const month = new Date().getMonth() + 1;
+      return seasons.find((season, index) => {
+        const start = index * 3 + 1;
+        return month >= start && month <= start + 2;
+      }) || seasons[0];
+    }
+
+    function updateStreak() {
+      const today = todayStamp();
+      if (state.lastDrawDate === today) return;
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      state.streak = state.lastDrawDate === yesterday ? state.streak + 1 : 1;
+      state.lastDrawDate = today;
+    }
+
+    function filteredPrompts() {
+      if (state.mode === 'all') return prompts;
+      return prompts.filter((prompt) => prompt.mode === state.mode);
+    }
+
+    function pickPrompt() {
+      const pool = filteredPrompts();
+      if (!pool.length) return null;
+      const recentIds = new Set((state.history || []).slice(0, 3).map((item) => item.id));
+      const freshPool = pool.filter((prompt) => !recentIds.has(prompt.id));
+      const candidates = freshPool.length ? freshPool : pool;
+      const index = Math.floor(Math.random() * candidates.length);
+      return candidates[index];
+    }
+
+    function formatBrief(prompt) {
+      const season = seasonForToday();
+      const mode = modeMeta[state.mode] || modeMeta.all;
+      return [
+        '# Roost Council Brief',
+        `- prompt: ${prompt.prompt}`,
+        `- councilor: ${prompt.councilor}`,
+        `- mode: ${prompt.mode}`,
+        `- season: ${season?.season || 'unknown season'} (${season?.theme || 'no theme'})`,
+        `- answer first: ${prompt.prompt}`,
+        `- next move: commit to one concrete action before switching tabs.`
+      ].join('\n');
+    }
+
+    function setPrompt(prompt, source = 'drawn') {
+      if (!prompt) return;
+      state.currentPromptId = prompt.id;
+      updateStreak();
+      const season = seasonForToday();
+      const entry = {
+        id: prompt.id,
+        prompt: prompt.prompt,
+        councilor: prompt.councilor,
+        mode: prompt.mode,
+        source,
+        at: new Date().toISOString()
+      };
+      state.history = [entry, ...state.history.filter((item) => item.id !== prompt.id)].slice(0, 8);
+      if (state.mode !== 'all') state.lastPromptByMode[state.mode] = prompt.id;
+      byId('promptText').textContent = prompt.prompt;
+      byId('promptSeason').textContent = season ? season.season : 'season';
+      byId('promptMode').textContent = prompt.mode;
+      byId('promptType').textContent = prompt.councilor;
+      byId('briefOutput').value = formatBrief(prompt);
+      byId('promptStatus').textContent = `${prompt.councilor} drew a ${prompt.mode} prompt for ${season?.theme || 'the current season'}.`;
+      renderHistory();
+      renderStats();
+      saveState();
+    }
+
+    function renderModeChips() {
+      const host = byId('modeChips');
+      host.innerHTML = modeOrder.map((mode) => {
+        const meta = modeMeta[mode];
+        return `<button class="chip" type="button" data-mode="${mode}" aria-pressed="${state.mode === mode ? 'true' : 'false'}">${meta.label}</button>`;
+      }).join('');
+      host.querySelectorAll('[data-mode]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.mode = button.dataset.mode;
+          saveState();
+          renderModeChips();
+          renderStats();
+          renderSeasonCards();
+          const prompt = pickPrompt();
+          if (prompt) setPrompt(prompt, 'mode change');
+        });
+      });
+    }
+
+    function renderStats() {
+      const season = seasonForToday();
+      const mode = modeMeta[state.mode] || modeMeta.all;
+      byId('seasonLabel').textContent = season ? season.season : 'unknown';
+      byId('seasonCopy').textContent = season ? `${season.theme}. ${season.moves[0]}` : 'Season data unavailable.';
+      byId('modeLabel').textContent = mode.label;
+      byId('modeCopy').textContent = mode.copy;
+      byId('streakLabel').textContent = String(state.streak || 0);
+      byId('streakCopy').textContent = state.lastDrawDate ? `last council draw: ${state.lastDrawDate}.` : 'start a draw to begin the streak.';
+      byId('historyCount').textContent = `${state.history.length} draws saved`;
+    }
+
+    function renderSeasonCards() {
+      const activeSeason = seasonForToday();
+      byId('seasonGrid').innerHTML = seasons.map((season) => `
+        <article class="season-card ${season.season === activeSeason?.season ? 'active' : ''}">
+          <div class="meta">
+            <span class="pill">${season.season}</span>
+            <span class="pill">${season.theme}</span>
+          </div>
+          <p class="tiny">${season.months.join(' - ')}</p>
+          <ul class="season-months">${season.moves.map((move) => `<li>${move}</li>`).join('')}</ul>
+        </article>
+      `).join('');
+    }
+
+    function renderHistory() {
+      if (!state.history.length) {
+        byId('historyList').innerHTML = '<li class="tiny">no draws yet. the council is waiting.</li>';
+        return;
+      }
+      byId('historyList').innerHTML = state.history.map((item) => `
+        <li>
+          <button type="button" data-history="${item.id}">
+            <strong>${item.councilor}</strong> · ${item.mode}<br />
+            <span class="tiny">${item.prompt}</span>
+          </button>
+        </li>
+      `).join('');
+      byId('historyList').querySelectorAll('[data-history]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const prompt = prompts.find((item) => item.id === button.dataset.history);
+          if (prompt) setPrompt(prompt, 'history');
+        });
+      });
+    }
+
+    async function copyBrief() {
+      const text = byId('briefOutput').value.trim();
+      if (!text) {
+        byId('promptStatus').textContent = 'Draw a prompt before copying the brief.';
+        byId('promptStatus').className = 'tiny warn';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        byId('promptStatus').textContent = 'Council brief copied to clipboard.';
+        byId('promptStatus').className = 'tiny good';
+      } catch {
+        byId('promptStatus').textContent = 'Clipboard blocked, but the brief is still ready below.';
+        byId('promptStatus').className = 'tiny warn';
+      }
+    }
+
+    async function boot() {
+      const [promptRes, seasonRes] = await Promise.all([
+        fetch('assets/roost-council-prompts.json', { cache: 'no-store' }),
+        fetch('assets/roost-yearwheel.json', { cache: 'no-store' })
+      ]);
+      prompts = await promptRes.json();
+      seasons = await seasonRes.json();
+
+      renderModeChips();
+      renderStats();
+      renderSeasonCards();
+      renderHistory();
+
+      const lastId = state.lastPromptByMode[state.mode];
+      const remembered = prompts.find((prompt) => prompt.id === lastId);
+      const initial = remembered || pickPrompt() || prompts[0];
+      if (initial) setPrompt(initial, remembered ? 'remembered' : 'initial');
+      if (state.pinned) byId('briefOutput').value = state.pinned;
+    }
+
+    byId('drawPrompt').addEventListener('click', () => {
+      const prompt = pickPrompt();
+      if (prompt) setPrompt(prompt, 'draw');
     });
 
-    loadPrompts().catch(() => {
-      promptEl.textContent = 'Unable to load prompts right now. Check again in a minute.';
-      metaEl.textContent = '';
+    byId('copyPrompt').addEventListener('click', copyBrief);
+    byId('pinPrompt').addEventListener('click', () => {
+      state.pinned = byId('briefOutput').value.trim();
+      saveState();
+      byId('promptStatus').textContent = state.pinned ? 'Brief pinned for later reuse.' : 'Nothing to pin yet.';
+      byId('promptStatus').className = 'tiny';
+    });
+    byId('clearPinned').addEventListener('click', () => {
+      state.pinned = '';
+      saveState();
+      byId('briefOutput').value = byId('promptText').textContent ? formatBrief({
+        prompt: byId('promptText').textContent,
+        councilor: byId('promptType').textContent,
+        mode: byId('promptMode').textContent
+      }) : '';
+      byId('promptStatus').textContent = 'Pinned brief cleared.';
+      byId('promptStatus').className = 'tiny';
+    });
+
+    boot().catch(() => {
+      byId('promptText').textContent = 'Unable to load council prompts right now.';
+      byId('promptStatus').textContent = 'Check the shared JSON feeds and try again.';
+      byId('promptStatus').className = 'tiny warn';
     });
   </script>
 </body>
