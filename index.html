@@ -189,6 +189,90 @@
       display:grid;
       gap:10px;
     }
+    .dispatch-board {
+      border:1px solid #4761ba;
+      background:linear-gradient(155deg, #0b1536, #0a1128 60%, #132967);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .dispatch-board::before {
+      content:"";
+      position:absolute;
+      inset:auto -70px -90px auto;
+      width:280px;
+      height:280px;
+      border-radius:999px;
+      background:radial-gradient(circle, #8aaaff2a 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .dispatch-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .dispatch-head h2 { margin:0; }
+    .dispatch-note {
+      margin:0;
+      color:#a8b9ff;
+      font-size:.85rem;
+    }
+    .dispatch-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .dispatch-card {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .dispatch-card.is-lead {
+      background:linear-gradient(155deg, #122962, #081231 72%);
+      border-color:#7d97eb;
+    }
+    .dispatch-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .dispatch-copy {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .dispatch-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .dispatch-brief {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .dispatch-brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .routebook-grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1024,6 +1108,40 @@
       <p>loading latest ship story…</p>
     </section>
 
+    <section class="card dispatch-board" id="dispatchBoard" aria-live="polite">
+      <div class="dispatch-head">
+        <h2>roost dispatch board</h2>
+        <p class="dispatch-note">a daily editorial cut of what matters, what ships next, and where to go first.</p>
+      </div>
+      <div class="dispatch-grid">
+        <article class="dispatch-card is-lead" id="dispatchLeadCard">
+          <h3>today's lead</h3>
+          <p class="dispatch-copy">loading dispatch lead…</p>
+          <div class="dispatch-meta" id="dispatchLeadMeta"></div>
+          <div class="link-row" id="dispatchLeadLinks"></div>
+        </article>
+        <article class="dispatch-card" id="dispatchPressureCard">
+          <h3>pressure stack</h3>
+          <p class="dispatch-copy">loading roadmap pressure…</p>
+          <div class="dispatch-meta" id="dispatchPressureMeta"></div>
+          <div class="tag-row" id="dispatchPressureTags"></div>
+        </article>
+        <article class="dispatch-card" id="dispatchRouteCard">
+          <h3>recommended route</h3>
+          <p class="dispatch-copy">loading route…</p>
+          <div class="dispatch-meta" id="dispatchRouteMeta"></div>
+          <div class="link-row" id="dispatchRouteLinks"></div>
+        </article>
+      </div>
+      <div class="dispatch-brief">
+        <div class="link-row">
+          <button class="btn" id="dispatchShuffle">reshuffle dispatch</button>
+          <button class="btn" id="dispatchCopy">copy dispatch brief</button>
+        </div>
+        <pre id="dispatchBrief">loading dispatch brief…</pre>
+      </div>
+    </section>
+
     <section class="card" id="releasePulseBoard" aria-live="polite">
       <h2>release pulse</h2>
       <p class="tiny" style="margin-bottom:10px;">a quick scan of what just shipped, what is in motion, and where the roadmap is leaning next.</p>
@@ -1318,6 +1436,18 @@
 
     const questPoolMeta = document.getElementById('questPoolMeta');
     const storySpotlight = document.getElementById('storySpotlight');
+    const dispatchLeadCard = document.getElementById('dispatchLeadCard');
+    const dispatchLeadMeta = document.getElementById('dispatchLeadMeta');
+    const dispatchLeadLinks = document.getElementById('dispatchLeadLinks');
+    const dispatchPressureCard = document.getElementById('dispatchPressureCard');
+    const dispatchPressureMeta = document.getElementById('dispatchPressureMeta');
+    const dispatchPressureTags = document.getElementById('dispatchPressureTags');
+    const dispatchRouteCard = document.getElementById('dispatchRouteCard');
+    const dispatchRouteMeta = document.getElementById('dispatchRouteMeta');
+    const dispatchRouteLinks = document.getElementById('dispatchRouteLinks');
+    const dispatchBrief = document.getElementById('dispatchBrief');
+    const dispatchShuffle = document.getElementById('dispatchShuffle');
+    const dispatchCopy = document.getElementById('dispatchCopy');
     const releasePulseStats = document.getElementById('releasePulseStats');
     const releasePulseLatest = document.getElementById('releasePulseLatest');
     const releasePulseRoadmap = document.getElementById('releasePulseRoadmap');
@@ -2569,6 +2699,114 @@
       `;
     };
 
+    let dispatchSeed = Number.parseInt(storage.get('roostDispatchSeed') ?? '', 10);
+    if (!Number.isFinite(dispatchSeed)) {
+      dispatchSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+      storage.set('roostDispatchSeed', String(dispatchSeed));
+    }
+
+    let dispatchState = {
+      lead: null,
+      pressure: [],
+      route: []
+    };
+
+    const buildDispatchRoute = (pages, preferencePairs) => {
+      const pool = [...pages];
+      const picks = [];
+      const rng = seededRandom(dispatchSeed + 29);
+
+      for (const pref of preferencePairs) {
+        const ranked = pool
+          .map((page) => ({ page, score: scorePathfinderCandidate(page, pref) + Math.floor(rng() * 2) }))
+          .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title));
+        const next = ranked.find(({ page }) => !picks.some((pick) => pick.href === page.href)) || ranked[0];
+        if (!next) continue;
+        picks.push(next.page);
+        const idx = pool.findIndex((page) => page.href === next.page.href);
+        if (idx >= 0) pool.splice(idx, 1);
+      }
+
+      while (picks.length < 3 && pool.length) {
+        picks.push(pool.shift());
+      }
+
+      return picks.slice(0, 3);
+    };
+
+    const renderDispatchBoard = () => {
+      if (!dispatchBrief || !dispatchLeadCard || !dispatchPressureCard || !dispatchRouteCard) return;
+
+      const lead = dispatchState.lead;
+      const pressure = dispatchState.pressure;
+      const route = dispatchState.route;
+      const leadCopy = dispatchLeadCard.querySelector('.dispatch-copy');
+      const pressureCopy = dispatchPressureCard.querySelector('.dispatch-copy');
+      const routeCopy = dispatchRouteCard.querySelector('.dispatch-copy');
+
+      if (!lead || !pressure.length || !route.length) {
+        if (leadCopy) leadCopy.textContent = 'dispatch data unavailable right now.';
+        if (pressureCopy) pressureCopy.textContent = 'dispatch data unavailable right now.';
+        if (routeCopy) routeCopy.textContent = 'dispatch data unavailable right now.';
+        dispatchBrief.textContent = 'dispatch unavailable right now.';
+        return;
+      }
+
+      if (leadCopy) leadCopy.textContent = lead.impact || lead.details || 'latest release pressure.';
+      if (dispatchLeadMeta) {
+        dispatchLeadMeta.innerHTML = `<span class="tag">${lead.type || 'update'}</span><span>${lead.date || 'unknown date'}</span><span>${lead.page ? 'has destination' : 'no linked page'}</span>`;
+      }
+      if (dispatchLeadLinks) {
+        dispatchLeadLinks.innerHTML = [
+          lead.page ? `<a class="btn" href="${lead.page}">${lead.pageLabel || 'open page'}</a>` : '',
+          `<a class="btn" href="changelog.html#${lead.slug || ''}">open release</a>`
+        ].join('');
+      }
+
+      if (pressureCopy) pressureCopy.textContent = pressure[0]?.detail || 'roadmap pressure is thin today.';
+      if (dispatchPressureMeta) {
+        dispatchPressureMeta.innerHTML = `<span class="tag">${pressure.length} signals</span><span>${pressure[0]?.title || 'roadmap'}</span>`;
+      }
+      if (dispatchPressureTags) {
+        dispatchPressureTags.innerHTML = pressure.slice(0, 3).map((item) => `<span class="tag">${item.title}</span>`).join('');
+      }
+
+      if (routeCopy) routeCopy.textContent = route.map((page) => page.title).join(' -> ');
+      if (dispatchRouteMeta) {
+        dispatchRouteMeta.innerHTML = `<span class="tag">${route.length} stops</span><span>${route[0]?.energy || 'medium'} energy</span><span>${route[0]?.minTime || 15}+ min</span>`;
+      }
+      if (dispatchRouteLinks) {
+        dispatchRouteLinks.innerHTML = route.map((page) => `<a class="mini-link" href="${page.href}">${page.title}</a>`).join('');
+      }
+
+      dispatchBrief.textContent = [
+        'roost dispatch / today',
+        '',
+        `lead: ${lead.title}`,
+        `why now: ${lead.impact || lead.details || 'it is the latest visible ship.'}`,
+        '',
+        `pressure: ${pressure.slice(0, 3).map((item) => item.title).join(' | ')}`,
+        `route: ${route.map((page) => page.title).join(' -> ')}`,
+        '',
+        `best next move: open ${route[0].title} first, then use the route to land on the page with the clearest follow-up.`,
+        'why it matters: the homepage now gives the day a headline, a pressure read, and a concrete first hop.'
+      ].join('\n');
+    };
+
+    const reshuffleDispatchBoard = () => {
+      const pressure = [...dispatchState.pressure];
+      const lead = pressure[Math.floor(Math.random() * pressure.length)] || null;
+      const route = buildDispatchRoute(roostPages, [
+        { intent: 'build', energy: 'high', time: 20 },
+        { intent: 'reflect', energy: 'low', time: 15 },
+        { intent: 'play', energy: 'medium', time: 15 }
+      ]);
+
+      dispatchState = { lead, pressure, route };
+      storage.set('roostDispatchSeed', String(Math.floor(Math.random() * 9_999_999)));
+      renderDispatchBoard();
+    };
+
     const renderWorkbench = () => {
       if (!workbenchPressure || !workbenchBrief) return;
 
@@ -2851,6 +3089,28 @@
         renderLatestNotes(notes);
         renderRadioConsole();
 
+        const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+        const roadmap = updatesData?.roadmap || {};
+        const pressure = [
+          ...(Array.isArray(roadmap?.now) ? roadmap.now : []).slice(0, 3).map((item) => ({ title: 'roadmap now', detail: item })),
+          ...(Array.isArray(roadmap?.next) ? roadmap.next : []).slice(0, 2).map((item) => ({ title: 'roadmap next', detail: item })),
+          ...(Array.isArray(roadmap?.later) ? roadmap.later : []).slice(0, 1).map((item) => ({ title: 'roadmap later', detail: item })),
+          ...sortedUpdates.slice(0, 2).map((item) => ({ title: item.title, detail: item.impact || item.details || '' }))
+        ].filter((item) => item.detail);
+        const latestUpdate = sortedUpdates[0] || null;
+        const route = buildDispatchRoute(roostPages, [
+          { intent: 'build', energy: 'high', time: 20 },
+          { intent: 'reflect', energy: 'low', time: 15 },
+          { intent: 'play', energy: 'medium', time: 15 }
+        ]);
+
+        dispatchState = {
+          lead: latestUpdate,
+          pressure,
+          route
+        };
+        renderDispatchBoard();
+
         nowFocusGrid.innerHTML = '';
         for (const entry of activeFocus.slice(0, 3)) {
           const card = document.createElement('article');
@@ -2884,6 +3144,19 @@
         }
       } catch {
         storySpotlight.innerHTML = '<h2>story spotlight</h2><p>ship story unavailable right now.</p>';
+        if (dispatchLeadCard) {
+          const leadCopy = dispatchLeadCard.querySelector('.dispatch-copy');
+          if (leadCopy) leadCopy.textContent = 'dispatch unavailable right now.';
+        }
+        if (dispatchPressureCard) {
+          const pressureCopy = dispatchPressureCard.querySelector('.dispatch-copy');
+          if (pressureCopy) pressureCopy.textContent = 'dispatch unavailable right now.';
+        }
+        if (dispatchRouteCard) {
+          const routeCopy = dispatchRouteCard.querySelector('.dispatch-copy');
+          if (routeCopy) routeCopy.textContent = 'dispatch unavailable right now.';
+        }
+        if (dispatchBrief) dispatchBrief.textContent = 'dispatch unavailable right now.';
         releasePulseStats.innerHTML = '<div class="empty-card">release pulse unavailable right now.</div>';
         releasePulseLatest.innerHTML = '<h3>release pulse unavailable right now.</h3><p>try again once the feed comes back.</p>';
         releasePulseRoadmap.innerHTML = '<div class="empty-card">roadmap unavailable right now.</div>';
@@ -2898,6 +3171,17 @@
     };
 
     renderConnectedContent();
+    dispatchShuffle?.addEventListener('click', reshuffleDispatchBoard);
+    dispatchCopy?.addEventListener('click', async () => {
+      const text = dispatchBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('dispatch brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for dispatch brief.', 'warn');
+      }
+    });
 
     const savedAccent = storage.get('roostAccent');
     if (savedAccent) {
