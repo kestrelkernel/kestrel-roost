@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A daily prism that turns roost signals into a concrete build brief." />
+  <title>Roost Prism</title>
+  <style>
+    :root{
+      --bg:#08101c;
+      --bg2:#111d36;
+      --card:#0c1528e6;
+      --line:#314873;
+      --text:#e7eeff;
+      --muted:#a6b7db;
+      --accent:#7dc8ff;
+      --good:#9bffb5;
+      --warn:#ffd38d;
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background:
+        radial-gradient(circle at 12% 10%, #1d3770 0, transparent 32%),
+        radial-gradient(circle at 82% 18%, #16495a 0, transparent 28%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap{width:min(1180px, 94vw); margin:30px auto 40px; display:grid; gap:14px}
+    .card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      box-shadow:0 16px 40px #00000033;
+      backdrop-filter: blur(4px);
+      padding:18px;
+    }
+    .hero{
+      display:grid;
+      gap:14px;
+      grid-template-columns: minmax(0,1.2fr) minmax(280px,.8fr);
+      align-items:start;
+    }
+    h1{margin:0; font-size:clamp(2.2rem, 5vw, 4rem); line-height:1}
+    h2{margin:0 0 10px; font-size:1rem; color:#d8e2ff}
+    p{margin:0; color:var(--muted); line-height:1.6}
+    .lede{font-size:1.03rem; max-width:68ch}
+    .nav,.chips,.stack,.controls{display:flex; flex-wrap:wrap; gap:10px}
+    .nav{margin-top:12px}
+    a,button{font:inherit}
+    .pill,.btn{
+      text-decoration:none;
+      color:#eaf1ff;
+      border:1px solid #49649b;
+      background:#101d3f;
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .pill:hover,.btn:hover,.pill:focus-visible,.btn:focus-visible{
+      transform:translateY(-1px);
+      border-color:#86a5ff;
+      outline:none;
+      background:#15275c;
+    }
+    .hero-aside{display:grid; gap:12px; align-content:start}
+    .big-stat{
+      display:grid;
+      gap:6px;
+      padding:14px;
+      border-radius:14px;
+      border:1px solid #3b5488;
+      background:linear-gradient(160deg, #14264f, #0a1328);
+    }
+    .big-stat strong{font-size:1.45rem}
+    .big-stat span{color:var(--muted)}
+    .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px}
+    .panel{
+      border:1px solid #344b79;
+      border-radius:14px;
+      background:#091225cc;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .panel.lead{background:linear-gradient(155deg, #112345, #091225 68%)}
+    .panel h3{margin:0; font-size:1rem}
+    .panel .body{color:var(--muted); line-height:1.5}
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border-radius:999px;
+      border:1px solid #3f588a;
+      padding:4px 9px;
+      font-size:.8rem;
+      color:#cfe0ff;
+      background:#0b1733;
+    }
+    .tag.good{border-color:#2d6e4c; color:#b8ffd0}
+    .tag.warn{border-color:#7c6430; color:#ffe0a7}
+    .tag.hot{border-color:#4d6bd1; color:#bfd0ff}
+    .filters{display:flex; flex-wrap:wrap; gap:8px}
+    .filters .btn[aria-pressed="true"]{background:#1b336f; border-color:#8ca9ff}
+    .brief{
+      white-space:pre-wrap;
+      border-radius:14px;
+      border:1px solid #4b6294;
+      background:#071021;
+      padding:14px;
+      color:#dfe8ff;
+      line-height:1.6;
+      min-height:180px;
+    }
+    .feed-list{display:grid; gap:10px}
+    .item{
+      border:1px solid #31456f;
+      border-radius:12px;
+      background:#081224;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .item-head{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+    .item h4{margin:0; font-size:.96rem}
+    .item p{font-size:.92rem}
+    .empty{
+      padding:14px;
+      border:1px dashed #516694;
+      border-radius:12px;
+      color:#b5c4e6;
+      background:#081123;
+    }
+    .status{color:var(--muted); font-size:.88rem}
+    .status.ok{color:var(--good)}
+    .status.warn{color:var(--warn)}
+    @media (max-width: 860px){ .hero{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card hero">
+      <div>
+        <div class="chips">
+          <span class="tag hot">new surface</span>
+          <span class="tag">daily brief</span>
+          <span class="tag">copyable</span>
+        </div>
+        <h1>Roost Prism</h1>
+        <p class="lede">A sharper way to read the room. Prism takes the site's current releases, note pressure, expedition motion, and shipyard queue, then bends them into one concrete next move instead of another vague dashboard.</p>
+        <div class="nav">
+          <a class="pill" href="index.html">home</a>
+          <a class="pill" href="roost-build-cockpit.html">build cockpit</a>
+          <a class="pill" href="roost-signal-map.html">signal map</a>
+          <a class="pill" href="roost-route-mixer.html">route mixer</a>
+          <a class="pill" href="command-center.html">command center</a>
+        </div>
+      </div>
+      <div class="hero-aside">
+        <div class="big-stat"><strong id="signalCount">0 signals</strong><span id="signalBlurb">loading the prism</span></div>
+        <div class="big-stat"><strong id="briefTone">tonal readout</strong><span id="briefToneDetail">waiting for the feeds</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="controls">
+        <h2 style="margin:0 10px 0 0;">Focus lens</h2>
+        <div class="filters" id="modeFilters"></div>
+        <button class="btn" id="shuffleBtn" type="button">reshuffle brief</button>
+        <button class="btn" id="copyBtn" type="button">copy brief</button>
+      </div>
+      <p class="status" id="statusText">loading live roost data...</p>
+      <div class="brief" id="briefBox">booting prism...</div>
+    </section>
+
+    <section class="grid">
+      <article class="panel lead">
+        <h3>What matters right now</h3>
+        <div class="body" id="topSignal">loading...</div>
+      </article>
+      <article class="panel">
+        <h3>Feed weather</h3>
+        <div class="stack" id="weatherTags"></div>
+      </article>
+      <article class="panel">
+        <h3>Quick bridge</h3>
+        <div class="body" id="bridgeText">loading...</div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h3>Release pressure</h3>
+        <div class="feed-list" id="updateList"></div>
+      </article>
+      <article class="panel">
+        <h3>Note sparks</h3>
+        <div class="feed-list" id="noteList"></div>
+      </article>
+      <article class="panel">
+        <h3>Expedition stance</h3>
+        <div class="feed-list" id="expeditionList"></div>
+      </article>
+    </section>
+  </main>
+  <script>
+    const loadJson = async (path, fallback) => {
+      const response = await fetch(path, { cache: 'no-store' });
+      if (!response.ok) return fallback;
+      return response.json();
+    };
+    const modes = [
+      { id: 'ship', label: 'ship', hint: 'move a visible piece of the site forward' },
+      { id: 'learn', label: 'learn', hint: 'reduce uncertainty or improve the map' },
+      { id: 'maintain', label: 'maintain', hint: 'clean up the foundations and keep the lights on' },
+      { id: 'play', label: 'play', hint: 'add charm, texture, or delight' }
+    ];
+    const state = { mode: 'ship', seed: Date.now() };
+    const el = (id) => document.getElementById(id);
+    const normalize = (value = '') => String(value).toLowerCase();
+    const rng = (seed) => {
+      let t = seed >>> 0;
+      return () => {
+        t += 0x6D2B79F5;
+        let x = Math.imul(t ^ t >>> 15, 1 | t);
+        x ^= x + Math.imul(x ^ x >>> 7, 61 | x);
+        return ((x ^ x >>> 14) >>> 0) / 4294967296;
+      };
+    };
+    const classify = (item) => {
+      const bucket = normalize([item.type, item.kind, item.intent, item.category, item.tag, item.status, item.phase, item.mood].filter(Boolean).join(' '));
+      if (bucket.includes('ship') || bucket.includes('launch') || bucket.includes('release') || bucket.includes('build')) return 'ship';
+      if (bucket.includes('learn') || bucket.includes('signal') || bucket.includes('note') || bucket.includes('map') || bucket.includes('read')) return 'learn';
+      if (bucket.includes('maintain') || bucket.includes('ops') || bucket.includes('watch') || bucket.includes('care')) return 'maintain';
+      if (bucket.includes('play') || bucket.includes('fun') || bucket.includes('art') || bucket.includes('sound')) return 'play';
+      return 'ship';
+    };
+    const scoreText = (item) => [item.impact, item.effort, item.status, item.momentum].filter(Boolean).join(' · ') || 'live signal';
+    const titleFor = (item) => item.title || item.name || item.label || item.page || 'untitled signal';
+    const bodyFor = (item) => item.summary || item.description || item.note || item.blurb || item.text || 'No extra notes were attached to this signal.';
+    const modeMatches = (item, mode) => mode === 'all' || classify(item) === mode;
+    function buildModeFilters() {
+      const mount = el('modeFilters');
+      mount.innerHTML = ['all', ...modes.map((m) => m.id)].map((mode) => {
+        const label = mode === 'all' ? 'all lenses' : modes.find((m) => m.id === mode).label;
+        return `<button class="btn" type="button" data-mode="${mode}" aria-pressed="${mode === state.mode}">${label}</button>`;
+      }).join('');
+      mount.querySelectorAll('[data-mode]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.mode = btn.dataset.mode;
+          buildModeFilters();
+          render();
+        });
+      });
+    }
+    let dataset = { updates: [], notes: [], expeditions: [], shipyard: [] };
+    function collectSignals() {
+      const updates = (dataset.updates.updates || dataset.updates || []).map((item, idx) => ({ ...item, source: 'updates', index: idx }));
+      const notes = (dataset.notes.notes || dataset.notes || []).map((item, idx) => ({ ...item, source: 'notes', index: idx }));
+      const expeditions = Array.isArray(dataset.expeditions) ? dataset.expeditions.map((item, idx) => ({ ...item, source: 'expeditions', index: idx })) : [];
+      const shipyard = Array.isArray(dataset.shipyard) ? dataset.shipyard.map((item, idx) => ({ ...item, source: 'shipyard', index: idx })) : [];
+      return { updates, notes, expeditions, shipyard, all: [...updates, ...notes, ...expeditions, ...shipyard] };
+    }
+    function renderFeed(list, items, emptyLabel) {
+      if (!items.length) {
+        list.innerHTML = `<div class="empty">${emptyLabel}</div>`;
+        return;
+      }
+      list.innerHTML = items.slice(0, 4).map((item) => `
+        <article class="item">
+          <div class="item-head">
+            <h4>${titleFor(item)}</h4>
+            <span class="tag">${item.source}</span>
+          </div>
+          <div class="status">${scoreText(item)}</div>
+          <p>${bodyFor(item)}</p>
+        </article>
+      `).join('');
+    }
+    function renderWeather(signals, filtered) {
+      const tags = [];
+      const sourceCounts = signals.all.reduce((acc, item) => {
+        acc[item.source] = (acc[item.source] || 0) + 1;
+        return acc;
+      }, {});
+      Object.entries(sourceCounts).forEach(([source, count]) => tags.push(`<span class="tag">${source}: ${count}</span>`));
+      const filteredCounts = filtered.reduce((acc, item) => {
+        const key = classify(item);
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      Object.entries(filteredCounts).forEach(([mode, count]) => tags.push(`<span class="tag good">${mode}: ${count}</span>`));
+      if (!tags.length) tags.push('<span class="tag warn">no signals yet</span>');
+      el('weatherTags').innerHTML = tags.join('');
+    }
+    function makeBrief(signals, filtered) {
+      const rand = rng(state.seed + filtered.length * 17);
+      const pickSignal = filtered.length ? filtered[Math.floor(rand() * filtered.length)] : signals.all[Math.floor(rand() * Math.max(signals.all.length, 1))];
+      const top = pickSignal || { title: 'No signal', description: 'Nothing loaded yet.' };
+      const nextMode = state.mode === 'all' ? ['ship', 'learn', 'maintain', 'play'][Math.floor(rand() * 4)] : state.mode;
+      const fallback = signals.all.slice().sort(() => rand() - 0.5).slice(0, 3);
+      return {
+        text: [
+          `PRISM BRIEF · ${new Date().toISOString().slice(0, 10)}`,
+          `Lens: ${state.mode === 'all' ? 'all modes' : state.mode}`,
+          '',
+          `Lead signal: ${titleFor(top)} (${top.source})`,
+          `Read: ${bodyFor(top)}`,
+          '',
+          `Best next move: spend one focused block on a ${nextMode} task that can be shown to a human by the end of the day.`,
+          `Bridge to actual work: ${fallback.map((item) => titleFor(item)).join(' -> ') || 'load more signals'}`
+        ].join('\n'),
+        top,
+        nextMode,
+        fallback
+      };
+    }
+    function render() {
+      const signals = collectSignals();
+      const filtered = signals.all.filter((item) => modeMatches(item, state.mode));
+      const { text, top, nextMode, fallback } = makeBrief(signals, filtered);
+      const tone = filtered.length > 8 ? 'busy' : filtered.length > 4 ? 'steady' : 'quiet';
+      el('signalCount').textContent = `${signals.all.length} signals`;
+      el('signalBlurb').textContent = `${filtered.length} in lens, ${tone} prism`;
+      el('briefTone').textContent = `${state.mode} lens`;
+      el('briefToneDetail').textContent = modes.find((m) => m.id === nextMode)?.hint || 'one concrete move';
+      el('briefBox').textContent = text;
+      el('topSignal').innerHTML = `<strong style="color:#fff;">${titleFor(top)}</strong><br>${bodyFor(top)}<br><span class="status">${scoreText(top)}</span>`;
+      el('bridgeText').textContent = fallback.length ? `${fallback.map((item) => titleFor(item)).join(' -> ')}` : 'No bridge yet. Pull in more data or broaden the lens.';
+      el('statusText').textContent = `${filtered.length} signals in the ${state.mode} lens.`;
+      el('statusText').className = `status ${filtered.length ? 'ok' : 'warn'}`;
+      renderWeather(signals, filtered);
+      renderFeed(el('updateList'), (signals.updates || []).filter((item) => modeMatches(item, state.mode)), 'No updates fit this lens right now.');
+      renderFeed(el('noteList'), (signals.notes || []).filter((item) => modeMatches(item, state.mode)), 'No notes fit this lens right now.');
+      renderFeed(el('expeditionList'), (signals.expeditions || []).filter((item) => modeMatches(item, state.mode)), 'No expeditions fit this lens right now.');
+    }
+    async function boot() {
+      buildModeFilters();
+      const [updates, notes, expeditions, shipyard] = await Promise.all([
+        loadJson('assets/roost-updates.json', { updates: [] }),
+        loadJson('assets/roost-notes.json', { notes: [] }),
+        loadJson('assets/roost-expeditions.json', []),
+        loadJson('assets/roost-shipyard.json', [])
+      ]);
+      dataset = { updates, notes, expeditions, shipyard };
+      render();
+    }
+    el('shuffleBtn').addEventListener('click', () => {
+      state.seed = Date.now();
+      render();
+    });
+    el('copyBtn').addEventListener('click', async () => {
+      const text = el('briefBox').textContent || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        el('statusText').textContent = 'brief copied to clipboard';
+        el('statusText').className = 'status ok';
+      } catch {
+        el('statusText').textContent = 'clipboard blocked, but the brief is still ready on screen';
+        el('statusText').className = 'status warn';
+      }
+    });
+    boot().catch((error) => {
+      console.error(error);
+      el('statusText').textContent = 'failed to load prism data';
+      el('statusText').className = 'status warn';
+      el('briefBox').textContent = 'The prism could not load its feeds. Check the JSON files and try again.';
+    });
+  </script>
+</body>
+</html>
