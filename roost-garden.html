@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Garden: a small planning grove for choosing the next useful thing to grow." />
+  <title>Roost Garden</title>
+  <style>
+    :root {
+      --bg:#071018;
+      --bg2:#112333;
+      --panel:#0c1826cc;
+      --text:#ecf4ff;
+      --muted:#a8bed7;
+      --accent:#91d9b7;
+      --accent2:#7fb9ff;
+      --line:#29445d;
+      --leaf:#74d6a0;
+      --bud:#ffd58a;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, #1f4d3e 0%, transparent 28%),
+        radial-gradient(circle at 88% 100%, #17375c 0%, transparent 34%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1120px, 92vw);
+      margin:32px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--panel);
+      padding:18px;
+      backdrop-filter: blur(6px);
+      box-shadow:0 12px 30px #00000033;
+    }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 4.8vw, 3.2rem); }
+    h2 { margin:0 0 10px; font-size:1.04rem; color:#dce9ff; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+    a { color:var(--accent2); }
+    .top,
+    .toolbar,
+    .stats,
+    .meta,
+    .actions,
+    .seed-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .top { justify-content:space-between; align-items:end; gap:16px; }
+    .stat {
+      border:1px solid #34536f;
+      border-radius:12px;
+      background:#0a1724;
+      padding:12px 14px;
+      min-width:160px;
+      flex:1 1 160px;
+    }
+    .stat .label { color:var(--muted); font-size:.78rem; }
+    .stat .value { margin-top:4px; font-size:1.2rem; color:#fff; }
+    .btn,
+    .chip {
+      border:1px solid #4d7395;
+      background:#102131;
+      color:#e7f1ff;
+      border-radius:999px;
+      padding:7px 11px;
+      font:inherit;
+      text-decoration:none;
+      cursor:pointer;
+      transition:.16s ease;
+    }
+    .btn:hover,
+    .btn:focus-visible,
+    .chip:hover,
+    .chip:focus-visible {
+      transform:translateY(-1px);
+      background:#173149;
+      border-color:#8fb6da;
+      outline:none;
+    }
+    .chip.active {
+      background:#1a3a29;
+      border-color:#8fd7b0;
+    }
+    .filters {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    select, textarea, input {
+      width:100%;
+      border:1px solid #385771;
+      border-radius:12px;
+      background:#08111a;
+      color:var(--text);
+      padding:10px 11px;
+      font:inherit;
+    }
+    textarea { min-height:100px; resize:vertical; }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(255px, 1fr));
+      gap:12px;
+    }
+    .plant {
+      border:1px solid #334f68;
+      border-radius:14px;
+      background:linear-gradient(180deg, #0b1722, #09131c);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .plant.is-picked {
+      border-color:#8ccaa8;
+      box-shadow:0 0 0 1px #8ccaa833 inset;
+      background:linear-gradient(180deg, #11251b, #09131c);
+    }
+    .plant h3 { margin:0; font-size:1rem; color:#f4f8ff; }
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid #3d5d78;
+      border-radius:999px;
+      padding:3px 9px;
+      font-size:.76rem;
+      color:#d7e7ff;
+      background:#0a1621;
+      width:max-content;
+    }
+    .note {
+      border-left:3px solid var(--accent);
+      padding:10px 12px;
+      background:#0a1520;
+      border-radius:10px;
+      color:#dbe7f7;
+      line-height:1.5;
+    }
+    .summary {
+      display:grid;
+      gap:10px;
+    }
+    .summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      font:inherit;
+      color:#dbe8ff;
+      line-height:1.45;
+    }
+    .favorites {
+      display:grid;
+      gap:10px;
+    }
+    .favorite-row {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .favorite-list {
+      display:grid;
+      gap:8px;
+    }
+    .favorite-item {
+      border:1px solid #33516b;
+      border-radius:12px;
+      background:#09141f;
+      padding:10px 12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .tiny { color:var(--muted); font-size:.84rem; }
+    .status { min-height:1.2em; color:#bcd0ea; font-size:.84rem; }
+    @media (max-width: 760px) {
+      .top { align-items:start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <div class="top">
+        <div>
+          <a href="index.html">← Back to roost</a>
+          <h1>Roost Garden</h1>
+          <p>A small planning grove for choosing what to grow next. Each card is a different kind of useful work seed.</p>
+        </div>
+        <div class="stats" aria-label="garden stats">
+          <article class="stat"><div class="label">Today's seed</div><div class="value" id="dailySeed">Loading…</div></article>
+          <article class="stat"><div class="label">Most common type</div><div class="value" id="commonType">—</div></article>
+          <article class="stat"><div class="label">Saved favorites</div><div class="value" id="favoriteCount">0</div></article>
+        </div>
+      </div>
+      <div class="filters">
+        <label>Type
+          <select id="typeFilter"><option value="all">All</option></select>
+        </label>
+        <label>Energy
+          <select id="energyFilter"><option value="all">All</option></select>
+        </label>
+        <label>Duration
+          <select id="durationFilter">
+            <option value="all">All</option>
+            <option value="short">Short</option>
+            <option value="medium">Medium</option>
+            <option value="long">Long</option>
+          </select>
+        </label>
+      </div>
+      <div class="toolbar" style="margin-top:12px">
+        <div class="seed-row" id="seedRow" aria-label="seasonal seed lane"></div>
+        <div class="actions">
+          <button class="btn" id="randomSeedBtn" type="button">shuffle seed</button>
+          <button class="btn" id="copyPlanBtn" type="button">copy planting brief</button>
+        </div>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+
+    <section class="card summary">
+      <h2>Planting brief</h2>
+      <p class="tiny">A one-paragraph prompt that turns the current grove into a concrete next move.</p>
+      <pre id="brief">Loading garden…</pre>
+    </section>
+
+    <section class="card">
+      <h2>Garden beds</h2>
+      <div id="cards" class="grid" aria-live="polite"></div>
+    </section>
+
+    <section class="card favorites">
+      <div class="favorite-row">
+        <div>
+          <h2 style="margin-bottom:6px">Favorite beds</h2>
+          <p class="tiny">Pin the seeds that feel worth revisiting later.</p>
+        </div>
+        <button class="btn" id="clearFavoritesBtn" type="button">clear favorites</button>
+      </div>
+      <div id="favorites" class="favorite-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const typeFilter = document.getElementById('typeFilter');
+    const energyFilter = document.getElementById('energyFilter');
+    const durationFilter = document.getElementById('durationFilter');
+    const cards = document.getElementById('cards');
+    const favorites = document.getElementById('favorites');
+    const seedRow = document.getElementById('seedRow');
+    const dailySeed = document.getElementById('dailySeed');
+    const commonType = document.getElementById('commonType');
+    const favoriteCount = document.getElementById('favoriteCount');
+    const brief = document.getElementById('brief');
+    const status = document.getElementById('status');
+    const randomSeedBtn = document.getElementById('randomSeedBtn');
+    const copyPlanBtn = document.getElementById('copyPlanBtn');
+    const clearFavoritesBtn = document.getElementById('clearFavoritesBtn');
+
+    const storageKey = 'roost-garden-favorites-v1';
+    let all = [];
+    let favoritesSet = new Set();
+    let seedIndex = 0;
+
+    function loadFavorites() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        return raw ? new Set(JSON.parse(raw)) : new Set();
+      } catch {
+        return new Set();
+      }
+    }
+
+    function saveFavorites() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify([...favoritesSet]));
+        status.textContent = favoritesSet.size ? 'Favorites saved locally.' : 'Favorites cleared locally.';
+      } catch {
+        status.textContent = 'Could not save favorites in this browser.';
+      }
+      renderFavorites();
+      updateStats();
+      drawBrief();
+    }
+
+    function setStatus(message) {
+      status.textContent = message;
+    }
+
+    function unique(values) {
+      return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+    }
+
+    function buildSelect(select, values) {
+      values.forEach(value => {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = value;
+        select.appendChild(opt);
+      });
+    }
+
+    function seededPick(list) {
+      if (!list.length) return null;
+      return list[seedIndex % list.length];
+    }
+
+    function updateStats() {
+      const counts = all.reduce((acc, item) => {
+        acc[item.type] = (acc[item.type] || 0) + 1;
+        return acc;
+      }, {});
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      commonType.textContent = top ? `${top[0]} (${top[1]})` : '—';
+      favoriteCount.textContent = String(favoritesSet.size);
+    }
+
+    function drawSeedLane() {
+      const ordered = all.length ? [...all.slice(seedIndex), ...all.slice(0, seedIndex)] : [];
+      const lane = ordered.slice(0, 4).map((item, idx) => {
+        const active = idx === 0;
+        return `<button class="chip ${active ? 'active' : ''}" type="button" data-seed="${(seedIndex + idx) % Math.max(all.length, 1)}">${item.title}</button>`;
+      }).join('');
+      seedRow.innerHTML = lane;
+      seedRow.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          seedIndex = Number(btn.dataset.seed || 0);
+          render();
+        });
+      });
+      const picked = seededPick(all);
+      dailySeed.textContent = picked ? picked.title : '—';
+    }
+
+    function drawBrief() {
+      const type = typeFilter.value;
+      const energy = energyFilter.value;
+      const duration = durationFilter.value;
+      const shown = all.filter(item =>
+        (type === 'all' || item.type === type) &&
+        (energy === 'all' || item.energy === energy) &&
+        (duration === 'all' || item.durationCategory === duration)
+      );
+      const focus = shown[0] || all[0];
+      const favoriteLabel = favoritesSet.size ? `${favoritesSet.size} favorite seeds` : 'no favorites yet';
+      brief.textContent = focus
+        ? `Today’s grove is leaning toward "${focus.title}". Use ${focus.duration} to complete a ${focus.energy}-energy ${focus.type} move, then write a short field note so the next visit starts with better soil. The garden currently holds ${shown.length} matching seeds and ${favoriteLabel}.`
+        : 'Garden data is empty.';
+    }
+
+    function renderFavorites() {
+      const items = all.filter(item => favoritesSet.has(item.title));
+      favorites.innerHTML = items.length ? items.map(item => `
+        <article class="favorite-item">
+          <div>
+            <strong>${item.title}</strong>
+            <div class="tiny">${item.type} · ${item.energy} energy · ${item.duration}</div>
+          </div>
+          <button class="btn" type="button" data-unfavorite="${item.title}">unpin</button>
+        </article>
+      `).join('') : '<p class="tiny">No favorites pinned yet. Pick a few beds that feel worth returning to.</p>';
+      favorites.querySelectorAll('[data-unfavorite]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          favoritesSet.delete(btn.dataset.unfavorite);
+          saveFavorites();
+        });
+      });
+    }
+
+    function renderCards() {
+      const type = typeFilter.value;
+      const energy = energyFilter.value;
+      const duration = durationFilter.value;
+      const shown = all.filter(item =>
+        (type === 'all' || item.type === type) &&
+        (energy === 'all' || item.energy === energy) &&
+        (duration === 'all' || item.durationCategory === duration)
+      );
+
+      cards.innerHTML = shown.map(item => `
+        <article class="plant ${favoritesSet.has(item.title) ? 'is-picked' : ''}">
+          <div class="meta">
+            <span class="pill">${item.type}</span>
+            <span class="pill">${item.energy} energy</span>
+            <span class="pill">${item.duration}</span>
+          </div>
+          <h3>${item.title}</h3>
+          <p>${item.prompt}</p>
+          <div class="actions">
+            <button class="btn" type="button" data-favorite="${item.title}">
+              ${favoritesSet.has(item.title) ? 'unpin' : 'pin'}
+            </button>
+            <button class="btn" type="button" data-brief="${item.title}">use as brief</button>
+          </div>
+        </article>
+      `).join('') || '<p class="tiny">No beds match those filters. Try a wider net.</p>';
+
+      cards.querySelectorAll('[data-favorite]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const title = btn.dataset.favorite;
+          if (favoritesSet.has(title)) favoritesSet.delete(title);
+          else favoritesSet.add(title);
+          saveFavorites();
+        });
+      });
+      cards.querySelectorAll('[data-brief]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = all.find(entry => entry.title === btn.dataset.brief);
+          if (item) {
+            brief.textContent = `Plant this now: ${item.title}. Spend ${item.duration} on a ${item.energy}-energy ${item.type} move, then log what changed so the garden compounds instead of resetting.`;
+            setStatus(`Loaded "${item.title}" into the planting brief.`);
+          }
+        });
+      });
+    }
+
+    function render() {
+      drawSeedLane();
+      updateStats();
+      drawBrief();
+      renderCards();
+      renderFavorites();
+    }
+
+    [typeFilter, energyFilter, durationFilter].forEach(select => {
+      select.addEventListener('change', () => {
+        drawBrief();
+        renderCards();
+      });
+    });
+
+    randomSeedBtn.addEventListener('click', () => {
+      seedIndex = Math.floor(Math.random() * Math.max(all.length, 1));
+      render();
+      setStatus('Shuffled the seed lane.');
+    });
+
+    copyPlanBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(brief.textContent);
+        setStatus('Copied planting brief to clipboard.');
+      } catch {
+        setStatus('Clipboard copy failed in this browser.');
+      }
+    });
+
+    clearFavoritesBtn.addEventListener('click', () => {
+      favoritesSet = new Set();
+      saveFavorites();
+    });
+
+    fetch('assets/roost-garden.json')
+      .then(response => response.json())
+      .then(json => {
+        all = json.map(item => ({
+          ...item,
+          durationCategory: Number.parseInt(item.duration, 10) <= 15 ? 'short' : Number.parseInt(item.duration, 10) <= 35 ? 'medium' : 'long'
+        }));
+        favoritesSet = loadFavorites();
+        buildSelect(typeFilter, unique(all.map(item => item.type)));
+        buildSelect(energyFilter, unique(all.map(item => item.energy)));
+        seedIndex = new Date().getUTCDate() % Math.max(all.length, 1);
+        render();
+        setStatus('Garden loaded.');
+      })
+      .catch(() => {
+        cards.innerHTML = '<p class="tiny">Garden data failed to load.</p>';
+        brief.textContent = 'The garden is offline right now.';
+        setStatus('Could not load garden data.');
+      });
+  </script>
+</body>
+</html>

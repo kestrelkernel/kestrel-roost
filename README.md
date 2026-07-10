@@ -40,6 +40,7 @@ python3 -m http.server 8080
 - `mission-plotter.html` — drag-and-drop planning board with local autosave, completion tracking, and JSON export
 - `shipyard.html` — roadmap cockpit with searchable/sortable project queue, impact/effort scanning, and local pinned ideas
 - `roost-routines.html` — cadence-aware routines cockpit with streaks, daily checklists, and JSON import/export backup
+- `roost-garden.html` — planning grove with filterable seeds, local favorites, and a copyable planting brief
 - `roost-flight-sessions.html` — sprint timer cockpit with focus/break cycles, run notes, and one-click markdown summary export
 - `weekly-review.html` — auto-generated weekly digest with KPI rollup across ships, notes, milestones, and expedition risk watch
 - `roost-trails.html` — trail intelligence board for filtering shipped/active work and scanning impact patterns over time
@@ -69,6 +70,8 @@ python3 -m http.server 8080
 - **Roost Handoff launch:** added `roost-handoff.html`, a copyable brief generator that turns the live now/updates/milestones feeds into a next-session plan, with mode switching and launch-page filtering
 
 - **Roost Route Relay launch:** added a new homepage guided-tour panel that assembles a 3-stop next-step route, supports reshuffling and pinning, and produces a copyable handoff note for easier session-to-session continuity
+
+- **Roost Garden launch:** added `roost-garden.html`, a planning grove built from `assets/roost-garden.json` with type/energy/duration filters, seed lane shuffling, local favorites, and a copyable planting brief so the site has a new interactive destination instead of just another data file
 
 - **Roost routebook launch:** added a new homepage launch surface with a daily recommended route, pinned page storage, alternate picks, a recent-launch memory rail, and one-click reshuffling so the front page feels more like a command deck
 
