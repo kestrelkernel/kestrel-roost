@@ -3,73 +3,677 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Roost Chronicle: timeline of launches, experiments, and milestones" />
-  <title>Roost Chronicle</title>
+  <meta name="description" content="Roost Chronicle turns launches, notes, and planning signals into living story arcs" />
+  <title>Roost Chronicle · Kestrel's Roost</title>
   <style>
-    :root { --bg:#081024; --bg2:#12234f; --card:#0d1636cc; --line:#3553aa; --fg:#e8eeff; --muted:#a6b7f2; --accent:#8eb2ff; }
-    *{box-sizing:border-box} body{margin:0;font-family:ui-monospace,Consolas,monospace;color:var(--fg);background:radial-gradient(circle at 10% -10%,#253b7d 0,transparent 45%),radial-gradient(circle at 90% 110%,#1b2d67 0,transparent 45%),linear-gradient(180deg,var(--bg2),var(--bg));min-height:100vh}
-    .wrap{width:min(980px,92vw);margin:34px auto;display:grid;gap:12px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
-    h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3rem)} h2{margin:0 0 8px;font-size:1rem;color:#c8d5ff} p{margin:0;color:var(--muted);line-height:1.5}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .btn{border:1px solid #4f6fd4;border-radius:999px;padding:7px 11px;background:#0f1f52;color:#dbe6ff;text-decoration:none;font:inherit;cursor:pointer}
-    .btn.active,.btn:hover{background:#163172;border-color:#7d9cff}
-    .grid{display:grid;gap:10px}
-    .entry{border:1px solid #30478f;border-radius:12px;background:#091230;padding:12px}
-    .meta{font-size:.8rem;color:#b2c2fa}
-    .chip{display:inline-block;margin-left:8px;padding:1px 8px;border:1px dashed #4f6fd4;border-radius:999px;color:#c7d5ff}
+    :root {
+      --bg:#07101f;
+      --bg2:#111d41;
+      --card:#0d1636dd;
+      --card2:#0a1229;
+      --line:#3553aa;
+      --fg:#eef2ff;
+      --muted:#a7b6ed;
+      --accent:#8db6ff;
+      --accent2:#7ef0c3;
+      --warm:#ffd479;
+      --shadow:0 16px 42px rgba(0,0,0,.34);
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    html{background:var(--bg)}
+    body{
+      margin:0;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% 0%, #22397d 0%, transparent 36%),
+        radial-gradient(circle at 88% 102%, #1b2c63 0%, transparent 42%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+    a{color:inherit}
+    .shell{
+      width:min(1180px,92vw);
+      margin:30px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .card{
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(4px);
+    }
+    h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3.4rem)}
+    h2{margin:0;font-size:1.02rem;color:#d9e1ff}
+    p{margin:0;color:var(--muted);line-height:1.55}
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .lede{max-width:66ch}
+    .nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .nav a,
+    .chip,
+    .btn,
+    select,
+    input{
+      border:1px solid #415183;
+      border-radius:999px;
+      background:#0f1d4d;
+      color:#eaf0ff;
+      font:inherit;
+      text-decoration:none;
+      padding:8px 12px;
+    }
+    .chip,
+    .btn{
+      cursor:pointer;
+    }
+    .nav a:hover,
+    .chip:hover,
+    .btn:hover,
+    .nav a:focus-visible,
+    .chip:focus-visible,
+    .btn:focus-visible,
+    select:focus-visible,
+    input:focus-visible{
+      border-color:#7d97eb;
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+      background:#132768;
+    }
+    .hero{
+      border:1px solid #465ca4;
+      background:linear-gradient(155deg,#111e43,#081126 64%,#12275b);
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:auto -100px -120px auto;
+      width:300px;
+      height:300px;
+      border-radius:999px;
+      background:radial-gradient(circle, rgba(141,182,255,.22) 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .hero-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:10px;
+      margin-top:14px;
+    }
+    .metric{
+      border:1px solid #334a91;
+      border-radius:16px;
+      background:rgba(9,16,39,.74);
+      padding:14px;
+      display:grid;
+      gap:4px;
+    }
+    .metric strong{font-size:1.6rem;line-height:1;color:#f7f9ff}
+    .metric span{font-size:.8rem;color:var(--muted);line-height:1.35}
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      margin-top:14px;
+      position:relative;
+      z-index:1;
+    }
+    .chip.active{
+      background:#16306f;
+      border-color:#8caaff;
+    }
+    .search{
+      flex:1;
+      min-width:220px;
+      background:#0b1538;
+      border-color:#435aac;
+    }
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.3fr) minmax(280px,.9fr);
+      gap:14px;
+    }
+    .band{
+      display:grid;
+      gap:14px;
+    }
+    .panel{
+      border:1px solid #344a8f;
+      border-radius:16px;
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .panel-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .panel-note{font-size:.82rem;color:#a6b7f2}
+    .story-grid{
+      display:grid;
+      gap:12px;
+    }
+    .story-card{
+      border:1px solid #314889;
+      border-radius:14px;
+      background:#0a122d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .story-card.feature{
+      background:linear-gradient(155deg,#132b67,#0a122d 72%);
+      border-color:#7e99ef;
+    }
+    .story-card h3{margin:0;font-size:1rem;color:#f5f7ff}
+    .story-copy{margin:0;color:#b5c4ef;line-height:1.5;font-size:.92rem}
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.76rem;
+      color:#bfd0ff;
+      align-items:center;
+    }
+    .tag{
+      border:1px dashed #4c66bd;
+      border-radius:999px;
+      padding:3px 8px;
+      background:#0c1740;
+    }
+    .cluster{
+      display:grid;
+      gap:10px;
+    }
+    .mini-card{
+      border:1px solid #33498c;
+      border-radius:12px;
+      background:#08112c;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .mini-card strong{font-size:.98rem}
+    .mini-card p{font-size:.88rem}
+    .mini-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .summary{
+      border:1px solid #3f57a6;
+      border-radius:16px;
+      background:#08112b;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .summary pre{
+      margin:0;
+      white-space:pre-wrap;
+      color:#ebf0ff;
+      font:inherit;
+      line-height:1.52;
+    }
+    .summary-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .status{
+      min-height:1.2em;
+      font-size:.8rem;
+      color:#a9bbff;
+    }
+    .arc-rail{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:10px;
+    }
+    .arc-card{
+      border:1px solid #314889;
+      border-radius:14px;
+      background:#0a122d;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .arc-card.active{
+      border-color:#84a2f5;
+      background:linear-gradient(160deg,#10235a,#0a122d 72%);
+    }
+    .arc-card strong{font-size:.96rem}
+    .arc-card p{font-size:.86rem}
+    .timeline{
+      display:grid;
+      gap:10px;
+    }
+    .timeline-item{
+      border:1px solid #30427f;
+      border-radius:12px;
+      background:#09112b;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .timeline-item strong{font-size:.97rem}
+    .timeline-item p{font-size:.88rem}
+    .footer{
+      text-align:center;
+      color:#95a7e5;
+      font-size:.84rem;
+      padding:4px 0 0;
+    }
+    @media (max-width: 900px){
+      .layout{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="card">
-      <h1>roost chronicle</h1>
-      <p>A flight log of what shipped, what was tested, and what shifted the site forward.</p>
-      <div class="row">
-        <a class="btn" href="index.html">← back home</a>
-        <button class="btn active" data-filter="all">all</button>
-        <button class="btn" data-filter="launch">launches</button>
-        <button class="btn" data-filter="experiment">experiments</button>
-        <button class="btn" data-filter="ops">ops</button>
+  <main class="shell">
+    <section class="card hero">
+      <div class="top">
+        <div>
+          <h1>roost chronicle</h1>
+          <p class="lede">A living story map for the roost. Instead of reading releases and notes in isolation, this page groups them into arcs so you can see what the site has been trying to become.</p>
+        </div>
+        <nav class="nav" aria-label="Site sections">
+          <a href="index.html">home</a>
+          <a href="changelog.html">changelog</a>
+          <a href="flight-deck.html">flight deck</a>
+          <a href="signal-board.html">signal board</a>
+          <a href="roost-atlas.html">roost atlas</a>
+        </nav>
+      </div>
+
+      <div class="hero-grid" id="heroMetrics" aria-live="polite"></div>
+      <div class="controls" aria-label="Chronicle filters">
+        <button class="chip active" data-arc="all" type="button">all arcs</button>
+        <button class="chip" data-arc="story" type="button">story graph</button>
+        <button class="chip" data-arc="ops" type="button">ops rhythm</button>
+        <button class="chip" data-arc="design" type="button">design lab</button>
+        <input class="search" id="search" type="search" placeholder="search launches, notes, pages, or summaries" aria-label="Search chronicle entries" />
       </div>
     </section>
-    <section class="card">
-      <h2>timeline</h2>
-      <div id="entries" class="grid" aria-live="polite"></div>
+
+    <section class="layout">
+      <div class="band">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Story arcs</h2>
+            <p class="panel-note">Three active threads the site keeps pulling on</p>
+          </div>
+          <div class="arc-rail" id="arcRail"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Chronicle entries</h2>
+            <p class="panel-note" id="entryCount">loading…</p>
+          </div>
+          <div class="timeline" id="entries" aria-live="polite"></div>
+        </article>
+      </div>
+
+      <aside class="band">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Arc brief</h2>
+            <p class="panel-note">Copyable summary for the current view</p>
+          </div>
+          <div class="summary">
+            <pre id="brief"></pre>
+            <div class="summary-actions">
+              <button class="btn" id="copyBrief" type="button">copy brief</button>
+              <button class="btn" id="jumpLatest" type="button">latest entry</button>
+            </div>
+            <div class="status" id="copyStatus"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Connected signals</h2>
+            <p class="panel-note">Updates, notes, and planning cues behind the arc</p>
+          </div>
+          <div class="cluster" id="signalCluster"></div>
+        </article>
+      </aside>
     </section>
+
+    <p class="footer">roost chronicle is wired to the shared release and note feeds, so the story stays current as the site grows.</p>
   </main>
 
   <script>
-    const data = [
-      { date:'2026-05-12', title:'Forgeboard betting workflow launched', type:'launch', note:'Added weighted scoring and launch criteria to prioritize weekly bets.' },
-      { date:'2026-05-11', title:'Streak tracker added', type:'launch', note:'Shipped roost streaks for visible consistency tracking across creative routines.' },
-      { date:'2026-05-10', title:'Atlas route map expanded', type:'experiment', note:'Reworked roost atlas content to expose project routes and dependencies.' },
-      { date:'2026-05-09', title:'Roost radio vibes board', type:'experiment', note:'Introduced mood presets for faster context switching while building.' },
-      { date:'2026-05-08', title:'Weather deck for flight windows', type:'ops', note:'Added a weather-guided planning layer for better work timing decisions.' },
-      { date:'2026-05-04', title:'Command center refresh', type:'ops', note:'Streamlined command-center structure to reduce navigation friction.' }
-    ];
+    const arcConfig = {
+      story: {
+        label: 'Story graph',
+        description: 'Pages, notes, and launches that make the site feel connected instead of scattered.',
+        keywords: ['atlas', 'signal', 'chronicle', 'link', 'story', 'briefing']
+      },
+      ops: {
+        label: 'Ops rhythm',
+        description: 'Routines, dashboards, and planning tools that make daily work easier to sustain.',
+        keywords: ['now', 'deck', 'flight', 'routine', 'command', 'changelog', 'cadence']
+      },
+      design: {
+        label: 'Design lab',
+        description: 'Visual experiments, wallpapers, and interface surfaces that keep the roost playful.',
+        keywords: ['lab', 'wallpaper', 'gallery', 'style', 'theme', 'visual']
+      }
+    };
 
-    const entries = document.getElementById('entries');
-    const buttons = [...document.querySelectorAll('[data-filter]')];
+    const entrySeed = [];
 
-    function render(filter='all') {
-      const visible = filter === 'all' ? data : data.filter(item => item.type === filter);
-      entries.innerHTML = visible.map(item => `
-        <article class="entry">
-          <div class="meta">${item.date}<span class="chip">${item.type}</span></div>
-          <h3>${item.title}</h3>
-          <p>${item.note}</p>
+    async function loadJSON(path) {
+      const response = await fetch(path, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Failed to load ${path}`);
+      return response.json();
+    }
+
+    function wordHits(text, terms) {
+      const haystack = (text || '').toLowerCase();
+      return terms.reduce((count, term) => count + (haystack.includes(term) ? 1 : 0), 0);
+    }
+
+    function scoreEntry(entry, arcKey) {
+      const arc = arcConfig[arcKey];
+      const baseText = [
+        entry.title,
+        entry.impact,
+        entry.details,
+        entry.summary,
+        entry.page,
+        ...(entry.relatedNotes || [])
+      ].join(' ').toLowerCase();
+      const hits = wordHits(baseText, arc.keywords);
+      const bonus = (entry.type === 'feature' ? 2 : entry.type === 'interaction' ? 1 : 0);
+      return hits + bonus;
+    }
+
+    function classifyEntry(entry) {
+      const arcScores = Object.keys(arcConfig).map(key => [key, scoreEntry(entry, key)]);
+      arcScores.sort((a, b) => b[1] - a[1]);
+      return arcScores[0][0];
+    }
+
+    function friendlyDate(value) {
+      return new Date(`${value}T00:00:00Z`).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    function buildBrief(filtered, activeArc) {
+      const latest = filtered[0];
+      const arcLabel = activeArc === 'all' ? 'all arcs' : arcConfig[activeArc].label;
+      if (!latest) {
+        return `Roost Chronicle brief\nView: ${arcLabel}\nNo entries match this filter yet.`;
+      }
+      const signalNames = latest.relatedNotes && latest.relatedNotes.length
+        ? latest.relatedNotes.join(', ')
+        : 'none';
+      return [
+        'Roost Chronicle brief',
+        `View: ${arcLabel}`,
+        `Latest: ${latest.date} - ${latest.title}`,
+        `Why it matters: ${latest.impact}`,
+        `Details: ${latest.details}`,
+        `Signals: ${signalNames}`
+      ].join('\n');
+    }
+
+    function render(entries, notes, updates, arc = 'all', query = '') {
+      const q = query.trim().toLowerCase();
+      let filtered = entries.filter(entry => {
+        const arcMatch = arc === 'all' ? true : entry.arc === arc;
+        if (!arcMatch) return false;
+        if (!q) return true;
+        return [entry.title, entry.impact, entry.details, entry.page, entry.arcLabel, ...(entry.relatedNotes || [])]
+          .join(' ')
+          .toLowerCase()
+          .includes(q);
+      });
+
+      filtered.sort((a, b) => b.date.localeCompare(a.date));
+
+      document.getElementById('entryCount').textContent = `${filtered.length} visible / ${entries.length} total`;
+      document.getElementById('brief').textContent = buildBrief(filtered, arc);
+
+      const heroMetrics = document.getElementById('heroMetrics');
+      const arcCounts = Object.fromEntries(Object.keys(arcConfig).map(key => [key, entries.filter(entry => entry.arc === key).length]));
+      heroMetrics.innerHTML = [
+        { value: entries.length, label: 'chronicle entries' },
+        { value: updates.length, label: 'shared updates' },
+        { value: notes.length, label: 'linked notes' },
+        { value: arcCounts.story || 0, label: 'story graph items' }
+      ].map(item => `
+        <article class="metric">
+          <strong>${item.value}</strong>
+          <span>${item.label}</span>
+        </article>
+      `).join('');
+
+      const arcRail = document.getElementById('arcRail');
+      arcRail.innerHTML = Object.entries(arcConfig).map(([key, cfg]) => {
+        const count = arcCounts[key] || 0;
+        const active = arc === key ? 'active' : '';
+        return `
+          <button class="arc-card ${active}" type="button" data-arc-pick="${key}">
+            <strong>${cfg.label}</strong>
+            <p>${cfg.description}</p>
+            <span class="tag">${count} entries</span>
+          </button>
+        `;
+      }).join('');
+      arcRail.querySelectorAll('[data-arc-pick]').forEach(button => {
+        button.addEventListener('click', () => {
+          setArc(button.dataset.arcPick);
+        });
+      });
+
+      const signalCluster = document.getElementById('signalCluster');
+      const connectedEntries = filtered.slice(0, 3);
+      const relatedNotes = connectedEntries.flatMap(entry => entry.relatedNotes || []);
+      const relatedUpdates = connectedEntries.flatMap(entry => entry.relatedUpdates || []);
+      signalCluster.innerHTML = [
+        {
+          title: 'Latest release thread',
+          body: connectedEntries[0] ? `${connectedEntries[0].date} - ${connectedEntries[0].title}` : 'No matching release in view.',
+          links: connectedEntries[0] ? [
+            { label: 'open changelog', href: `changelog.html#${connectedEntries[0].slug}` }
+          ] : []
+        },
+        {
+          title: 'Note trail',
+          body: relatedNotes.length ? `${new Set(relatedNotes).size} linked note id(s) in this view.` : 'No linked notes in this view.',
+          links: [...new Set(relatedNotes)].slice(0, 2).map(id => {
+            const note = notes.find(item => item.id === id);
+            return note ? { label: note.title, href: `notes.html#${note.id}` } : null;
+          }).filter(Boolean)
+        },
+        {
+          title: 'Planning cue',
+          body: relatedUpdates.length ? `${new Set(relatedUpdates).size} related update key(s) reinforce the same direction.` : 'No direct planning cue attached.',
+          links: [...new Set(relatedUpdates)].slice(0, 2).map(slug => {
+            const update = updates.find(item => item.slug === slug);
+            return update ? { label: update.title, href: `changelog.html#${update.slug}` } : null;
+          }).filter(Boolean)
+        }
+      ].map(card => `
+        <article class="mini-card">
+          <strong>${card.title}</strong>
+          <p>${card.body}</p>
+          <div class="mini-row">
+            ${card.links.map(link => `<a class="chip" href="${link.href}">${link.label}</a>`).join('')}
+          </div>
+        </article>
+      `).join('');
+
+      const list = document.getElementById('entries');
+      if (!filtered.length) {
+        list.innerHTML = '<article class="timeline-item"><strong>No matches</strong><p>Try a different arc or search term.</p></article>';
+        return;
+      }
+
+      list.innerHTML = filtered.map(entry => `
+        <article class="timeline-item ${entry.type}">
+          <div class="meta">
+            <span>${friendlyDate(entry.date)}</span>
+            <span class="tag">${entry.arcLabel}</span>
+            <span class="tag">${entry.type}</span>
+            <span class="tag">${entry.pageLabel}</span>
+          </div>
+          <strong>${entry.title}</strong>
+          <p>${entry.impact}</p>
+          <p>${entry.details}</p>
+          <div class="mini-row">
+            <a class="chip" href="changelog.html#${entry.slug}">open release</a>
+            <a class="chip" href="${entry.page}">open page</a>
+            ${(entry.relatedNotes || []).slice(0, 2).map(noteId => `<a class="chip" href="notes.html#${noteId}">related note</a>`).join('')}
+          </div>
         </article>
       `).join('');
     }
 
-    buttons.forEach(btn => btn.addEventListener('click', () => {
-      buttons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      render(btn.dataset.filter);
-    }));
+    let activeArc = 'all';
+    let activeQuery = '';
+    let updatesData = [];
+    let notesData = [];
 
-    render();
+    function setArc(nextArc) {
+      activeArc = nextArc;
+      document.querySelectorAll('[data-arc]').forEach(btn => btn.classList.toggle('active', btn.dataset.arc === nextArc));
+      render(entrySeed, notesData, updatesData, activeArc, activeQuery);
+    }
+
+    document.querySelectorAll('[data-arc]').forEach(btn => {
+      btn.addEventListener('click', () => setArc(btn.dataset.arc));
+    });
+
+    document.getElementById('search').addEventListener('input', event => {
+      activeQuery = event.target.value;
+      render(entrySeed, notesData, updatesData, activeArc, activeQuery);
+    });
+
+    document.getElementById('copyBrief').addEventListener('click', async () => {
+      const text = document.getElementById('brief').textContent;
+      const status = document.getElementById('copyStatus');
+      try {
+        await navigator.clipboard.writeText(text);
+        status.textContent = 'Brief copied to clipboard.';
+      } catch {
+        status.textContent = 'Clipboard blocked, but the brief is ready to select manually.';
+      }
+      window.setTimeout(() => { status.textContent = ''; }, 2500);
+    });
+
+    document.getElementById('jumpLatest').addEventListener('click', () => {
+      const latest = [...entrySeed].sort((a, b) => b.date.localeCompare(a.date))[0];
+      if (latest) location.hash = latest.slug;
+    });
+
+    (async () => {
+      try {
+        const [updates, notes, shipyard] = await Promise.all([
+          loadJSON('assets/roost-updates.json'),
+          loadJSON('assets/roost-notes.json'),
+          loadJSON('assets/roost-shipyard.json')
+        ]);
+        updatesData = updates.updates || [];
+        notesData = notes.notes || [];
+
+        const ships = updatesData.map(update => ({
+          slug: update.slug,
+          date: update.date,
+          title: update.title,
+          impact: update.impact,
+          details: update.details,
+          page: update.page,
+          pageLabel: update.pageLabel,
+          relatedNotes: update.relatedNotes || [],
+          relatedUpdates: update.relatedNotes || [],
+          type: 'feature',
+          arc: classifyEntry(update),
+          arcLabel: arcConfig[classifyEntry(update)].label
+        }));
+
+        const noteEntries = notesData
+          .filter(note => (note.relatedUpdates || []).length || note.relatedPage)
+          .slice(0, 5)
+          .map(note => ({
+            slug: note.id,
+            date: note.date,
+            title: note.title,
+            impact: note.summary,
+            details: note.body.join(' '),
+            page: note.relatedPage || 'notes.html',
+            pageLabel: note.relatedPageLabel || 'open note',
+            relatedNotes: [note.id],
+            relatedUpdates: note.relatedUpdates || [],
+            type: 'note',
+            arc: classifyEntry({
+              title: note.title,
+              impact: note.summary,
+              details: note.body.join(' '),
+              page: note.relatedPage,
+              relatedNotes: note.relatedUpdates
+            }),
+            arcLabel: arcConfig[classifyEntry({
+              title: note.title,
+              impact: note.summary,
+              details: note.body.join(' '),
+              page: note.relatedPage,
+              relatedNotes: note.relatedUpdates
+            })].label
+          }));
+
+        const roadmapEntries = (shipyard || [])
+          .slice(0, 4)
+          .map(item => ({
+            slug: item.id,
+            date: item.shipTarget + '-01',
+            title: item.name,
+            impact: item.summary,
+            details: `Roadmap status: ${item.status}. ${item.summary}`,
+            page: item.link,
+            pageLabel: item.link,
+            relatedNotes: item.tags || [],
+            relatedUpdates: [],
+            type: 'roadmap',
+            arc: item.tags.some(tag => ['design', 'gallery', 'wallpapers'].includes(tag)) ? 'design' : item.tags.some(tag => ['command-center', 'flight-deck', 'now', 'routine'].some(prefix => tag.includes(prefix))) ? 'ops' : 'story',
+            arcLabel: arcConfig[item.tags.some(tag => ['design', 'gallery', 'wallpapers'].includes(tag)) ? 'design' : item.tags.some(tag => ['command-center', 'flight-deck', 'now', 'routine'].some(prefix => tag.includes(prefix))) ? 'ops' : 'story'].label
+          }));
+
+        entrySeed.splice(0, entrySeed.length, ...[...ships, ...noteEntries, ...roadmapEntries].sort((a, b) => b.date.localeCompare(a.date)));
+        render(entrySeed, notesData, updatesData, activeArc, activeQuery);
+      } catch (error) {
+        document.getElementById('entries').innerHTML = `<article class="timeline-item"><strong>Chronicle feed unavailable</strong><p>${error.message}</p></article>`;
+        document.getElementById('brief').textContent = 'Roost Chronicle brief\nFeed unavailable.';
+      }
+    })();
   </script>
 </body>
 </html>

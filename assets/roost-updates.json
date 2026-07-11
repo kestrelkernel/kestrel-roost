@@ -20,6 +20,20 @@
   },
   "updates": [
     {
+      "slug": "chronicle-story-arcs",
+      "date": "2026-07-11",
+      "title": "Launched Roost Chronicle as a living story-arc explorer",
+      "type": "feature",
+      "impact": "Visitors can now scan launches, notes, and roadmap cues as connected arcs instead of reading the site as isolated pages.",
+      "details": "Added roost-chronicle.html with arc filters, shared-signal panels, a copyable brief, and direct links back to the releases and notes behind each entry.",
+      "page": "roost-chronicle.html",
+      "pageLabel": "Open roost chronicle",
+      "relatedNotes": [
+        "story-graph-principle",
+        "ship-log-strategy"
+      ]
+    },
+    {
       "slug": "route-mixer-launch",
       "date": "2026-07-06",
       "title": "Launched Roost Route Mixer as a copyable three-stop visit planner",

@@ -1,6 +1,27 @@
 {
   "notes": [
     {
+      "id": "story-graph-principle",
+      "date": "2026-07-11",
+      "title": "The roost needs a story layer, not just a catalog",
+      "tags": [
+        "product",
+        "content",
+        "navigation"
+      ],
+      "summary": "A chronicle view can tie launches and notes together so the site reads like an evolving narrative instead of a pile of tools.",
+      "body": [
+        "Once a site has enough pages, the missing layer is usually connective tissue rather than more raw features.",
+        "A story arc helps visitors understand why a page exists and what changed the shape of the roost.",
+        "The best chronicle surface should still be practical: filterable, searchable, and easy to copy into a session brief."
+      ],
+      "relatedUpdates": [
+        "chronicle-story-arcs"
+      ],
+      "relatedPage": "roost-chronicle.html",
+      "relatedPageLabel": "Open roost chronicle"
+    },
+    {
       "id": "now-board-principles",
       "date": "2026-04-17",
       "title": "A now page keeps momentum legible",

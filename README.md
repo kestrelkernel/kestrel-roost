@@ -21,6 +21,7 @@ python3 -m http.server 8080
 - `now.html` — live now board with active focus cards, progress bars, recent wins, and next-up priorities
 - `roost-almanac.html` — planning compass that folds seasonal, energy, and weather signals into a copyable build recipe
 - `changelog.html` — release history + filterable flight log
+- `roost-chronicle.html` — story-arc explorer that ties launches, notes, and roadmap cues into a copyable brief
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
 - `roost-lens.html` — daily build brief generator that turns updates, notes, and roadmap pressure into a concrete next move
@@ -55,6 +56,7 @@ python3 -m http.server 8080
 
 - **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks
 - **Roost Route Mixer launch:** added `roost-route-mixer.html`, a route-builder surface that blends updates, roadmap pressure, and note trails into a copyable three-stop visit plan with seed history and mode-based routing
+- **Roost Chronicle launch:** added `roost-chronicle.html`, a living story-arc explorer that groups launches, notes, and roadmap cues into a copyable brief with connected-signal panels
 - **Roost Prism launch:** added `roost-prism.html`, a new signal prism that classifies current updates, notes, expeditions, and shipyard queue items into mode lenses and emits a copyable build brief for the day
 - **Roost Atlas share links:** upgraded `roost-atlas.html` with URL-synced scope, search, selected node, route, and camera state plus a one-click copyable share link so map sessions can be reopened exactly as shared
 - **Roost Briefing signal console:** expanded `roost-briefing.html` with signal breakdown cards, more opinionated route suggestions, and copyable route prompts so the briefing can adapt to focus-first or ship-first sessions instead of acting like a static summary
