@@ -3,122 +3,606 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A mission cockpit for the Kestrel roost launch queue." />
   <title>roost launchpad</title>
   <style>
-    :root { color-scheme: dark; }
-    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#070f1a; color:#dbe8ff; }
-    main { max-width: 1000px; margin: 0 auto; padding: 28px 16px 48px; }
-    .card { background:#0d1b2d; border:1px solid #2c4a6b; border-radius:12px; padding:16px; margin-bottom:14px; }
-    h1,h2,h3 { margin:0 0 10px; }
-    .muted { color:#94afcf; }
-    .grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
-    .lane { background:#091424; border:1px solid #27405f; border-radius:10px; padding:10px; }
-    .task { background:#12233a; border:1px solid #3d628a; border-radius:10px; padding:10px; margin:8px 0; }
-    .task strong { display:block; margin-bottom:6px; }
-    button,input,select { background:#11253d; color:#e7f0ff; border:1px solid #3b608a; border-radius:8px; padding:8px 10px; font:inherit; }
-    button { cursor:pointer; }
-    .row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
-    .stats { display:flex; gap:16px; flex-wrap:wrap; }
-    a { color:#8ec5ff; }
+    :root {
+      color-scheme: dark;
+      --bg:#07101b;
+      --bg2:#0c1730;
+      --panel:#0e1b34cc;
+      --line:#2f4f7b;
+      --line2:#74a2ff;
+      --fg:#e7eeff;
+      --muted:#94aad4;
+      --accent:#8fc3ff;
+      --good:#8df0c1;
+      --warn:#ffcf79;
+      --bad:#ff8fa0;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% 0%, #1e3f7a 0%, transparent 32%),
+        radial-gradient(circle at 88% 12%, #164f6a33 0%, transparent 26%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    main {
+      width:min(1180px, 92vw);
+      margin:0 auto;
+      padding:30px 0 44px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .panel, .lane, .drawer {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+      box-shadow:0 16px 40px #00000033;
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:22px;
+      display:grid;
+      gap:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -90px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #89b6ff1f 0%, transparent 70%);
+      pointer-events:none;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.35rem); line-height:1; }
+    .lede { color:var(--muted); line-height:1.6; max-width:74ch; }
+    .topline, .controls, .stats, .quick-actions, .chips, .meta-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .pill, .chip, .tag {
+      border:1px solid #4768bb;
+      border-radius:999px;
+      padding:5px 10px;
+      background:#112146;
+      color:#dbe6ff;
+      font-size:.8rem;
+    }
+    .pill.is-accent {
+      background:#dbe6ff;
+      color:#0e2047;
+      border-color:#dbe6ff;
+    }
+    .panel, .drawer, .lane {
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .workspace {
+      display:grid;
+      grid-template-columns:minmax(290px, .92fr) minmax(0, 1.28fr);
+      gap:14px;
+      align-items:start;
+    }
+    .board {
+      display:grid;
+      gap:12px;
+    }
+    .lanes {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+      gap:12px;
+    }
+    .lane {
+      background:linear-gradient(180deg, #0d1931, #09111f);
+      min-height:220px;
+    }
+    .lane h3 {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+      font-size:1rem;
+    }
+    .lane small { color:var(--muted); font-size:.8rem; }
+    .task {
+      border:1px solid #36568d;
+      border-radius:14px;
+      background:#122544;
+      padding:12px;
+      display:grid;
+      gap:9px;
+    }
+    .task.is-highlight {
+      border-color:var(--line2);
+      background:linear-gradient(160deg, #17315f, #10213d 72%);
+    }
+    .task h4 { margin:0; font-size:.98rem; line-height:1.35; }
+    .task p, .task li, .muted { color:var(--muted); line-height:1.5; }
+    .task-list { display:grid; gap:10px; }
+    .field, input, textarea, select, button, a.button {
+      font:inherit;
+    }
+    input, textarea, select {
+      width:100%;
+      background:#11253d;
+      color:var(--fg);
+      border:1px solid #3d638c;
+      border-radius:10px;
+      padding:9px 10px;
+    }
+    textarea { min-height:90px; resize:vertical; }
+    button, a.button {
+      cursor:pointer;
+      border:1px solid #4970ab;
+      border-radius:10px;
+      padding:9px 12px;
+      background:#13274a;
+      color:var(--fg);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    button:hover, button:focus-visible, a.button:hover, a.button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline:none;
+      border-color:var(--line2);
+      box-shadow:0 0 0 2px #89abff26;
+    }
+    .form-grid {
+      display:grid;
+      grid-template-columns:1fr 110px 120px;
+      gap:8px;
+    }
+    .row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+      gap:10px;
+    }
+    .stat {
+      border:1px solid #36568d;
+      border-radius:14px;
+      background:#091427;
+      padding:12px;
+      display:grid;
+      gap:4px;
+    }
+    .stat strong { font-size:1.3rem; color:#f6f8ff; }
+    .stat span { color:var(--muted); line-height:1.45; }
+    .split {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .drawer h2, .panel h2 { font-size:1.02rem; }
+    .hint { color:#b6c9ff; font-size:.82rem; }
+    .status { min-height:1.2em; color:#c7d5ff; font-size:.84rem; }
+    .archive-item {
+      border:1px solid #35527e;
+      border-radius:12px;
+      background:#0b1529;
+      padding:10px;
+      display:grid;
+      gap:8px;
+    }
+    .archive-item strong { color:#f5f8ff; }
+    .archive-grid { display:grid; gap:10px; }
+    .tagline { font-size:.8rem; color:#bed0ff; }
+    .empty {
+      border:1px dashed #3d5b8a;
+      border-radius:12px;
+      padding:14px;
+      color:var(--muted);
+      background:#08111f;
+    }
+    footer { text-align:center; color:#91a6eb; font-size:.85rem; padding-top:4px; }
+    @media (max-width: 900px) {
+      .workspace, .split { grid-template-columns:1fr; }
+      .form-grid { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
 <main>
-  <h1>roost launchpad</h1>
-  <p class="muted">A lightweight product roadmap board with velocity snapshots and one-click task movement.</p>
-
-  <section class="card">
-    <h2>add mission card</h2>
-    <div class="row">
-      <input id="titleInput" type="text" placeholder="task title" />
-      <select id="sizeInput"><option value="S">S</option><option value="M" selected>M</option><option value="L">L</option></select>
-      <button id="addBtn">add to backlog</button>
-      <button id="seedBtn">load starter missions</button>
+  <section class="hero">
+    <div class="topline">
+      <span class="pill is-accent">roost launchpad</span>
+      <span class="pill">mission cockpit</span>
+      <span class="pill">local first</span>
     </div>
+    <h1>shape the next ship before it drifts.</h1>
+    <p class="lede">This launchpad is a small command table for the roost: capture missions, give them a lane and a due date, move them forward with one click, and keep a running archive of what actually shipped. The point is not just organization, but momentum you can see.</p>
+    <div class="controls">
+      <a class="button" href="index.html">back home</a>
+      <button id="seedBtn" type="button">load starter missions</button>
+      <button id="sampleBtn" type="button">inject demo backlog</button>
+      <button id="exportBtn" type="button">copy archive json</button>
+      <button id="resetBtn" type="button">reset board</button>
+    </div>
+    <div class="topline" id="statusLine"><span>loading launchpad state…</span></div>
   </section>
 
-  <section class="card">
-    <h2>weekly velocity</h2>
-    <div class="stats" id="stats"></div>
-    <p class="muted" id="health">health: calculating…</p>
+  <section class="workspace">
+    <section class="panel">
+      <h2>add mission</h2>
+      <p class="hint">Short title, one lane, one size. Small scope ships faster, but the board keeps the bigger bets visible.</p>
+      <div class="form-grid">
+        <input id="titleInput" type="text" maxlength="120" placeholder="mission title" />
+        <select id="sizeInput">
+          <option value="S">S</option>
+          <option value="M" selected>M</option>
+          <option value="L">L</option>
+        </select>
+        <select id="laneInput">
+          <option value="backlog">backlog</option>
+          <option value="in-flight" selected>in-flight</option>
+          <option value="shipped">shipped</option>
+        </select>
+      </div>
+      <div class="form-grid">
+        <input id="dueInput" type="date" />
+        <input id="tagInput" type="text" maxlength="30" placeholder="tag, like design" />
+        <button id="addBtn" type="button">add mission</button>
+      </div>
+      <textarea id="notesInput" placeholder="optional notes for the mission"></textarea>
+      <div class="quick-actions">
+        <button id="advanceSelectedBtn" type="button">advance highlighted</button>
+        <button id="copySelectedBtn" type="button">copy highlighted brief</button>
+      </div>
+      <div class="row">
+        <label class="field" style="flex:1 1 180px">
+          <span class="muted">search</span>
+          <input id="searchInput" type="search" placeholder="filter by title, tag, or note" />
+        </label>
+        <label class="field" style="flex:1 1 160px">
+          <span class="muted">focus lane</span>
+          <select id="focusInput">
+            <option value="all">all lanes</option>
+            <option value="backlog">backlog</option>
+            <option value="in-flight">in-flight</option>
+            <option value="shipped">shipped</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="board">
+      <section class="panel">
+        <h2>velocity</h2>
+        <div class="stats" id="stats"></div>
+      </section>
+
+      <section class="lanes" id="board"></section>
+    </section>
   </section>
 
-  <section class="grid" id="board"></section>
-
-  <p><a href="index.html">← back to roost</a></p>
+  <section class="split">
+    <section class="drawer">
+      <h2>archive</h2>
+      <p class="hint">This is the shipped trail. It keeps the board honest and gives the homepage something concrete to point at.</p>
+      <div class="archive-grid" id="archiveList"></div>
+    </section>
+    <section class="drawer">
+      <h2>mission brief</h2>
+      <div class="panel" style="background:#091427;">
+        <div class="meta-row" id="briefMeta"></div>
+        <div class="empty" id="briefOutput">Select a task to see a copyable brief.</div>
+      </div>
+    </section>
+  </section>
 </main>
+<footer>Launchpad keeps planning visible, movable, and easy to export.</footer>
 <script>
 (() => {
-  const KEY = 'roost_launchpad_v1';
+  const KEY = 'roost_launchpad_v2';
   const lanes = ['backlog', 'in-flight', 'shipped'];
   const weight = { S: 1, M: 2, L: 3 };
   const seed = [
-    { title: 'Homepage spotlight refresh', size: 'M', lane: 'backlog' },
-    { title: 'Add mobile nav cleanup pass', size: 'S', lane: 'in-flight' },
-    { title: 'Ship one interactive cockpit tool', size: 'L', lane: 'backlog' }
+    { title: 'Homepage spotlight refresh', size: 'M', lane: 'backlog', tag: 'homepage', notes: 'Give the top-of-page story a fresher frame.' },
+    { title: 'Add mobile nav cleanup pass', size: 'S', lane: 'in-flight', tag: 'ux', notes: 'Tighten layout and taps on smaller screens.' },
+    { title: 'Ship one interactive cockpit tool', size: 'L', lane: 'backlog', tag: 'tooling', notes: 'Something visible that improves daily workflow.' }
+  ];
+  const sample = [
+    { title: 'Rewrite launch brief export', size: 'M', lane: 'backlog', tag: 'docs', notes: 'Make route handoffs easier to share.' },
+    { title: 'Add spotlight for latest shipped win', size: 'S', lane: 'in-flight', tag: 'story', notes: 'Surface the most recent visible improvement.' },
+    { title: 'Prototype new theme switcher', size: 'L', lane: 'backlog', tag: 'design', notes: 'Try a bolder visual direction in one surface.' }
   ];
 
   const load = () => {
-    try { return JSON.parse(localStorage.getItem(KEY)) || { cards: [], history: [] }; }
-    catch { return { cards: [], history: [] }; }
+    try { return JSON.parse(localStorage.getItem(KEY)) || { cards: [], history: [], selectedId: null }; }
+    catch { return { cards: [], history: [], selectedId: null }; }
   };
-  const save = (s) => localStorage.setItem(KEY, JSON.stringify(s));
+  const save = (state) => localStorage.setItem(KEY, JSON.stringify(state));
+  const now = () => new Date().toISOString().slice(0, 10);
+  const uid = () => crypto.randomUUID();
 
-  const addCard = (s, title, size, lane='backlog') => {
-    s.cards.push({ id: crypto.randomUUID(), title, size, lane, createdAt: Date.now() });
+  const addCard = (state, item) => {
+    state.cards.unshift({
+      id: uid(),
+      title: item.title,
+      size: item.size || 'M',
+      lane: item.lane || 'backlog',
+      due: item.due || '',
+      tag: item.tag || '',
+      notes: item.notes || '',
+      createdAt: Date.now()
+    });
   };
 
-  const moveCard = (s, id) => {
-    const c = s.cards.find(x => x.id === id);
-    if (!c) return;
-    const idx = lanes.indexOf(c.lane);
-    c.lane = lanes[Math.min(idx + 1, lanes.length - 1)];
-    if (c.lane === 'shipped') s.history.unshift({ when: Date.now(), size: c.size, title: c.title });
+  const advanceCard = (state, id) => {
+    const card = state.cards.find(item => item.id === id);
+    if (!card) return;
+    const laneIndex = lanes.indexOf(card.lane);
+    if (laneIndex < lanes.length - 1) {
+      card.lane = lanes[laneIndex + 1];
+    }
+    if (card.lane === 'shipped') {
+      state.history.unshift({
+        id: card.id,
+        title: card.title,
+        size: card.size,
+        tag: card.tag,
+        shippedAt: Date.now()
+      });
+    }
   };
 
-  const removeCard = (s, id) => { s.cards = s.cards.filter(x => x.id !== id); };
+  const removeCard = (state, id) => {
+    state.cards = state.cards.filter(card => card.id !== id);
+    if (state.selectedId === id) state.selectedId = null;
+  };
+
+  const summarize = (state) => {
+    const weekAgo = Date.now() - 7 * 86400000;
+    const shippedWeek = state.history.filter(item => item.shippedAt >= weekAgo);
+    const points = shippedWeek.reduce((sum, item) => sum + (weight[item.size] || 1), 0);
+    const active = state.cards.filter(card => card.lane === 'in-flight');
+    const overdue = state.cards.filter(card => card.due && card.lane !== 'shipped' && card.due < now());
+    return { shippedWeek, points, active, overdue };
+  };
+
+  const buildBrief = (card) => {
+    if (!card) return 'Select a task to see a copyable brief.';
+    return [
+      `Mission: ${card.title}`,
+      `Lane: ${card.lane}`,
+      `Size: ${card.size}`,
+      card.tag ? `Tag: ${card.tag}` : 'Tag: none',
+      card.due ? `Due: ${card.due}` : 'Due: none',
+      '',
+      card.notes ? `Notes: ${card.notes}` : 'Notes: none',
+      '',
+      card.lane === 'shipped'
+        ? 'Outcome: capture the win in the archive and use it as the next anchor.'
+        : card.lane === 'in-flight'
+          ? 'Outcome: finish one concrete step, then advance it or trim scope.'
+          : 'Outcome: decide whether this is worth shipping soon or should be reworked.'
+    ].join('\n');
+  };
+
+  const filteredCards = (state) => {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const focus = document.getElementById('focusInput').value;
+    return state.cards.filter(card => {
+      if (focus !== 'all' && card.lane !== focus) return false;
+      if (!query) return true;
+      return [card.title, card.tag, card.notes, card.lane, card.size, card.due].join(' ').toLowerCase().includes(query);
+    });
+  };
 
   const render = () => {
-    const s = load();
+    const state = load();
+    const visible = filteredCards(state);
+    const summary = summarize(state);
+    const selected = state.cards.find(card => card.id === state.selectedId) || visible[0] || null;
     const board = document.getElementById('board');
+
     board.innerHTML = lanes.map(lane => {
-      const cards = s.cards.filter(c => c.lane === lane);
-      return `<section class="lane"><h3>${lane}</h3>${cards.map(c => `<article class="task"><strong>${c.title}</strong><div>size ${c.size}</div><div class="row"><button data-move="${c.id}">advance</button><button data-del="${c.id}">remove</button></div></article>`).join('') || '<p class="muted">empty</p>'}</section>`;
+      const cards = visible.filter(card => card.lane === lane);
+      return `
+        <section class="lane">
+          <h3>${lane} <small>${cards.length} task${cards.length === 1 ? '' : 's'}</small></h3>
+          <div class="task-list">
+            ${cards.map(card => `
+              <article class="task ${card.id === selected?.id ? 'is-highlight' : ''}" data-id="${card.id}">
+                <div class="row" style="justify-content:space-between;align-items:flex-start;">
+                  <div>
+                    <h4>${card.title}</h4>
+                    <div class="meta-row" style="margin-top:6px;">
+                      <span class="tag">size ${card.size}</span>
+                      ${card.tag ? `<span class="tag">${card.tag}</span>` : ''}
+                      ${card.due ? `<span class="tag">${card.due}</span>` : ''}
+                    </div>
+                  </div>
+                  <button type="button" data-select="${card.id}">focus</button>
+                </div>
+                ${card.notes ? `<p>${card.notes}</p>` : '<p class="muted">no notes yet.</p>'}
+                <div class="row">
+                  <button type="button" data-advance="${card.id}">advance</button>
+                  <button type="button" data-copy="${card.id}">copy brief</button>
+                  <button type="button" data-remove="${card.id}">remove</button>
+                </div>
+              </article>
+            `).join('') || '<div class="empty">empty lane</div>'}
+          </div>
+        </section>
+      `;
     }).join('');
 
-    const weekAgo = Date.now() - 7 * 86400000;
-    const recent = s.history.filter(h => h.when >= weekAgo);
-    const points = recent.reduce((acc, h) => acc + (weight[h.size] || 1), 0);
-    document.getElementById('stats').innerHTML = `<div>shipped this week: <strong>${recent.length}</strong></div><div>velocity points: <strong>${points}</strong></div><div>in-flight now: <strong>${s.cards.filter(c => c.lane === 'in-flight').length}</strong></div>`;
-    document.getElementById('health').textContent = points >= 8 ? 'health: strong momentum' : points >= 4 ? 'health: steady pace' : 'health: low output, trim scope and ship a small win';
+    document.getElementById('stats').innerHTML = [
+      `<div class="stat"><strong>${state.cards.length}</strong><span>missions on the board</span></div>`,
+      `<div class="stat"><strong>${summary.active.length}</strong><span>items currently in-flight</span></div>`,
+      `<div class="stat"><strong>${summary.shippedWeek.length}</strong><span>missions shipped this week</span></div>`,
+      `<div class="stat"><strong>${summary.points}</strong><span>velocity points in seven days</span></div>`,
+      `<div class="stat"><strong>${summary.overdue.length}</strong><span>overdue items needing a decision</span></div>`
+    ].join('');
+
+    document.getElementById('archiveList').innerHTML = state.history.length
+      ? state.history.slice(0, 8).map(item => `
+        <article class="archive-item">
+          <strong>${item.title}</strong>
+          <div class="meta-row">
+            <span class="tag">${item.size}</span>
+            ${item.tag ? `<span class="tag">${item.tag}</span>` : ''}
+            <span class="tag">${new Date(item.shippedAt).toLocaleDateString()}</span>
+          </div>
+        </article>
+      `).join('')
+      : '<div class="empty">Nothing has shipped yet. The archive will fill as missions cross the line.</div>';
+
+    document.getElementById('briefMeta').innerHTML = selected
+      ? [
+          `<span class="pill is-accent">${selected.lane}</span>`,
+          `<span class="pill">size ${selected.size}</span>`,
+          selected.tag ? `<span class="pill">${selected.tag}</span>` : '<span class="pill">no tag</span>',
+          selected.due ? `<span class="pill">${selected.due}</span>` : '<span class="pill">no due date</span>'
+        ].join('')
+      : '<span class="pill">no mission selected</span>';
+
+    document.getElementById('briefOutput').textContent = buildBrief(selected);
+
+    const signal = summary.overdue.length
+      ? `overdue: ${summary.overdue.map(item => item.title).join(' · ')}`
+      : summary.points >= 8
+        ? 'health: strong momentum, keep the board moving'
+        : summary.points >= 4
+          ? 'health: steady pace, keep one lane warm'
+          : 'health: low output, choose a small visible win';
+    document.getElementById('statusLine').innerHTML = [
+      `<span class="pill">board ${state.cards.length}</span>`,
+      `<span class="pill">archive ${state.history.length}</span>`,
+      `<span class="pill">${signal}</span>`,
+      `<span class="pill">selected ${selected ? selected.title : 'none'}</span>`
+    ].join('');
   };
 
-  document.addEventListener('click', (e) => {
-    const move = e.target.getAttribute('data-move');
-    const del = e.target.getAttribute('data-del');
-    if (!move && !del) return;
-    const s = load();
-    if (move) moveCard(s, move);
-    if (del) removeCard(s, del);
-    save(s); render();
-  });
-
-  document.getElementById('addBtn').addEventListener('click', () => {
+  const upsertFromForm = () => {
     const title = document.getElementById('titleInput').value.trim();
     if (!title) return;
-    const size = document.getElementById('sizeInput').value;
-    const s = load();
-    addCard(s, title, size);
-    save(s);
-    document.getElementById('titleInput').value = '';
+    const state = load();
+    addCard(state, {
+      title,
+      size: document.getElementById('sizeInput').value,
+      lane: document.getElementById('laneInput').value,
+      due: document.getElementById('dueInput').value,
+      tag: document.getElementById('tagInput').value.trim(),
+      notes: document.getElementById('notesInput').value.trim()
+    });
+    state.selectedId = state.cards[0].id;
+    save(state);
+    ['titleInput', 'tagInput', 'notesInput'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('dueInput').value = '';
+    render();
+  };
+
+  const copyText = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  document.addEventListener('click', async (event) => {
+    const selectId = event.target.getAttribute('data-select');
+    const advanceId = event.target.getAttribute('data-advance');
+    const removeId = event.target.getAttribute('data-remove');
+    const copyId = event.target.getAttribute('data-copy');
+    if (!selectId && !advanceId && !removeId && !copyId) return;
+
+    const state = load();
+    if (selectId) state.selectedId = selectId;
+    if (advanceId) {
+      advanceCard(state, advanceId);
+      state.selectedId = advanceId;
+    }
+    if (removeId) removeCard(state, removeId);
+    if (copyId) {
+      const card = state.cards.find(item => item.id === copyId);
+      const ok = card ? await copyText(buildBrief(card)) : false;
+      document.getElementById('statusLine').innerHTML = ok
+        ? '<span class="pill is-accent">brief copied</span>'
+        : '<span class="pill">clipboard blocked, copy from the brief panel</span>';
+      if (card) state.selectedId = card.id;
+    }
+    save(state);
     render();
   });
 
+  document.getElementById('addBtn').addEventListener('click', upsertFromForm);
   document.getElementById('seedBtn').addEventListener('click', () => {
-    const s = load();
-    if (s.cards.length) return;
-    seed.forEach(item => addCard(s, item.title, item.size, item.lane));
-    save(s); render();
+    const state = load();
+    if (state.cards.length) return;
+    seed.forEach(item => addCard(state, item));
+    state.selectedId = state.cards[0]?.id || null;
+    save(state);
+    render();
+  });
+  document.getElementById('sampleBtn').addEventListener('click', () => {
+    const state = load();
+    sample.forEach(item => addCard(state, item));
+    state.selectedId = state.cards[0]?.id || null;
+    save(state);
+    render();
+  });
+  document.getElementById('exportBtn').addEventListener('click', async () => {
+    const state = load();
+    const payload = JSON.stringify({ cards: state.cards, history: state.history }, null, 2);
+    const ok = await copyText(payload);
+    document.getElementById('statusLine').innerHTML = ok
+      ? '<span class="pill is-accent">archive json copied</span>'
+      : '<span class="pill">clipboard blocked, use the board data locally</span>';
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    localStorage.removeItem(KEY);
+    render();
+  });
+  document.getElementById('searchInput').addEventListener('input', render);
+  document.getElementById('focusInput').addEventListener('change', render);
+  document.getElementById('advanceSelectedBtn').addEventListener('click', () => {
+    const state = load();
+    const selected = state.cards.find(item => item.id === state.selectedId) || state.cards[0];
+    if (!selected) return;
+    advanceCard(state, selected.id);
+    state.selectedId = selected.id;
+    save(state);
+    render();
+  });
+  document.getElementById('copySelectedBtn').addEventListener('click', async () => {
+    const state = load();
+    const selected = state.cards.find(item => item.id === state.selectedId) || state.cards[0];
+    if (!selected) return;
+    const ok = await copyText(buildBrief(selected));
+    document.getElementById('statusLine').innerHTML = ok
+      ? '<span class="pill is-accent">selected brief copied</span>'
+      : '<span class="pill">clipboard blocked, copy manually from the brief panel</span>';
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.target.matches('input, textarea, select')) return;
+    if (event.key === 'n') {
+      document.getElementById('titleInput').focus();
+    }
+    if (event.key === 'Enter') {
+      document.getElementById('advanceSelectedBtn').click();
+    }
   });
 
   render();
