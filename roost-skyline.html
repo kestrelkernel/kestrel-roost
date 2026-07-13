@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A skyline view of Kestrel's Roost: roadmap, launches, and next moves." />
+  <title>Roost Skyline</title>
+  <style>
+    :root {
+      --bg:#050816;
+      --bg2:#0b1430;
+      --fg:#edf2ff;
+      --muted:#a8b8ee;
+      --accent:#8fc4ff;
+      --accent2:#7ef0c7;
+      --card:#0c1430cc;
+      --line:#30468d;
+      --glow:#89aaff33;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 10%, #3358b344 0%, transparent 35%),
+        radial-gradient(circle at 80% 0%, #7ef0c722 0%, transparent 30%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1180px, 92vw);
+      margin:0 auto;
+      padding:28px 0 40px;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 18px 40px #00000033;
+      backdrop-filter: blur(8px);
+    }
+    .hero {
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(145deg, #0f1d48, #081027 65%);
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -80px -90px auto;
+      width:280px;
+      height:280px;
+      border-radius:999px;
+      background:radial-gradient(circle, var(--glow) 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .eyebrow {
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      font-size:.72rem;
+      color:var(--accent2);
+      margin:0 0 10px;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 {
+      font-size:clamp(2.2rem, 6vw, 4.6rem);
+      line-height:.95;
+      max-width:10ch;
+    }
+    .lede {
+      margin-top:12px;
+      max-width:68ch;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:1.02rem;
+    }
+    .toolbar, .tag-row, .link-row { display:flex; gap:10px; flex-wrap:wrap; }
+    .toolbar { margin-top:16px; }
+    .btn, .tag, .nav-link {
+      border:1px solid #4a63bf;
+      background:#112353;
+      color:#eaf1ff;
+      text-decoration:none;
+      border-radius:999px;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .btn:hover, .tag:hover, .nav-link:hover, .btn:focus-visible, .tag:focus-visible, .nav-link:focus-visible {
+      transform:translateY(-1px);
+      border-color:#86a7ff;
+      background:#16306f;
+      outline:none;
+    }
+    .grid {
+      display:grid;
+      gap:14px;
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .stat-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+      gap:10px;
+      margin-top:16px;
+    }
+    .stat {
+      border:1px solid #3a519f;
+      border-radius:14px;
+      padding:12px;
+      background:#09122d;
+      display:grid;
+      gap:6px;
+    }
+    .stat strong { font-size:1.4rem; }
+    .stat span, .muted { color:var(--muted); line-height:1.45; }
+    .lane {
+      display:grid;
+      gap:12px;
+    }
+    .lane-card {
+      border:1px solid #32498f;
+      border-radius:14px;
+      padding:14px;
+      background:#08112a;
+      display:grid;
+      gap:10px;
+    }
+    .lane-card h3 { font-size:1rem; }
+    .lane-card ul {
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .launch-list {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+    }
+    .launch {
+      border:1px solid #3b5198;
+      border-radius:14px;
+      background:#08112a;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .launch.is-lead {
+      background:linear-gradient(155deg, #11265d, #08112a 72%);
+      border-color:#7c96ea;
+    }
+    .launch h3 { font-size:1rem; }
+    .copy {
+      color:var(--muted);
+      line-height:1.55;
+      font-size:.95rem;
+    }
+    .meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      color:#bfd0ff;
+      font-size:.8rem;
+    }
+    .route {
+      border:1px solid #3b5198;
+      border-radius:14px;
+      background:#08102a;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .route pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#e7eeff;
+      line-height:1.55;
+      font:inherit;
+    }
+    .note-list {
+      display:grid;
+      gap:10px;
+    }
+    .note {
+      border:1px solid #32498f;
+      border-radius:14px;
+      background:#08112a;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .note strong { font-size:1rem; }
+    .note p { color:var(--muted); line-height:1.5; }
+    footer {
+      text-align:center;
+      color:#89a2e6;
+      font-size:.86rem;
+      padding:8px 0 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn, .tag, .nav-link { transition:none; }
+      .btn:hover, .tag:hover, .nav-link:hover { transform:none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card hero">
+      <p class="eyebrow">roost skyline</p>
+      <h1>see the site like a flight path.</h1>
+      <p class="lede">This page compresses the Roost into one altitude band: what is building now, which roadmap lanes are loudest, which ships are leading the narrative, and what a sensible next stop looks like.</p>
+      <div class="toolbar">
+        <button class="btn" id="reshuffle">reshuffle route</button>
+        <button class="btn" id="copyBrief">copy skyline brief</button>
+        <a class="nav-link" href="index.html">back home</a>
+        <a class="nav-link" href="roost-signal-map.html">signal map</a>
+        <a class="nav-link" href="roost-chronicle.html">chronicle</a>
+      </div>
+      <div class="stat-grid" id="stats"></div>
+    </section>
+
+    <section class="grid">
+      <article class="card lane">
+        <div>
+          <p class="eyebrow">roadmap lanes</p>
+          <h2>what the roost is leaning toward</h2>
+        </div>
+        <div id="roadmapLanes" class="lane"></div>
+      </article>
+
+      <article class="card">
+        <p class="eyebrow">launch weather</p>
+        <h2>latest ships and the lead story</h2>
+        <div id="launchList" class="launch-list" style="margin-top:12px;"></div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="card route">
+        <p class="eyebrow">next move</p>
+        <h2>copyable route brief</h2>
+        <pre id="routeBrief">loading skyline brief…</pre>
+        <div class="link-row">
+          <button class="btn" id="copyRoute">copy route</button>
+          <a class="nav-link" href="flight-deck.html">open flight deck</a>
+          <a class="nav-link" href="release-radar.html">open release radar</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <p class="eyebrow">note pressure</p>
+        <h2>field notes shaping the skyline</h2>
+        <div id="noteList" class="note-list" style="margin-top:12px;"></div>
+      </article>
+    </section>
+
+    <footer>plain html, live data, and no scaffolding tax.</footer>
+  </main>
+
+  <script>
+    const statsEl = document.getElementById('stats');
+    const roadmapLanesEl = document.getElementById('roadmapLanes');
+    const launchListEl = document.getElementById('launchList');
+    const noteListEl = document.getElementById('noteList');
+    const routeBriefEl = document.getElementById('routeBrief');
+    const reshuffleBtn = document.getElementById('reshuffle');
+    const copyBriefBtn = document.getElementById('copyBrief');
+    const copyRouteBtn = document.getElementById('copyRoute');
+
+    const state = {
+      updates: [],
+      notes: [],
+      roadmap: {
+        now: [],
+        next: [],
+        later: []
+      },
+      routeSeed: 0
+    };
+
+    const pick = (list, start, count) => list.slice(start, start + count);
+
+    const formatDate = (value) => new Date(`${value}T00:00:00Z`).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    const rotate = (list, offset) => {
+      if (!list.length) return list;
+      const normalized = ((offset % list.length) + list.length) % list.length;
+      return list.slice(normalized).concat(list.slice(0, normalized));
+    };
+
+    const toRouteLine = (entry) => `${entry.title} (${entry.date})`;
+
+    const computeRoute = () => {
+      const lead = state.updates[0];
+      const nextShip = state.updates[1];
+      const note = state.notes[0];
+      const roadmap = state.updates.slice(0, 3).map((entry) => `- ${entry.title}`);
+      return [
+        `ROOST SKYLINE BRIEF`,
+        `Lead ship: ${lead ? toRouteLine(lead) : 'none yet'}`,
+        `Secondary ship: ${nextShip ? toRouteLine(nextShip) : 'none yet'}`,
+        `Pressure note: ${note ? note.title : 'none yet'}`,
+        ``,
+        `Route:`,
+        ...roadmap,
+        ``,
+        `Suggested move: open Signal Map, then Flight Deck, then the lead ship page.`
+      ].join('\n');
+    };
+
+    const renderStats = () => {
+      const latest = state.updates[0];
+      const note = state.notes[0];
+      const laneCounts = {
+        now: 0,
+        next: 0,
+        later: 0
+      };
+      state.updates.forEach((entry) => {
+        if (entry.date >= '2026-07-01') laneCounts.now += 1;
+        else if (entry.date >= '2026-06-20') laneCounts.next += 1;
+        else laneCounts.later += 1;
+      });
+      statsEl.innerHTML = `
+        <div class="stat"><strong>${state.updates.length}</strong><span>live updates in the current story feed</span></div>
+        <div class="stat"><strong>${state.notes.length}</strong><span>field notes shaping product direction</span></div>
+        <div class="stat"><strong>${laneCounts.now}/${laneCounts.next}/${laneCounts.later}</strong><span>now / next / later pressure bands</span></div>
+        <div class="stat"><strong>${latest ? latest.title : 'none'}</strong><span>latest launch headline</span></div>
+        <div class="stat"><strong>${note ? note.title : 'none'}</strong><span>strongest note signal</span></div>
+      `;
+    };
+
+    const renderRoadmap = () => {
+      const data = [
+        ['now', 'work that should move this week', state.roadmap.now],
+        ['next', 'the next obvious investments', state.roadmap.next],
+        ['later', 'ideas worth keeping warm', state.roadmap.later]
+      ];
+      roadmapLanesEl.innerHTML = data.map(([label, intro, items]) => `
+        <article class="lane-card">
+          <h3>${label}</h3>
+          <p class="muted">${intro}</p>
+          <ul>${items.map((item) => `<li>${item}</li>`).join('')}</ul>
+        </article>
+      `).join('');
+    };
+
+    const renderLaunches = () => {
+      const launches = state.updates.slice(0, 4);
+      launchListEl.innerHTML = launches.map((entry, index) => `
+        <article class="launch${index === 0 ? ' is-lead' : ''}">
+          <h3>${entry.title}</h3>
+          <div class="meta"><span>${formatDate(entry.date)}</span><span>${entry.type}</span></div>
+          <p class="copy">${entry.impact}</p>
+          <div class="tag-row">
+            <a class="tag" href="${entry.page}">${entry.pageLabel}</a>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const renderNotes = () => {
+      noteListEl.innerHTML = state.notes.slice(0, 3).map((note) => `
+        <article class="note">
+          <strong>${note.title}</strong>
+          <p>${note.summary}</p>
+          <div class="meta"><span>${formatDate(note.date)}</span><span>${note.tags.join(' · ')}</span></div>
+          <div class="tag-row">
+            <a class="tag" href="${note.relatedPage}">${note.relatedPageLabel}</a>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const rerollRoute = () => {
+      state.routeSeed += 1;
+      const offset = state.routeSeed % Math.max(state.updates.length, 1);
+      const launches = rotate(state.updates.slice(0, 4), offset);
+      const notes = rotate(state.notes.slice(0, 3), offset);
+      routeBriefEl.textContent = [
+        `Start with ${launches[0] ? launches[0].title : 'the latest ship'}.`,
+        `Then inspect ${notes[0] ? notes[0].title : 'the newest note'}.`,
+        `Finish by comparing ${launches[1] ? launches[1].title : 'the next ship'} against the roadmap lanes.`,
+        ``,
+        `Best pages:`,
+        ...launches.slice(0, 3).map((entry) => `- ${entry.pageLabel}`),
+        ...notes.slice(0, 2).map((note) => `- ${note.relatedPageLabel}`),
+      ].join('\n');
+    };
+
+    const loadData = async () => {
+      const [updatesRes, notesRes] = await Promise.all([
+        fetch('assets/roost-updates.json'),
+        fetch('assets/roost-notes.json')
+      ]);
+      const updatesData = await updatesRes.json();
+      const notesData = await notesRes.json();
+      state.updates = updatesData.updates || [];
+      state.notes = notesData.notes || [];
+      state.roadmap = {
+        now: updatesData.roadmap?.now || [],
+        next: updatesData.roadmap?.next || [],
+        later: updatesData.roadmap?.later || []
+      };
+      renderStats();
+      renderRoadmap();
+      renderLaunches();
+      renderNotes();
+      rerollRoute();
+    };
+
+    const copyText = async (value) => {
+      await navigator.clipboard.writeText(value);
+    };
+
+    reshuffleBtn.addEventListener('click', rerollRoute);
+    copyBriefBtn.addEventListener('click', () => copyText(routeBriefEl.textContent));
+    copyRouteBtn.addEventListener('click', () => copyText(routeBriefEl.textContent));
+
+    loadData().catch((error) => {
+      routeBriefEl.textContent = `Failed to load skyline data: ${error.message}`;
+      statsEl.innerHTML = '<div class="stat"><strong>error</strong><span>could not load roost data</span></div>';
+      roadmapLanesEl.innerHTML = '<div class="lane-card"><h3>data offline</h3><p class="muted">Try refreshing the page.</p></div>';
+      launchListEl.innerHTML = '<div class="launch"><h3>offline</h3><p class="copy">No launch feed loaded.</p></div>';
+      noteListEl.innerHTML = '<div class="note"><strong>offline</strong><p>Field notes unavailable.</p></div>';
+    });
+  </script>
+</body>
+</html>
