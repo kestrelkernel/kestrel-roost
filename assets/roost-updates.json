@@ -1,6 +1,7 @@
 {
   "roadmap": {
     "now": [
+      "Ship Roost Launch Corridor as a next-build compass for the live site",
       "Upgrade Roost Constellations with bookmarkable ritual sessions and a detail panel",
       "Launch Roost Signal Map as a roadmap-aware planning board for the homepage",
       "Turn Roost Briefing into a mode-aware planning console with stronger route suggestions",

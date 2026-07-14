@@ -1,17 +1,17 @@
 {
-  "updatedAt": "2026-04-17",
+  "updatedAt": "2026-07-14",
   "headline": "Build sharper product surfaces with visible momentum every week.",
   "activeFocus": [
     {
       "id": "focus-now-board",
-      "title": "Now board as a living product surface",
+      "title": "Launch Corridor as the next-build compass",
       "horizon": "now",
-      "progress": 68,
-      "summary": "Turn planning notes into a browsable status surface with clear active bets and next deliverables.",
+      "progress": 76,
+      "summary": "Turn the live now feed, roadmap pressure, and recent wins into one clear next-build choice.",
       "targets": [
-        "Publish active focus cards on homepage and dedicated page",
-        "Keep progress percentages and outcomes explicit",
-        "Use lightweight static data with no build step"
+        "Publish a corridor view that ranks the next best surface",
+        "Keep live focus, roadmap pressure, and wins side-by-side",
+        "Make the page useful as a copyable planning brief"
       ]
     },
     {

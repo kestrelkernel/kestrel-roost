@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Launch Corridor turns the live now feed, recent updates, and roadmap pressure into a focused next-build view." />
+  <title>Roost Launch Corridor</title>
+  <style>
+    :root {
+      --bg:#050913;
+      --bg2:#0c1430;
+      --card:#0f1835cc;
+      --card2:#091024;
+      --line:#32447d;
+      --fg:#edf3ff;
+      --muted:#a6b5e5;
+      --accent:#8bb8ff;
+      --accent2:#7ff0c5;
+      --warn:#ffd37c;
+      --shadow:0 22px 60px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    body{
+      margin:0;
+      color:var(--fg);
+      font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 12% 8%, #335ccf33 0%, transparent 34%),
+        radial-gradient(circle at 88% 0%, #7ff0c522 0%, transparent 32%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+    a{color:inherit}
+    .shell{max-width:1200px;margin:0 auto;padding:28px 16px 44px;display:grid;gap:14px}
+    .hero,.panel,.summary{
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      box-shadow:var(--shadow);
+    }
+    .hero{
+      padding:20px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:auto -90px -110px auto;
+      width:300px;height:300px;border-radius:999px;
+      background:radial-gradient(circle, rgba(139,184,255,.18) 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .top{
+      position:relative;
+      z-index:1;
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(2.3rem,5.6vw,4.6rem);line-height:.95;max-width:11ch}
+    .lede{margin-top:12px;max-width:66ch;color:var(--muted);line-height:1.6}
+    .eyebrow{color:var(--accent2);text-transform:uppercase;letter-spacing:.18em;font-size:.72rem;margin-bottom:10px}
+    .nav,.controls,.pill-row,.meta-row,.action-row{display:flex;gap:10px;flex-wrap:wrap}
+    .nav a,.chip,.button{
+      border:1px solid #41558d;
+      border-radius:999px;
+      background:#0f1b3b;
+      color:#dfe8ff;
+      text-decoration:none;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:transform .15s ease,border-color .15s ease,background .15s ease;
+    }
+    .nav a:hover,.chip:hover,.button:hover,.nav a:focus-visible,.chip:focus-visible,.button:focus-visible{
+      transform:translateY(-1px);
+      border-color:#88a9ff;
+      background:#14285d;
+      outline:none;
+    }
+    .chip[aria-pressed="true"]{
+      border-color:#84a5ff;
+      background:#162a64;
+      color:#f2f6ff;
+    }
+    .stat-grid,.card-grid,.lane-grid,.route-grid,.signal-grid{
+      display:grid;
+      gap:12px;
+    }
+    .stat-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:18px;position:relative;z-index:1}
+    .stat{
+      border:1px solid #395089;
+      border-radius:16px;
+      background:#08112ad9;
+      padding:14px;
+      display:grid;
+      gap:6px;
+    }
+    .stat strong{font-size:1.7rem;line-height:1}
+    .stat span{color:var(--muted);line-height:1.45;font-size:.88rem}
+    .stat small{color:#bfd0ff;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+    .stack{display:grid;gap:14px}
+    .panel,.summary{padding:16px}
+    .panel-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+    .panel-note{color:var(--muted);font-size:.84rem}
+    .lane-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .lane,.card,.route-step,.signal{
+      border:1px solid #344877;
+      border-radius:14px;
+      background:#081127;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .lane.is-hot,.card.is-primary,.route-step.is-primary{
+      background:linear-gradient(160deg,#132a63,#081127 72%);
+      border-color:#7a94e8;
+    }
+    .lane h3,.card h3,.route-step h3,.signal h3{font-size:1rem}
+    .copy,.lane p,.card p,.route-step p,.signal p{color:#b4c2ea;line-height:1.5;font-size:.93rem}
+    .meta-row{font-size:.76rem;color:#bfd0ff}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid #40558f;
+      background:#0f1b3b;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      font-size:.68rem;
+    }
+    .badge.good{border-color:#356f5a;color:#bbffe5}
+    .badge.warn{border-color:#8b6a2e;color:#ffe1a7}
+    .signal-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+    .route-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+    .track{height:8px;border-radius:999px;background:#172548;overflow:hidden}
+    .fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .summary pre{
+      margin:0;
+      white-space:pre-wrap;
+      font:inherit;
+      color:#ecf2ff;
+      line-height:1.55;
+    }
+    .status{color:var(--muted);font-size:.82rem;min-height:1.2em}
+    @media (max-width: 720px){
+      .shell{padding:18px 12px 36px}
+      .hero,.panel,.summary{border-radius:16px}
+      h1{font-size:2.35rem}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="top">
+        <div>
+          <p class="eyebrow">roost launch corridor</p>
+          <h1>turn the live site into one next move.</h1>
+          <p class="lede">This page braids the current now-feed, recent releases, and roadmap pressure into a compact operating view. It is meant to answer one question fast: what should the next build actually be?</p>
+          <div class="nav" style="margin-top:16px">
+            <a href="index.html">home</a>
+            <a href="roost-briefing.html">briefing</a>
+            <a href="roost-signal-map.html">signal map</a>
+            <a href="release-radar.html">release radar</a>
+          </div>
+        </div>
+        <div class="controls" aria-label="Corridor filters">
+          <button class="chip" id="modeBuild" type="button" aria-pressed="true">build first</button>
+          <button class="chip" id="modeShip" type="button" aria-pressed="false">ship first</button>
+          <button class="chip" id="modeExplore" type="button" aria-pressed="false">explore first</button>
+          <button class="chip" id="copyBrief" type="button">copy corridor brief</button>
+        </div>
+      </div>
+      <div class="stat-grid" id="stats" aria-live="polite"></div>
+    </section>
+
+    <section class="stack">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Route lanes</h2>
+          <p class="panel-note">The strongest next-step candidates ranked from current pressure.</p>
+        </div>
+        <div class="lane-grid" id="laneGrid"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Pressure signals</h2>
+          <p class="panel-note">Roadmap items, active focus, and recent wins summarized for quick scanning.</p>
+        </div>
+        <div class="signal-grid" id="signalGrid"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Recommended sequence</h2>
+          <p class="panel-note">A three-stop route chosen from the current corridor mode.</p>
+        </div>
+        <div class="route-grid" id="routeGrid"></div>
+      </article>
+
+      <article class="summary">
+        <div class="panel-head">
+          <h2>Copyable brief</h2>
+          <p class="panel-note">Useful for a commit message, status update, or handoff note.</p>
+        </div>
+        <pre id="brief">loading corridor brief…</pre>
+        <div class="status" id="status"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const state = { mode: 'build' };
+    const $ = (id) => document.getElementById(id);
+    const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+
+    async function load(path, fallback) {
+      try {
+        const response = await fetch(path, { cache: 'no-store' });
+        if (!response.ok) throw new Error(path);
+        return await response.json();
+      } catch {
+        return fallback;
+      }
+    }
+
+    function topRoadmapItems(updates) {
+      const roadmap = updates?.roadmap ?? {};
+      return [...(roadmap.now || []), ...(roadmap.next || [])].slice(0, 5);
+    }
+
+    function scoreLane(item) {
+      const weight = item.type === 'feature' ? 3 : item.type === 'interaction' ? 2 : 1;
+      const impact = item.impact?.length || 0;
+      return weight * 10 + Math.min(impact / 12, 10);
+    }
+
+    function buildCandidatePool(now, updates) {
+      const focus = now.activeFocus || [];
+      const roadmap = topRoadmapItems(updates);
+      const wins = now.recentWins || [];
+      return [
+        ...focus.map((item) => ({
+          title: item.title,
+          body: item.summary,
+          source: item.horizon === 'now' ? 'active focus' : 'near-term focus',
+          tag: `${item.progress}%`,
+          score: 80 + item.progress,
+          href: 'now.html'
+        })),
+        ...roadmap.map((item, index) => ({
+          title: item,
+          body: 'Roadmap pressure surfaced from the live updates feed.',
+          source: 'roadmap',
+          tag: `#${index + 1}`,
+          score: 70 - index * 4,
+          href: 'index.html#launchDeckBoard'
+        })),
+        ...wins.map((item, index) => ({
+          title: item,
+          body: 'Recent win worth carrying forward into the next release.',
+          source: 'recent win',
+          tag: `win ${index + 1}`,
+          score: 50 - index * 3,
+          href: 'release-radar.html'
+        }))
+      ];
+    }
+
+    function routeOrder(pool) {
+      const order = {
+        build: ['active focus', 'roadmap', 'recent win'],
+        ship: ['recent win', 'active focus', 'roadmap'],
+        explore: ['roadmap', 'recent win', 'active focus']
+      }[state.mode];
+      return pool
+        .slice()
+        .sort((a, b) => b.score - a.score)
+        .sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source))
+        .slice(0, 6);
+    }
+
+    function render(now, updates) {
+      const candidatePool = buildCandidatePool(now, updates);
+      const ordered = routeOrder(candidatePool);
+      const topCandidates = ordered.slice(0, 3);
+      const roadmap = topRoadmapItems(updates);
+      const scoreTotal = Math.round(ordered.reduce((sum, item) => sum + item.score, 0));
+
+      $('stats').innerHTML = [
+        { label: 'active focus', value: now.activeFocus?.length || 0, note: 'live bets currently in motion' },
+        { label: 'roadmap items', value: roadmap.length, note: 'pressure points pulled from the updates feed' },
+        { label: 'recent wins', value: now.recentWins?.length || 0, note: 'shipping momentum worth reusing' },
+        { label: 'corridor score', value: scoreTotal, note: 'combined pressure for the current mode' }
+      ].map((item) => `
+        <article class="stat">
+          <small>${item.label}</small>
+          <strong>${item.value}</strong>
+          <span>${item.note}</span>
+        </article>
+      `).join('');
+
+      $('laneGrid').innerHTML = topCandidates.map((item, index) => `
+        <article class="lane ${index === 0 ? 'is-hot' : ''}">
+          <div class="meta-row">
+            <span class="badge ${index === 0 ? 'good' : ''}">${item.source}</span>
+            <span class="badge">${item.tag}</span>
+          </div>
+          <h3>${item.title}</h3>
+          <p>${item.body}</p>
+          <div class="track" aria-hidden="true"><div class="fill" style="width:${Math.max(40, Math.min(100, item.score))}%"></div></div>
+        </article>
+      `).join('');
+
+      $('signalGrid').innerHTML = [
+        {
+          title: 'active focus',
+          body: now.activeFocus?.[0]?.summary || 'No active focus loaded.',
+          details: now.activeFocus?.map((item) => item.title).join(' • ') || 'n/a'
+        },
+        {
+          title: 'roadmap pressure',
+          body: roadmap[0] || 'No roadmap items loaded.',
+          details: roadmap.slice(1, 4).join(' • ') || 'n/a'
+        },
+        {
+          title: 'recent wins',
+          body: now.recentWins?.[0] || 'No recent wins loaded.',
+          details: (now.recentWins || []).slice(1, 4).join(' • ') || 'n/a'
+        }
+      ].map((item, index) => `
+        <article class="signal ${index === 0 ? 'is-primary' : ''}">
+          <h3>${item.title}</h3>
+          <p>${item.body}</p>
+          <p><strong>Signals:</strong> ${item.details}</p>
+        </article>
+      `).join('');
+
+      const route = topCandidates.map((item, index) => ({
+        step: `${index + 1}. ${item.title}`,
+        detail: item.body,
+        href: item.href
+      }));
+      $('routeGrid').innerHTML = route.map((item, index) => `
+        <article class="route-step ${index === 0 ? 'is-primary' : ''}">
+          <h3>${item.step}</h3>
+          <p>${item.detail}</p>
+          <div class="meta-row"><a href="${item.href}">open surface</a></div>
+        </article>
+      `).join('');
+
+      const brief = [
+        `Roost launch corridor (${state.mode} mode)`,
+        `- Current focus: ${now.activeFocus?.[0]?.title || 'n/a'}`,
+        `- Strongest roadmap pressure: ${roadmap[0] || 'n/a'}`,
+        `- Recent win to reuse: ${now.recentWins?.[0] || 'n/a'}`,
+        `- Recommended route: ${route.map((item) => item.step).join(' -> ')}`,
+        `- Why it matters: the corridor compresses live focus, roadmap pressure, and momentum into one next-build choice.`
+      ].join('\n');
+      $('brief').textContent = brief;
+      $('status').textContent = `Refreshed ${fmt.format(new Date(now.updatedAt || updates.updates?.[0]?.date || Date.now()))}.`;
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      $('modeBuild').setAttribute('aria-pressed', String(mode === 'build'));
+      $('modeShip').setAttribute('aria-pressed', String(mode === 'ship'));
+      $('modeExplore').setAttribute('aria-pressed', String(mode === 'explore'));
+      boot();
+    }
+
+    async function copyBrief() {
+      try {
+        await navigator.clipboard.writeText($('brief').textContent);
+        $('status').textContent = 'Brief copied to clipboard.';
+      } catch {
+        $('status').textContent = 'Clipboard copy failed, but the brief is still visible.';
+      }
+    }
+
+    async function boot() {
+      const [now, updates] = await Promise.all([
+        load('assets/roost-now.json', { activeFocus: [], recentWins: [] }),
+        load('assets/roost-updates.json', { roadmap: { now: [], next: [] }, updates: [] })
+      ]);
+      render(now, updates);
+    }
+
+    $('modeBuild').addEventListener('click', () => setMode('build'));
+    $('modeShip').addEventListener('click', () => setMode('ship'));
+    $('modeExplore').addEventListener('click', () => setMode('explore'));
+    $('copyBrief').addEventListener('click', copyBrief);
+    boot();
+  </script>
+</body>
+</html>
