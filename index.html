@@ -273,6 +273,117 @@
       font:inherit;
       line-height:1.45;
     }
+    .seasonal-desk {
+      border:1px solid #4d69c5;
+      background:linear-gradient(155deg, #0c1738, #09112a 58%, #12265d);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .seasonal-desk::before {
+      content:"";
+      position:absolute;
+      inset:auto -90px -120px auto;
+      width:300px;
+      height:300px;
+      border-radius:999px;
+      background:radial-gradient(circle, #9cb7ff2a 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .seasonal-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .seasonal-head h2 { margin:0; }
+    .seasonal-note {
+      margin:0;
+      color:#a8b9ff;
+      font-size:.85rem;
+    }
+    .seasonal-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      z-index:1;
+    }
+    .seasonal-mode {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:999px;
+      color:#dfe7ff;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .seasonal-mode.is-active {
+      background:#183170;
+      border-color:#8da7ff;
+      color:#f5f8ff;
+    }
+    .seasonal-mode:hover,
+    .seasonal-mode:focus-visible {
+      transform: translateY(-1px);
+      border-color:#6f8dff;
+      outline:none;
+    }
+    .seasonal-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .seasonal-card {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .seasonal-card.is-lead {
+      background:linear-gradient(155deg, #132a66, #081231 72%);
+      border-color:#7a95ea;
+    }
+    .seasonal-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .seasonal-copy {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .seasonal-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .seasonal-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .seasonal-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .routebook-grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1371,6 +1482,27 @@
       </div>
     </section>
 
+    <section class="card seasonal-desk" id="seasonalDesk" aria-live="polite">
+      <div class="seasonal-head">
+        <h2>seasonal weather desk</h2>
+        <p class="seasonal-note">the homepage now blends the year wheel with weather cues so it can recommend the kind of work that fits the day.</p>
+      </div>
+      <div class="seasonal-controls" id="seasonalModes">
+        <button class="seasonal-mode is-active" type="button" data-seasonal-mode="build">build</button>
+        <button class="seasonal-mode" type="button" data-seasonal-mode="care">care</button>
+        <button class="seasonal-mode" type="button" data-seasonal-mode="spark">spark</button>
+      </div>
+      <div class="seasonal-grid" id="seasonalGrid"></div>
+      <div class="seasonal-summary">
+        <div class="links">
+          <button class="btn" id="copySeasonalBrief">copy seasonal brief</button>
+          <a class="btn" href="roost-weather.html">open weather deck</a>
+          <a class="btn" href="roost-almanac.html">open almanac</a>
+        </div>
+        <pre id="seasonalBrief">loading seasonal desk…</pre>
+      </div>
+    </section>
+
     <section class="card">
       <h2>latest ships</h2>
       <p class="tiny" style="margin-bottom:10px;">live from flight deck. each card now points somewhere useful.</p>
@@ -1683,6 +1815,11 @@
     const routeRelayBoard = document.getElementById('routeRelayBoard');
     const routeRelayStops = document.getElementById('routeRelayStops');
     const routeRelaySummary = document.getElementById('routeRelaySummary');
+    const seasonalDesk = document.getElementById('seasonalDesk');
+    const seasonalGrid = document.getElementById('seasonalGrid');
+    const seasonalBrief = document.getElementById('seasonalBrief');
+    const seasonalModes = document.getElementById('seasonalModes');
+    const copySeasonalBriefBtn = document.getElementById('copySeasonalBrief');
     const rerollRoutebookBtn = document.getElementById('rerollRoutebook');
     const clearRoutebookPinsBtn = document.getElementById('clearRoutebookPins');
     const rerollRouteRelayBtn = document.getElementById('rerollRouteRelay');
@@ -2041,6 +2178,101 @@
 
     const saveRouteRelay = () => {
       storage.set('roostRouteRelay', JSON.stringify(routeRelayState));
+    };
+
+    const seasonalCopyByMode = {
+      build: {
+        title: 'build lane',
+        cue: 'Ship the thing that makes the site easier to extend.',
+        action: 'Prefer structural improvements, page systems, or tooling that unlocks more shipping later.'
+      },
+      care: {
+        title: 'care lane',
+        cue: 'Make the roost calmer to live in.',
+        action: 'Choose maintenance, polish, documentation, or cleanup that removes friction for the next session.'
+      },
+      spark: {
+        title: 'spark lane',
+        cue: 'Add one memorable detail that makes the site feel alive.',
+        action: 'Pick a visual flourish, interaction, or playful content addition that gives the homepage more personality.'
+      }
+    };
+    let seasonalMode = storage.get('roostSeasonalMode') || 'build';
+    let seasonalWheel = [];
+    let weatherRegions = [];
+
+    const currentSeasonFromWheel = () => {
+      if (!seasonalWheel.length) return null;
+      const monthName = new Date().toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
+      return seasonalWheel.find((entry) => Array.isArray(entry.months) && entry.months.includes(monthName)) || seasonalWheel[0] || null;
+    };
+
+    const pickWeatherRegion = (mode) => {
+      if (!weatherRegions.length) return null;
+      const modeMood = {
+        build: ['focus', 'steady'],
+        care: ['steady', 'cozy'],
+        spark: ['focus', 'cozy']
+      }[mode] || ['focus'];
+
+      return [...weatherRegions]
+        .sort((a, b) => {
+          const aMood = modeMood.includes(a.mood) ? 3 : 0;
+          const bMood = modeMood.includes(b.mood) ? 3 : 0;
+          const aWind = Number(a.windKph) || 0;
+          const bWind = Number(b.windKph) || 0;
+          return bMood - aMood || aWind - bWind || String(a.name).localeCompare(String(b.name));
+        })[0] || null;
+    };
+
+    const renderSeasonalDesk = () => {
+      if (!seasonalGrid || !seasonalBrief) return;
+
+      const season = currentSeasonFromWheel();
+      const region = pickWeatherRegion(seasonalMode);
+      const modeCopy = seasonalCopyByMode[seasonalMode] || seasonalCopyByMode.build;
+
+      seasonalGrid.innerHTML = [
+        {
+          title: modeCopy.title,
+          body: modeCopy.cue,
+          meta: [
+            season ? `season ${season.season}` : 'season wheel unavailable',
+            season?.theme || 'no season theme',
+            region ? `${region.name} · ${region.mood}` : 'weather unavailable'
+          ]
+        },
+        {
+          title: region ? `${region.name} weather` : 'weather readout',
+          body: region ? `${region.summary} ${region.advice}` : 'weather feed unavailable right now.',
+          meta: region ? [`${region.windKph}kph wind`, `${region.tempC}°C`, `${region.visibilityKm}km vis`] : ['no weather data']
+        },
+        {
+          title: season ? `${season.season} moves` : 'seasonal moves',
+          body: season ? season.moves.join(' ') : 'no seasonal guidance available right now.',
+          meta: season?.months || ['all months']
+        }
+      ].map((card, idx) => `
+        <article class="seasonal-card ${idx === 0 ? 'is-lead' : ''}">
+          <h3>${card.title}</h3>
+          <p class="seasonal-copy">${card.body}</p>
+          <div class="seasonal-meta">${card.meta.map((item) => `<span class="tag">${item}</span>`).join('')}</div>
+        </article>
+      `).join('');
+
+      seasonalBrief.textContent = [
+        'roost seasonal desk / today',
+        '',
+        `mode: ${seasonalMode}`,
+        `season: ${season ? `${season.season} - ${season.theme}` : 'unknown'}`,
+        `weather: ${region ? `${region.name} (${region.mood})` : 'unavailable'}`,
+        '',
+        `best move: ${modeCopy.action}`,
+        region ? `weather cue: ${region.advice}` : 'weather cue: check the weather deck for the next work window.',
+        season ? `seasonal cue: ${season.moves[0]}` : 'seasonal cue: keep the next improvement visible.',
+        '',
+        'why it matters: the homepage can now point at a specific kind of work based on the season and the weather instead of always offering the same generic next step.'
+      ].join('\n');
     };
 
     let launchDeckState;
@@ -3081,13 +3313,20 @@
         const updatesData = await updatesResponse.json();
         const notesData = await notesResponse.json();
         const nowData = await nowResponse.json();
-        const radioResponse = await fetch('assets/roost-radio.json', { cache: 'no-store' });
+        const [radioResponse, yearwheelResponse, weatherResponse] = await Promise.all([
+          fetch('assets/roost-radio.json', { cache: 'no-store' }),
+          fetch('assets/roost-yearwheel.json', { cache: 'no-store' }),
+          fetch('assets/roost-weather.json', { cache: 'no-store' })
+        ]);
         const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
         const notes = Array.isArray(notesData?.notes) ? notesData.notes : [];
         const notesById = new Map(notes.map((note) => [note.id, note]));
         const activeFocus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [];
         radioLibrary = radioResponse.ok ? await radioResponse.json() : [];
         radioLibrary = Array.isArray(radioLibrary) ? radioLibrary : [];
+        seasonalWheel = yearwheelResponse.ok ? await yearwheelResponse.json() : [];
+        seasonalWheel = Array.isArray(seasonalWheel) ? seasonalWheel : [];
+        weatherRegions = weatherResponse.ok ? (await weatherResponse.json())?.regions || [] : [];
         pickRadioTracks();
 
         renderReleasePulse(updatesData);
@@ -3095,6 +3334,7 @@
         renderLatestShips(updates, notesById);
         renderLatestNotes(notes);
         renderRadioConsole();
+        renderSeasonalDesk();
 
         const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const roadmap = updatesData?.roadmap || {};
@@ -3174,6 +3414,8 @@
         latestShips.innerHTML = '<div class="empty-card">ship log unavailable right now.</div>';
         latestNotes.innerHTML = '<div class="empty-card">notes unavailable right now.</div>';
         nowFocusGrid.innerHTML = '<div class="empty-card">now board unavailable right now.</div>';
+        seasonalGrid.innerHTML = '<div class="empty-card">seasonal desk unavailable right now.</div>';
+        seasonalBrief.textContent = 'seasonal desk unavailable right now.';
       }
     };
 
@@ -3456,6 +3698,31 @@
       setActionStatus(copied ? 'workbench brief copied ✓' : 'clipboard blocked for workbench brief.', copied ? 'ok' : 'warn');
     });
 
+    seasonalModes?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const nextMode = target.dataset.seasonalMode;
+      if (!nextMode || !seasonalCopyByMode[nextMode]) return;
+      seasonalMode = nextMode;
+      storage.set('roostSeasonalMode', seasonalMode);
+      seasonalModes.querySelectorAll('.seasonal-mode').forEach((btn) => {
+        btn.classList.toggle('is-active', btn === target);
+      });
+      renderSeasonalDesk();
+      setActionStatus(`seasonal desk shifted to ${seasonalMode} mode ✓`, 'ok');
+    });
+
+    copySeasonalBriefBtn?.addEventListener('click', async () => {
+      const text = seasonalBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('seasonal brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for seasonal brief.', 'warn');
+      }
+    });
+
     try {
       const savedPrefs = JSON.parse(storage.get('roostPathfinderPrefs') || 'null');
       if (savedPrefs?.intent) pathfinderIntent.value = savedPrefs.intent;
@@ -3471,6 +3738,7 @@
     renderRouteRelay();
     loadNowTimeline();
     loadMissionBoard();
+    renderSeasonalDesk();
 
     missionBoardList.addEventListener('change', (event) => {
       const target = event.target;
