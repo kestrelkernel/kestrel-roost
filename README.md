@@ -50,12 +50,14 @@ python3 -m http.server 8080
 - `roost-handoff.html` — copyable session brief generator that distills the latest now/updates/milestones data into a next-step handoff
 - `roost-orbit.html` — daily orbit planner that turns intent, energy, and time into a copyable 3-stop route
 - `roost-route-mixer.html` — interactive route builder that turns updates, roadmap pressure, and note trails into a copyable three-stop visit plan
+- `roost-workbench.html` — ranked daily workbench that scores roadmap, expedition, note, and shipyard signals into one recommended next move
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
 
 - **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks
 - **Roost Route Mixer launch:** added `roost-route-mixer.html`, a route-builder surface that blends updates, roadmap pressure, and note trails into a copyable three-stop visit plan with seed history and mode-based routing
+- **Roost Workbench launch:** added `roost-workbench.html`, a ranked daily recommendation surface that turns roadmap, expedition, note, and shipyard signals into one opinionated next move with mode switching, pinning, and a copyable brief
 - **Roost Chronicle launch:** added `roost-chronicle.html`, a living story-arc explorer that groups launches, notes, and roadmap cues into a copyable brief with connected-signal panels
 - **Roost Prism launch:** added `roost-prism.html`, a new signal prism that classifies current updates, notes, expeditions, and shipyard queue items into mode lenses and emits a copyable build brief for the day
 - **Roost Atlas share links:** upgraded `roost-atlas.html` with URL-synced scope, search, selected node, route, and camera state plus a one-click copyable share link so map sessions can be reopened exactly as shared

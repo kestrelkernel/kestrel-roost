@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Workbench: a ranked daily build recommendation surface for Kestrel's Roost." />
+  <title>Roost Workbench - Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#07111f;
+      --bg2:#13284f;
+      --fg:#edf2ff;
+      --muted:#a8b8e8;
+      --accent:#8eb3ff;
+      --accent2:#6ef0d2;
+      --line:#2b457f;
+      --card:#0c1733dd;
+      --panel:#0a132cdc;
+      --good:#7ff5c5;
+      --warn:#ffd27a;
+      --bad:#ff8fa3;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% 10%, #1d3a73 0%, transparent 32%),
+        radial-gradient(circle at 88% 0%, #19455a 0%, transparent 27%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1180px, 94vw);
+      margin:28px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      padding:18px;
+      box-shadow:0 14px 36px #00000036;
+      backdrop-filter: blur(4px);
+    }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.35rem); }
+    h2 { margin:0; font-size:1.05rem; color:#dbe6ff; }
+    h3 { margin:0; font-size:.98rem; color:#f4f7ff; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+    .tiny { font-size:.82rem; color:#9cb0e9; }
+    .site-nav, .toolbar, .tag-row, .link-row, .stats {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .nav-link, .btn, .pill, .mode {
+      text-decoration:none;
+      color:#dbe6ff;
+      border:1px solid #4764b9;
+      border-radius:999px;
+      padding:7px 12px;
+      background:#10245a;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn { border-radius:10px; }
+    .nav-link:hover, .btn:hover, .pill:hover, .mode:hover,
+    .nav-link:focus-visible, .btn:focus-visible, .pill:focus-visible, .mode:focus-visible {
+      transform:translateY(-1px);
+      border-color:#7e9cff;
+      outline:none;
+      background:#14306f;
+    }
+    .mode.is-active {
+      background:linear-gradient(180deg, #224898, #133065);
+      border-color:#90aefb;
+      color:#f5f8ff;
+    }
+    .hero {
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      align-items:stretch;
+    }
+    @media (max-width: 920px) {
+      .hero { grid-template-columns:1fr; }
+    }
+    .hero-copy {
+      display:grid;
+      gap:12px;
+    }
+    .hero-panel {
+      border:1px solid #4461b6;
+      border-radius:16px;
+      background:linear-gradient(155deg, #12285d, #091227 68%);
+      padding:16px;
+      display:grid;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero-panel::before {
+      content:"";
+      position:absolute;
+      inset:auto -80px -90px auto;
+      width:240px;
+      height:240px;
+      border-radius:999px;
+      background:radial-gradient(circle, #87a9ff30 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .hero-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#bfd0ff;
+      font-size:.8rem;
+    }
+    .score {
+      font-size:2.4rem;
+      line-height:1;
+      font-weight:700;
+      color:#f7f9ff;
+    }
+    .score span {
+      font-size:.95rem;
+      color:#a7bbff;
+      font-weight:400;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns:minmax(300px, 380px) 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns:1fr; }
+    }
+    .stack {
+      display:grid;
+      gap:12px;
+    }
+    .candidate {
+      border:1px solid #3954a5;
+      border-radius:14px;
+      background:var(--panel);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .candidate.is-lead {
+      background:linear-gradient(160deg, #17356f, #081228 72%);
+      border-color:#96afff;
+    }
+    .candidate-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .candidate-title {
+      display:grid;
+      gap:6px;
+    }
+    .candidate-copy {
+      color:#d5e0ff;
+      line-height:1.55;
+      margin:0;
+    }
+    .meter {
+      height:10px;
+      border-radius:999px;
+      background:#0a1438;
+      overflow:hidden;
+      border:1px solid #314885;
+    }
+    .meter > span {
+      display:block;
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .candidate-footer {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      color:#bfd0ff;
+      font-size:.78rem;
+    }
+    .signal-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:12px;
+    }
+    .signal {
+      border:1px solid #375196;
+      border-radius:14px;
+      background:#091228;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .signal strong { color:#f5f8ff; }
+    .signal ul {
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+      line-height:1.45;
+      display:grid;
+      gap:5px;
+    }
+    .brief {
+      border:1px solid #375196;
+      border-radius:14px;
+      background:#081022;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#e7edff;
+      line-height:1.5;
+      font:inherit;
+    }
+    .status {
+      min-height:1.2em;
+      font-size:.82rem;
+      color:#bdd0ff;
+    }
+    .empty {
+      color:#9cb0e9;
+      border:1px dashed #435d9f;
+      border-radius:14px;
+      padding:14px;
+      background:#091126;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card hero">
+      <div class="hero-copy">
+        <h1>roost workbench</h1>
+        <p>A daily recommendation surface that turns the live roadmap, expeditions, notes, and recent work into one opinionated next move. Built to answer one question quickly: what should I ship today?</p>
+        <nav class="site-nav" aria-label="Site sections">
+          <a class="nav-link" href="index.html">home</a>
+          <a class="nav-link" href="now.html">now</a>
+          <a class="nav-link" href="flight-deck.html">flight deck</a>
+          <a class="nav-link" href="shipyard.html">shipyard</a>
+          <a class="nav-link" href="roost-lab.html">roost lab</a>
+          <a class="nav-link" href="roost-signal-map.html">signal map</a>
+          <a class="nav-link" href="roost-workbench.html">workbench</a>
+        </nav>
+      </div>
+      <aside class="hero-panel" aria-live="polite">
+        <div class="hero-meta">
+          <span class="pill" id="modePill">mode: build</span>
+          <span class="pill" id="queuePill">queue: loading</span>
+          <span class="pill" id="seedPill">seed: loading</span>
+        </div>
+        <div>
+          <div class="score" id="leadScore">-- <span>lead score</span></div>
+          <p id="leadSummary">loading today’s recommendation…</p>
+        </div>
+        <div class="link-row">
+          <button class="btn" id="shuffleBtn">re-rank today</button>
+          <button class="btn" id="copyBtn">copy work brief</button>
+          <button class="btn" id="pinBtn">pin lead</button>
+        </div>
+        <div class="status" id="status"></div>
+      </aside>
+    </section>
+
+    <section class="card">
+      <h2>work modes</h2>
+      <p class="tiny">Switch the lens to change how the page scores the same live signals. Your last mode and pinned lead stay in browser storage.</p>
+      <div class="toolbar" id="modeButtons" role="toolbar" aria-label="Recommendation modes"></div>
+    </section>
+
+    <section class="layout">
+      <section class="stack" id="candidateStack" aria-live="polite"></section>
+      <section class="stack">
+        <article class="card">
+          <h2>signal stack</h2>
+          <p class="tiny">What the recommendation is reading from the live site feeds.</p>
+          <div class="signal-grid" id="signalGrid"></div>
+        </article>
+        <article class="card brief">
+          <div class="candidate-head">
+            <div class="candidate-title">
+              <h2>copyable brief</h2>
+              <p class="tiny">Paste this into your next session, notes app, or task tracker.</p>
+            </div>
+          </div>
+          <pre id="brief">loading brief…</pre>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const storage = (() => {
+      try {
+        const test = '__roost_workbench__';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return {
+          get: (key) => localStorage.getItem(key),
+          set: (key, value) => localStorage.setItem(key, value),
+        };
+      } catch {
+        const memory = new Map();
+        return {
+          get: (key) => memory.get(key) ?? null,
+          set: (key, value) => memory.set(key, value),
+        };
+      }
+    })();
+
+    const modes = [
+      { id: 'build', label: 'build first', focus: 'implementation', bias: { expeditions: 1.5, shipyard: 1.25, updates: 1.2, notes: 0.9, now: 1.05 } },
+      { id: 'story', label: 'story layer', focus: 'content', bias: { expeditions: 0.9, shipyard: 0.95, updates: 1.15, notes: 1.5, now: 1.05 } },
+      { id: 'navigation', label: 'navigation', focus: 'routing', bias: { expeditions: 1.2, shipyard: 1.4, updates: 1.05, notes: 0.95, now: 1.0 } },
+      { id: 'balance', label: 'balanced', focus: 'general', bias: { expeditions: 1.1, shipyard: 1.1, updates: 1.1, notes: 1.1, now: 1.1 } },
+    ];
+
+    const modeButtons = document.getElementById('modeButtons');
+    const candidateStack = document.getElementById('candidateStack');
+    const signalGrid = document.getElementById('signalGrid');
+    const leadScore = document.getElementById('leadScore');
+    const leadSummary = document.getElementById('leadSummary');
+    const modePill = document.getElementById('modePill');
+    const queuePill = document.getElementById('queuePill');
+    const seedPill = document.getElementById('seedPill');
+    const brief = document.getElementById('brief');
+    const status = document.getElementById('status');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const pinBtn = document.getElementById('pinBtn');
+
+    let state = {
+      mode: storage.get('roostWorkbenchMode') || 'build',
+      seed: Number(storage.get('roostWorkbenchSeed') || '') || Number(new Date().toISOString().slice(0, 10).replace(/-/g, '')),
+      pinnedId: storage.get('roostWorkbenchPinned') || '',
+      data: { updates: null, now: null, expeditions: [], shipyard: [], notes: [] },
+      recommendation: null,
+    };
+
+    function seededRandom(seed) {
+      let value = seed % 2147483647;
+      if (value <= 0) value += 2147483646;
+      return () => (value = (value * 16807) % 2147483647) / 2147483647;
+    }
+
+    function clamp(n, min, max) {
+      return Math.max(min, Math.min(max, n));
+    }
+
+    function scoreCandidate(candidate, modeBias) {
+      let score = candidate.base;
+      score += candidate.signals.length * 7;
+      score += candidate.impact * 9;
+      score += candidate.relevance * 8;
+      score += candidate.feasibility * 6;
+      score += (modeBias[candidate.source] || 1) * 6;
+      score += candidate.priority * 5;
+      return Math.round(score);
+    }
+
+    function buildCandidates(data, mode) {
+      const bias = mode.bias;
+      const candidates = [];
+      const expedition = data.expeditions.find((item) => item.status !== 'shipped') || data.expeditions[0];
+      if (expedition) {
+        candidates.push({
+          id: `expedition:${expedition.id}`,
+          title: expedition.name,
+          source: 'expeditions',
+          base: 34,
+          impact: expedition.progress >= 50 ? 14 : 10,
+          relevance: expedition.status === 'active' ? 16 : 10,
+          feasibility: clamp(100 - expedition.progress, 15, 90) / 10,
+          priority: expedition.status === 'active' ? 4 : 3,
+          signals: [
+            expedition.theme,
+            expedition.summary,
+            `${expedition.progress}% complete`,
+          ],
+          detail: expedition.milestones?.find((m) => !m.done)?.title || 'finish the next milestone',
+          link: expedition.links?.[0]?.href || 'expeditions.html',
+        });
+      }
+
+      const shipyard = [...data.shipyard].sort((a, b) => (b.impact + b.effort) - (a.impact + a.effort));
+      if (shipyard.length) {
+        const item = shipyard[0];
+        candidates.push({
+          id: `shipyard:${item.id}`,
+          title: item.title,
+          source: 'shipyard',
+          base: 31,
+          impact: item.impact * 10,
+          relevance: item.status === 'building' ? 16 : 12,
+          feasibility: (6 - item.effort) * 10,
+          priority: item.status === 'building' ? 4 : 2,
+          signals: [
+            item.status,
+            item.horizon,
+            ...(item.tags || []).slice(0, 2),
+          ],
+          detail: item.summary,
+          link: item.link || 'shipyard.html',
+        });
+      }
+
+      const updateNow = data.updates?.roadmap?.now?.[0];
+      if (updateNow) {
+        candidates.push({
+          id: 'roadmap:now',
+          title: 'Roadmap now lane',
+          source: 'updates',
+          base: 29,
+          impact: 12,
+          relevance: 16,
+          feasibility: 11,
+          priority: 4,
+          signals: [updateNow, ...(data.updates.roadmap.next || []).slice(0, 1)],
+          detail: 'A clear now-lane item keeps the site moving in public with visible momentum.',
+          link: 'flight-deck.html',
+        });
+      }
+
+      const nowFocus = data.now?.activeFocus?.find((item) => item.horizon === 'now') || data.now?.activeFocus?.[0];
+      if (nowFocus) {
+        candidates.push({
+          id: `now:${nowFocus.id}`,
+          title: nowFocus.title,
+          source: 'now',
+          base: 27,
+          impact: nowFocus.progress / 2,
+          relevance: 15,
+          feasibility: 16,
+          priority: nowFocus.horizon === 'now' ? 4 : 2,
+          signals: [nowFocus.summary, `${nowFocus.progress}% progress`, ...(nowFocus.targets || []).slice(0, 1)],
+          detail: nowFocus.targets?.[0] || nowFocus.summary,
+          link: 'now.html',
+        });
+      }
+
+      const note = data.notes.find((item) => (item.tags || []).includes('product')) || data.notes[0];
+      if (note) {
+        candidates.push({
+          id: `note:${note.id}`,
+          title: note.title,
+          source: 'notes',
+          base: 24,
+          impact: 8,
+          relevance: 13,
+          feasibility: 13,
+          priority: (note.tags || []).includes('content') ? 4 : 2,
+          signals: [note.summary, ...(note.tags || []).slice(0, 2)],
+          detail: note.body?.[0] || note.summary,
+          link: note.relatedPage || 'notes.html',
+        });
+      }
+
+      return candidates.map((candidate, index) => {
+        const random = seededRandom(state.seed + index + candidate.title.length);
+        const bonus = Math.round(random() * 6);
+        const score = scoreCandidate({ ...candidate, base: candidate.base + bonus }, bias);
+        return { ...candidate, score };
+      }).sort((a, b) => b.score - a.score);
+    }
+
+    function renderModeButtons() {
+      modeButtons.innerHTML = modes.map((mode) => `
+        <button class="mode ${mode.id === state.mode ? 'is-active' : ''}" data-mode="${mode.id}">${mode.label}</button>
+      `).join('');
+      modeButtons.querySelectorAll('[data-mode]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.mode = button.dataset.mode;
+          storage.set('roostWorkbenchMode', state.mode);
+          render();
+        });
+      });
+    }
+
+    function renderSignals(recommendation) {
+      const updateCount = state.data.updates?.updates?.length || 0;
+      const noteCount = state.data.notes.length;
+      const expeditionCount = state.data.expeditions.length;
+      const shipyardCount = state.data.shipyard.length;
+      signalGrid.innerHTML = [
+        {
+          label: 'roadmap pressure',
+          value: `${state.data.updates?.roadmap?.now?.length || 0} now / ${state.data.updates?.roadmap?.next?.length || 0} next`,
+          body: state.data.updates?.roadmap?.now?.slice(0, 3) || [],
+        },
+        {
+          label: 'expeditions',
+          value: `${expeditionCount} active surfaces`,
+          body: state.data.expeditions.slice(0, 3).map((item) => item.name),
+        },
+        {
+          label: 'shipyard queue',
+          value: `${shipyardCount} ranked ideas`,
+          body: state.data.shipyard.slice(0, 3).map((item) => item.title),
+        },
+        {
+          label: 'story notes',
+          value: `${noteCount} connected notes`,
+          body: state.data.notes.slice(0, 3).map((item) => item.title),
+        },
+      ].map((item) => `
+        <article class="signal">
+          <strong>${item.label}</strong>
+          <p>${item.value}</p>
+          <ul>${item.body.map((line) => `<li>${line}</li>`).join('')}</ul>
+        </article>
+      `).join('');
+
+      const mode = modes.find((item) => item.id === state.mode) || modes[0];
+      const lines = recommendation ? [
+        `roost workbench / ${mode.focus}`,
+        `lead: ${recommendation.title} (${recommendation.score}/100)`,
+        `why now: ${recommendation.detail}`,
+        `signals: ${recommendation.signals.join(' | ')}`,
+        `next step: open ${recommendation.link}`,
+      ] : ['roost workbench', 'recommendation unavailable right now.'];
+      brief.textContent = lines.join('\n');
+    }
+
+    function renderCandidates(candidates) {
+      if (!candidates.length) {
+        candidateStack.innerHTML = '<div class="empty">No candidates could be derived from the live feeds.</div>';
+        return;
+      }
+      const lead = candidates[0];
+      candidateStack.innerHTML = candidates.slice(0, 3).map((candidate, index) => `
+        <article class="candidate ${index === 0 ? 'is-lead' : ''}" data-id="${candidate.id}">
+          <div class="candidate-head">
+            <div class="candidate-title">
+              <h3>${index === 0 ? 'today\'s lead' : `alternate ${index}`}</h3>
+              <p class="candidate-copy"><strong>${candidate.title}</strong> - ${candidate.detail}</p>
+            </div>
+            <span class="pill">${candidate.score}/100</span>
+          </div>
+          <div class="meter" aria-hidden="true"><span style="width:${candidate.score}%"></span></div>
+          <p class="candidate-copy">${candidate.signals.slice(0, 3).join(' · ')}</p>
+          <div class="candidate-footer">
+            <span class="pill">${candidate.source}</span>
+            <a class="nav-link" href="${candidate.link}">open</a>
+            <button class="btn" data-pin="${candidate.id}">${state.pinnedId === candidate.id ? 'pinned' : 'pin'}</button>
+          </div>
+        </article>
+      `).join('');
+
+      candidateStack.querySelectorAll('[data-pin]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.pinnedId = button.dataset.pin;
+          storage.set('roostWorkbenchPinned', state.pinnedId);
+          render();
+        });
+      });
+
+      state.recommendation = lead;
+      leadScore.innerHTML = `${lead.score} <span>lead score</span>`;
+      leadSummary.textContent = `${lead.title} is the strongest move because ${lead.detail.toLowerCase()}`;
+      modePill.textContent = `mode: ${mode.label}`;
+      queuePill.textContent = `queue: ${candidates.length} ranked`;
+      seedPill.textContent = `seed: ${state.seed}`;
+      renderSignals(lead);
+    }
+
+    function render() {
+      renderModeButtons();
+      const mode = modes.find((item) => item.id === state.mode) || modes[0];
+      const candidates = buildCandidates(state.data, mode);
+      const pinned = candidates.find((item) => item.id === state.pinnedId);
+      if (pinned && pinned !== candidates[0]) {
+        const withoutPinned = candidates.filter((item) => item.id !== pinned.id);
+        withoutPinned.unshift(pinned);
+        renderCandidates(withoutPinned);
+      } else {
+        renderCandidates(candidates);
+      }
+      const lead = (pinned && pinned !== candidates[0]) ? pinned : candidates[0];
+      if (lead) {
+        brief.textContent = [
+          `roost workbench / ${mode.focus}`,
+          `lead: ${lead.title} (${lead.score}/100)`,
+          `why now: ${lead.detail}`,
+          `signals: ${lead.signals.join(' | ')}`,
+          `next step: open ${lead.link}`,
+        ].join('\n');
+      }
+    }
+
+    async function loadData() {
+      const urls = {
+        updates: 'assets/roost-updates.json',
+        now: 'assets/roost-now.json',
+        expeditions: 'assets/roost-expeditions.json',
+        shipyard: 'assets/roost-shipyard.json',
+        notes: 'assets/roost-notes.json',
+      };
+      const entries = await Promise.all(Object.entries(urls).map(async ([key, url]) => {
+        try {
+          const res = await fetch(url, { cache: 'no-store' });
+          if (!res.ok) return [key, null];
+          return [key, await res.json()];
+        } catch {
+          return [key, null];
+        }
+      }));
+
+      const data = Object.fromEntries(entries);
+      state.data = {
+        updates: data.updates || { roadmap: { now: [], next: [] }, updates: [] },
+        now: data.now || { activeFocus: [] },
+        expeditions: Array.isArray(data.expeditions) ? data.expeditions : [],
+        shipyard: Array.isArray(data.shipyard) ? data.shipyard : [],
+        notes: data.notes?.notes || [],
+      };
+      render();
+    }
+
+    shuffleBtn.addEventListener('click', () => {
+      state.seed = Math.floor(Math.random() * 9_000_000) + 1000;
+      storage.set('roostWorkbenchSeed', String(state.seed));
+      render();
+      setStatus('re-ranked today\'s workbench.');
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const text = brief.textContent || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('work brief copied ✓', 'good');
+      } catch {
+        setStatus('clipboard blocked; copy the brief manually.', 'warn');
+      }
+    });
+
+    pinBtn.addEventListener('click', () => {
+      if (!state.recommendation) return;
+      state.pinnedId = state.recommendation.id;
+      storage.set('roostWorkbenchPinned', state.pinnedId);
+      render();
+      setStatus(`pinned ${state.recommendation.title}.`, 'good');
+    });
+
+    function setStatus(text, tone = 'info') {
+      status.textContent = text;
+      status.style.color = tone === 'good' ? 'var(--good)' : tone === 'warn' ? 'var(--warn)' : '#bdd0ff';
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
