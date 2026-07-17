@@ -6,65 +6,701 @@
   <meta name="description" content="Weekly review generator for Kestrel Roost" />
   <title>Roost Weekly Review</title>
   <style>
-    :root { --bg:#0b1020; --fg:#e6ecff; --muted:#9fb0ff; --card:#0d1530cc; --line:#2b3a7a; }
-    body{margin:0;font-family:ui-monospace,monospace;color:var(--fg);background:linear-gradient(180deg,#101b3d,var(--bg));min-height:100vh}
-    .wrap{width:min(980px,94vw);margin:30px auto;display:grid;gap:12px}
-    .card{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:16px}
-    .btn,.nav{display:inline-block;text-decoration:none;color:#dbe4ff;border:1px solid #4660be;border-radius:10px;padding:8px 11px;background:#0f1d4d;font:inherit;cursor:pointer}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-    .kpi{border:1px solid #3550a8;border-radius:10px;background:#0c173f;padding:10px}
-    textarea{width:100%;min-height:220px;background:#0a1438;color:#e6ecff;border:1px solid #3f56a8;border-radius:10px;padding:10px;font:inherit}
-    p{color:var(--muted)}
+    :root {
+      --bg:#070b18;
+      --bg2:#111a38;
+      --card:#0f1730cc;
+      --card2:#0a1024;
+      --line:#2c3b76;
+      --fg:#e8eeff;
+      --muted:#9caedc;
+      --accent:#87b5ff;
+      --accent2:#84f0c6;
+      --warn:#ffd27b;
+      --good:#8ef0bd;
+      --bad:#ff9c9c;
+      --shadow:0 18px 50px rgba(0,0,0,.32);
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at top left, #223d88 0%, transparent 34%),
+        radial-gradient(circle at 85% 10%, #17356d 0%, transparent 30%),
+        linear-gradient(180deg, var(--bg2), var(--bg) 58%);
+    }
+    a { color:inherit; }
+    .wrap {
+      width:min(1180px, 94vw);
+      margin:28px auto 44px;
+      display:grid;
+      gap:14px;
+    }
+    .hero,
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+    }
+    .hero {
+      padding:20px;
+      display:grid;
+      gap:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -90px -120px auto;
+      width:300px;
+      height:300px;
+      border-radius:999px;
+      background:radial-gradient(circle, rgba(135,181,255,.18) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .hero-top {
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      position:relative;
+      z-index:1;
+    }
+    h1 {
+      margin:0 0 8px;
+      font-size:clamp(2.1rem, 5vw, 3.8rem);
+      letter-spacing:-0.04em;
+    }
+    .lede {
+      margin:0;
+      max-width:68ch;
+      color:var(--muted);
+      line-height:1.55;
+    }
+    .nav {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .nav a,
+    .btn,
+    .chip,
+    .select {
+      border:1px solid #415183;
+      border-radius:999px;
+      background:#0e1835;
+      color:#dde6ff;
+      font:inherit;
+      text-decoration:none;
+      padding:8px 12px;
+      transition:.16s ease;
+    }
+    .nav a:hover,
+    .btn:hover,
+    .chip:hover,
+    .select:hover {
+      transform:translateY(-1px);
+      border-color:#7a94ff;
+      background:#13204a;
+    }
+    .nav a:focus-visible,
+    .btn:focus-visible,
+    .chip:focus-visible,
+    .select:focus-visible {
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+    }
+    .controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      position:relative;
+      z-index:1;
+    }
+    .chip[aria-pressed="true"] {
+      border-color:#86a8ff;
+      background:#15275d;
+      color:#f7fbff;
+    }
+    .select {
+      padding-right:34px;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:12px;
+    }
+    .metric {
+      border:1px solid #364776;
+      border-radius:14px;
+      background:linear-gradient(180deg, #0d1735, #081126);
+      padding:14px;
+      display:grid;
+      gap:6px;
+      min-height:112px;
+    }
+    .metric small {
+      color:#b8c8ff;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      font-size:.72rem;
+    }
+    .metric strong {
+      font-size:1.8rem;
+      line-height:1;
+      color:#f4f7ff;
+    }
+    .metric span {
+      color:var(--muted);
+      font-size:.82rem;
+      line-height:1.45;
+    }
+    .metric .delta {
+      font-size:.74rem;
+      color:#c6d5ff;
+    }
+    .delta.good { color:var(--good); }
+    .delta.warn { color:var(--warn); }
+    .delta.bad { color:var(--bad); }
+    .stack { display:grid; gap:14px; }
+    .band {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+      gap:14px;
+    }
+    .panel,
+    .summary {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg, var(--card), var(--card2));
+      padding:16px;
+      box-shadow:var(--shadow);
+      display:grid;
+      gap:12px;
+    }
+    .panel-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+      flex-wrap:wrap;
+    }
+    .panel h2,
+    .summary h2 {
+      margin:0;
+      font-size:1.03rem;
+    }
+    .panel-note,
+    .hint {
+      margin:0;
+      color:var(--muted);
+      font-size:.82rem;
+      line-height:1.4;
+    }
+    .trend-list,
+    .risk-list,
+    .release-list,
+    .theme-list {
+      display:grid;
+      gap:10px;
+    }
+    .trend-item,
+    .risk-item,
+    .release-item,
+    .theme-item {
+      border:1px solid #314166;
+      border-radius:14px;
+      background:#091126;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .trend-item strong,
+    .risk-item strong,
+    .release-item strong,
+    .theme-item strong {
+      font-size:1rem;
+    }
+    .trend-item p,
+    .risk-item p,
+    .release-item p,
+    .theme-item p {
+      margin:0;
+      color:#b9c7ea;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      color:#bfd0ff;
+      font-size:.76rem;
+    }
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid #43558b;
+      border-radius:999px;
+      padding:4px 9px;
+      background:#101b3d;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .badge.good { border-color:#3e7f66; color:#bbffe2; }
+    .badge.warn { border-color:#8c6d30; color:#ffe0a5; }
+    .badge.bad { border-color:#8a4040; color:#ffd0d0; }
+    .bar-list {
+      display:grid;
+      gap:10px;
+    }
+    .bar-row {
+      display:grid;
+      gap:6px;
+    }
+    .bar-row .label {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:.82rem;
+      color:#bfd0ff;
+    }
+    .track {
+      height:9px;
+      border-radius:999px;
+      overflow:hidden;
+      background:#1a2749;
+    }
+    .fill {
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      font:inherit;
+      color:#e6ecff;
+      line-height:1.55;
+    }
+    .summary-actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .statusline {
+      min-height:1.2em;
+      color:var(--muted);
+      font-size:.82rem;
+    }
+    @media (max-width: 720px) {
+      .wrap { width:min(100vw - 20px, 94vw); margin:14px auto 28px; }
+      .hero, .panel, .summary { border-radius:16px; }
+      h1 { font-size:2.2rem; }
+      .metric strong { font-size:1.55rem; }
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <section class="card">
-      <h1>roost weekly review</h1>
-      <p>auto-summarize this week across ships, notes, milestones, and expeditions.</p>
-      <a class="nav" href="index.html">home</a>
-      <a class="nav" href="command-center.html">command center</a>
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>roost weekly review</h1>
+          <p class="lede">A review studio that compares the current window against the last one, highlights momentum shifts, and exports a clean markdown recap you can paste anywhere.</p>
+        </div>
+        <nav class="nav" aria-label="Site">
+          <a href="index.html">home</a>
+          <a href="command-center.html">command center</a>
+          <a href="flight-deck.html">flight deck</a>
+        </nav>
+      </div>
+
+      <div class="controls" aria-label="Review controls">
+        <button class="chip" id="window7" type="button" aria-pressed="true" data-window="7">7 days</button>
+        <button class="chip" id="window14" type="button" aria-pressed="false" data-window="14">14 days</button>
+        <button class="chip" id="window30" type="button" aria-pressed="false" data-window="30">30 days</button>
+        <select class="select" id="focusMode" aria-label="Review emphasis">
+          <option value="balanced">balanced review</option>
+          <option value="launches">launch-heavy</option>
+          <option value="risks">risk watch</option>
+          <option value="themes">theme scan</option>
+        </select>
+      </div>
+
+      <div class="grid" id="kpis" aria-live="polite"></div>
     </section>
-    <section class="card">
-      <button class="btn" id="generate">generate review</button>
-      <button class="btn" id="copy">copy markdown</button>
-    </section>
-    <section class="card grid" id="kpis"></section>
-    <section class="card">
-      <h2>markdown digest</h2>
-      <textarea id="digest"></textarea>
+
+    <section class="stack">
+      <div class="band">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Momentum shift</h2>
+            <p class="panel-note" id="trendStamp"></p>
+          </div>
+          <div class="trend-list" id="trendList"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Top themes</h2>
+            <p class="panel-note">Recurring note tags from the selected window</p>
+          </div>
+          <div class="theme-list" id="themeList"></div>
+        </article>
+      </div>
+
+      <div class="band">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Release highlights</h2>
+            <p class="panel-note">What shipped and why it matters</p>
+          </div>
+          <div class="release-list" id="releaseList"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Risk watch</h2>
+            <p class="panel-note">Active expedition pressure and blockers</p>
+          </div>
+          <div class="risk-list" id="riskList"></div>
+        </article>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Type mix</h2>
+          <p class="panel-note">A quick read on the shape of this window</p>
+        </div>
+        <div class="bar-list" id="typeBars"></div>
+      </section>
+
+      <section class="summary">
+        <div class="panel-head">
+          <h2>Copyable digest</h2>
+          <div class="summary-actions">
+            <button class="btn" id="generate" type="button">refresh digest</button>
+            <button class="btn" id="copy" type="button">copy markdown</button>
+          </div>
+        </div>
+        <pre id="digest"></pre>
+        <div class="statusline" id="copyStatus"></div>
+      </section>
     </section>
   </main>
-<script>
-const kpis = document.getElementById('kpis');
-const digest = document.getElementById('digest');
-const weekAgo = new Date(Date.now()-7*24*60*60*1000);
-const fmt=(d)=>new Date(d).toISOString().slice(0,10);
-const inWeek=(d)=>{const x=new Date(d); return !Number.isNaN(x)&&x>=weekAgo};
-async function load(path,fallback){try{const r=await fetch(path,{cache:'no-store'});if(!r.ok)throw 0;return await r.json();}catch{return fallback;}}
-function top(list,key){const m=new Map();list.forEach(v=>(v[key]||[]).forEach(t=>m.set(t,(m.get(t)||0)+1)));return [...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);}
-async function generate(){
-  const [updates,notes,milestones,expeditions]=await Promise.all([
-    load('assets/roost-updates.json',{updates:[]}),
-    load('assets/roost-notes.json',{notes:[]}),
-    load('assets/roost-milestones.json',[]),
-    load('assets/roost-expeditions.json',[])
-  ]);
-  const wu=(updates.updates||[]).filter(x=>inWeek(x.date));
-  const wn=(notes.notes||[]).filter(x=>inWeek(x.date));
-  const wm=(milestones||[]).filter(x=>inWeek(x.date));
-  const active=(expeditions||[]).filter(x=>x.status==='active');
-  const avg=active.length?Math.round(active.reduce((s,e)=>s+(Number(e.progress)||0),0)/active.length):0;
-  kpis.innerHTML='';
-  [['ships this week',wu.length],['notes this week',wn.length],['milestones this week',wm.length],['active expeditions',active.length],['active avg progress',avg+'%']].forEach(([a,b])=>{const el=document.createElement('article');el.className='kpi';el.innerHTML=`<div>${a}</div><strong>${b}</strong>`;kpis.appendChild(el)});
-  const themes = top(wn,'tags');
-  const wins = wu.slice(0,4).map(x=>`- ${x.title}`);
-  const blockers = active.filter(x=>(x.risks||[]).length).flatMap(x=>x.risks.slice(0,1).map(r=>`- ${x.name||x.title}: ${r}`)).slice(0,3);
-  digest.value = `# Roost Weekly Review (${fmt(weekAgo)} to ${fmt(new Date())})\n\n## Highlights\n${wins.join('\n')||'- No ships logged this week yet.'}\n\n## Themes\n${themes.map(t=>`- ${t}`).join('\n')||'- No dominant note themes yet.'}\n\n## Risk Watch\n${blockers.join('\n')||'- No major risks logged.'}\n\n## Next Week Focus\n- Ship one high-leverage visible page improvement\n- Close one active expedition risk\n- Publish one synthesis note connecting ships to outcomes\n`;
-}
-document.getElementById('generate').addEventListener('click',generate);
-document.getElementById('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(digest.value);}catch{}});
-generate();
-</script>
+
+  <script>
+    const kpis = document.getElementById('kpis');
+    const trendList = document.getElementById('trendList');
+    const themeList = document.getElementById('themeList');
+    const releaseList = document.getElementById('releaseList');
+    const riskList = document.getElementById('riskList');
+    const typeBars = document.getElementById('typeBars');
+    const digest = document.getElementById('digest');
+    const copyStatus = document.getElementById('copyStatus');
+    const trendStamp = document.getElementById('trendStamp');
+    const focusMode = document.getElementById('focusMode');
+    const windowButtons = [...document.querySelectorAll('[data-window]')];
+
+    const fmt = (d) => new Date(d).toISOString().slice(0, 10);
+    const dayMs = 24 * 60 * 60 * 1000;
+    const now = new Date();
+
+    let windowDays = 7;
+
+    async function load(path, fallback) {
+      try {
+        const r = await fetch(path, { cache: 'no-store' });
+        if (!r.ok) throw new Error(path);
+        return await r.json();
+      } catch {
+        return fallback;
+      }
+    }
+
+    function startOfDay(date) {
+      const d = new Date(date);
+      d.setUTCHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function inRange(itemDate, start, end) {
+      const d = new Date(itemDate);
+      return !Number.isNaN(d) && d >= start && d < end;
+    }
+
+    function countBy(list, key) {
+      const counts = new Map();
+      list.forEach((item) => {
+        const raw = item[key];
+        const values = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        values.forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
+      });
+      return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
+    function spanLabel(start, end) {
+      return `${fmt(start)} → ${fmt(new Date(end.getTime() - dayMs))}`;
+    }
+
+    function typeClass(value) {
+      if (value > 0) return 'good';
+      if (value < 0) return 'bad';
+      return 'warn';
+    }
+
+    function renderBars(items) {
+      typeBars.innerHTML = '';
+      items.forEach(([label, value, max]) => {
+        const row = document.createElement('div');
+        row.className = 'bar-row';
+        row.innerHTML = `
+          <div class="label"><span>${label}</span><span>${value}</span></div>
+          <div class="track"><div class="fill" style="width:${Math.max(6, Math.round((value / Math.max(max, 1)) * 100))}%"></div></div>
+        `;
+        typeBars.appendChild(row);
+      });
+    }
+
+    function topOrFallback(list, emptyText) {
+      if (!list.length) {
+        const item = document.createElement('div');
+        item.className = 'theme-item';
+        item.innerHTML = `<strong>Nothing yet</strong><p>${emptyText}</p>`;
+        return item;
+      }
+      return null;
+    }
+
+    async function generate() {
+      const [updates, notes, milestones, expeditions] = await Promise.all([
+        load('assets/roost-updates.json', { updates: [] }),
+        load('assets/roost-notes.json', { notes: [] }),
+        load('assets/roost-milestones.json', []),
+        load('assets/roost-expeditions.json', [])
+      ]);
+
+      const updatesList = updates.updates || [];
+      const notesList = notes.notes || [];
+      const milestonesList = milestones || [];
+      const expeditionsList = expeditions || [];
+
+      const end = startOfDay(now);
+      const start = new Date(end.getTime() - windowDays * dayMs);
+      const prevEnd = start;
+      const prevStart = new Date(prevEnd.getTime() - windowDays * dayMs);
+
+      const currentUpdates = updatesList.filter((x) => inRange(x.date, start, end));
+      const previousUpdates = updatesList.filter((x) => inRange(x.date, prevStart, prevEnd));
+      const currentNotes = notesList.filter((x) => inRange(x.date, start, end));
+      const previousNotes = notesList.filter((x) => inRange(x.date, prevStart, prevEnd));
+      const currentMilestones = milestonesList.filter((x) => inRange(x.date, start, end));
+      const previousMilestones = milestonesList.filter((x) => inRange(x.date, prevStart, prevEnd));
+      const activeExpeditions = expeditionsList.filter((x) => x.status === 'active');
+
+      const avgProgress = activeExpeditions.length
+        ? Math.round(activeExpeditions.reduce((sum, item) => sum + Number(item.progress || 0), 0) / activeExpeditions.length)
+        : 0;
+      const activeRisks = activeExpeditions.flatMap((item) => (item.milestones || []).filter((mile) => !mile.done).map((mile) => ({ item, mile })));
+      const themeCounts = countBy(currentNotes, 'tags').slice(0, 4);
+      const updateTypes = countBy(currentUpdates, 'type');
+      const prevUpdateTypes = countBy(previousUpdates, 'type');
+
+      const delta = (current, previous) => current - previous;
+      const shipDelta = delta(currentUpdates.length, previousUpdates.length);
+      const noteDelta = delta(currentNotes.length, previousNotes.length);
+      const milestoneDelta = delta(currentMilestones.length, previousMilestones.length);
+      const activeDelta = delta(activeExpeditions.length, 0);
+
+      const topShip = currentUpdates[0] || updatesList[0];
+      const topTheme = themeCounts[0]?.[0];
+      const topRisk = activeRisks[0];
+
+      trendStamp.textContent = `${spanLabel(start, end)} compared with ${spanLabel(prevStart, prevEnd)}`;
+      windowButtons.forEach((button) => {
+        button.setAttribute('aria-pressed', String(Number(button.dataset.window) === windowDays));
+      });
+
+      kpis.innerHTML = '';
+      const cards = [
+        ['ships', currentUpdates.length, `${shipDelta >= 0 ? '+' : ''}${shipDelta} vs previous window`, shipDelta > 0 ? 'good' : shipDelta < 0 ? 'warn' : '', `${previousUpdates.length} in the prior window`],
+        ['notes', currentNotes.length, `${noteDelta >= 0 ? '+' : ''}${noteDelta} vs previous window`, noteDelta > 0 ? 'good' : noteDelta < 0 ? 'warn' : '', `${previousNotes.length} in the prior window`],
+        ['milestones', currentMilestones.length, `${milestoneDelta >= 0 ? '+' : ''}${milestoneDelta} vs previous window`, milestoneDelta > 0 ? 'good' : milestoneDelta < 0 ? 'warn' : '', `${previousMilestones.length} in the prior window`],
+        ['active expeditions', activeExpeditions.length, `${avgProgress}% average progress`, activeDelta > 0 ? 'good' : 'warn', activeExpeditions.length ? `${activeRisks.length} open milestone gaps` : 'No active expeditions'],
+        ['latest signal', topShip ? topShip.title : 'No new ships', topShip ? topShip.impact : 'No update items in this window.', '', topShip ? fmt(topShip.date) : ''],
+      ];
+      cards.forEach(([label, value, deltaText, cls, foot]) => {
+        const el = document.createElement('article');
+        el.className = 'metric';
+        el.innerHTML = `
+          <small>${label}</small>
+          <strong>${value}</strong>
+          <span class="delta ${cls}">${deltaText}</span>
+          <span>${foot}</span>
+        `;
+        kpis.appendChild(el);
+      });
+
+      trendList.innerHTML = '';
+      const trendRows = [
+        {
+          title: 'Ship cadence',
+          value: `${currentUpdates.length} launches`,
+          note: shipDelta > 0 ? 'Momentum is up from the previous window.' : shipDelta < 0 ? 'Launch tempo cooled a bit.' : 'Launch tempo held steady.',
+          badge: shipDelta > 0 ? 'good' : shipDelta < 0 ? 'warn' : 'warn'
+        },
+        {
+          title: 'Notes activity',
+          value: `${currentNotes.length} notes`,
+          note: noteDelta > 0 ? 'The note layer is feeding the build story.' : noteDelta < 0 ? 'Fewer reflections landed this round.' : 'Note volume is unchanged.',
+          badge: noteDelta > 0 ? 'good' : noteDelta < 0 ? 'warn' : 'warn'
+        },
+        {
+          title: 'Review pressure',
+          value: `${activeRisks.length} open gaps`,
+          note: activeRisks.length ? 'At least one expedition still has unfinished milestones.' : 'No blocker-shaped gaps are visible right now.',
+          badge: activeRisks.length ? 'warn' : 'good'
+        }
+      ];
+      trendRows.forEach((row) => {
+        const el = document.createElement('div');
+        el.className = 'trend-item';
+        el.innerHTML = `
+          <div class="meta"><span class="badge ${row.badge}">${row.title}</span><span>${row.value}</span></div>
+          <p>${row.note}</p>
+        `;
+        trendList.appendChild(el);
+      });
+
+      themeList.innerHTML = '';
+      if (!themeCounts.length) {
+        const fallback = topOrFallback([], 'No note themes landed in this window yet.');
+        if (fallback) themeList.appendChild(fallback);
+      } else {
+        themeCounts.forEach(([tag, count]) => {
+          const item = document.createElement('div');
+          item.className = 'theme-item';
+          item.innerHTML = `
+            <strong>${tag}</strong>
+            <p>${count} note${count === 1 ? '' : 's'} in the selected window.</p>
+          `;
+          themeList.appendChild(item);
+        });
+      }
+
+      releaseList.innerHTML = '';
+      (currentUpdates.slice(0, 4)).forEach((update) => {
+        const item = document.createElement('div');
+        item.className = 'release-item';
+        item.innerHTML = `
+          <div class="meta">
+            <span class="badge ${update.type === 'feature' ? 'good' : 'warn'}">${update.type || 'update'}</span>
+            <span>${fmt(update.date)}</span>
+            ${update.page ? `<a href="${update.page}">${update.pageLabel || 'open page'}</a>` : ''}
+          </div>
+          <strong>${update.title}</strong>
+          <p>${update.impact || update.details || 'No impact copy available.'}</p>
+        `;
+        releaseList.appendChild(item);
+      });
+      if (!currentUpdates.length) {
+        const fallback = document.createElement('div');
+        fallback.className = 'release-item';
+        fallback.innerHTML = '<strong>No launches in window</strong><p>The window is quiet, so the next review should focus on active work and expedition gaps.</p>';
+        releaseList.appendChild(fallback);
+      }
+
+      riskList.innerHTML = '';
+      const riskRows = activeExpeditions.slice(0, 4).map((exp) => ({
+        name: exp.name,
+        progress: exp.progress || 0,
+        risk: (exp.milestones || []).filter((m) => !m.done).map((m) => m.title).slice(0, 2)
+      }));
+      if (!riskRows.length) {
+        const fallback = document.createElement('div');
+        fallback.className = 'risk-item';
+        fallback.innerHTML = '<strong>No active expeditions</strong><p>Nothing is currently carrying review pressure, which makes this a good moment to plan the next visible push.</p>';
+        riskList.appendChild(fallback);
+      } else {
+        riskRows.forEach((row) => {
+          const item = document.createElement('div');
+          item.className = 'risk-item';
+          item.innerHTML = `
+            <div class="meta">
+              <span class="badge warn">${row.name}</span>
+              <span>${row.progress}% progress</span>
+            </div>
+            <p>${row.risk.length ? row.risk.map((r) => `• ${r}`).join('<br>') : 'No open milestones.'}</p>
+          `;
+          riskList.appendChild(item);
+        });
+      }
+
+      const totalTypes = [...new Set([...updateTypes.map(([k]) => k), ...prevUpdateTypes.map(([k]) => k)])];
+      const typeItems = totalTypes.map((type) => {
+        const current = updateTypes.find(([key]) => key === type)?.[1] || 0;
+        const previous = prevUpdateTypes.find(([key]) => key === type)?.[1] || 0;
+        const change = current - previous;
+        return [type, current, Math.max(...totalTypes.map((t) => updateTypes.find(([key]) => key === t)?.[1] || 0), 1), change];
+      }).sort((a, b) => b[1] - a[1]);
+      if (typeItems.length) {
+        renderBars(typeItems);
+      } else {
+        typeBars.innerHTML = '<div class="hint">No typed releases were found for this window.</div>';
+      }
+
+      const focus = focusMode.value;
+      const intro =
+        focus === 'launches'
+          ? 'launch-heavy review'
+          : focus === 'risks'
+            ? 'risk-watch review'
+            : focus === 'themes'
+              ? 'theme-scan review'
+              : 'balanced review';
+
+      const releaseLines = currentUpdates.slice(0, 5).map((x) => `- ${x.title}${x.page ? ` (${x.pageLabel || x.page})` : ''}`).join('\n') || '- No launches in the selected window.';
+      const themeLines = themeCounts.map(([tag, count]) => `- ${tag}: ${count}`).join('\n') || '- No dominant themes recorded.';
+      const riskLines = activeExpeditions.length
+        ? activeExpeditions.map((exp) => {
+            const open = (exp.milestones || []).filter((m) => !m.done).length;
+            return `- ${exp.name}: ${open} open milestone${open === 1 ? '' : 's'}`;
+          }).join('\n')
+        : '- No active expeditions logged.';
+
+      digest.value = `# Roost Weekly Review (${fmt(start)} to ${fmt(new Date(end.getTime() - dayMs))})\n\n## Review mode\n- ${intro}\n- Selected window: ${windowDays} days\n- Comparison: previous ${windowDays}-day window\n\n## Momentum\n- Ships: ${currentUpdates.length} (${shipDelta >= 0 ? '+' : ''}${shipDelta} vs previous window)\n- Notes: ${currentNotes.length} (${noteDelta >= 0 ? '+' : ''}${noteDelta} vs previous window)\n- Milestones: ${currentMilestones.length} (${milestoneDelta >= 0 ? '+' : ''}${milestoneDelta} vs previous window)\n- Active expeditions: ${activeExpeditions.length}\n- Average expedition progress: ${avgProgress}%\n\n## Highlights\n${releaseLines}\n\n## Themes\n${themeLines}\n\n## Risk watch\n${riskLines}\n\n## Next week focus\n- Ship one visible page improvement that changes how the site feels\n- Close at least one open expedition milestone gap\n- Publish one synthesis note that connects a launch to a lesson\n`;
+      copyStatus.textContent = '';
+    }
+
+    async function copyDigest() {
+      try {
+        await navigator.clipboard.writeText(digest.value);
+        copyStatus.textContent = 'Markdown copied to clipboard.';
+      } catch {
+        copyStatus.textContent = 'Clipboard copy failed in this browser.';
+      }
+    }
+
+    windowButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        windowDays = Number(button.dataset.window);
+        generate();
+      });
+    });
+    focusMode.addEventListener('change', generate);
+    document.getElementById('generate').addEventListener('click', generate);
+    document.getElementById('copy').addEventListener('click', copyDigest);
+    generate();
+  </script>
 </body>
 </html>
