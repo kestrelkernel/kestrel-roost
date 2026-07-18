@@ -55,6 +55,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Roost Searchlight launch:** added `roost-searchlight.html`, a keyboard-first command palette that searches pages, notes, expeditions, and shipyard items with scoped filters, local recent picks, and a copyable brief for faster cross-roost navigation
 - **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks
 - **Roost Route Mixer launch:** added `roost-route-mixer.html`, a route-builder surface that blends updates, roadmap pressure, and note trails into a copyable three-stop visit plan with seed history and mode-based routing
 - **Roost Workbench launch:** added `roost-workbench.html`, a ranked daily recommendation surface that turns roadmap, expedition, note, and shipyard signals into one opinionated next move with mode switching, pinning, and a copyable brief

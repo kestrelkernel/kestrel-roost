@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Searchlight: a keyboard-first command palette and cross-site finder for Kestrel's Roost." />
+  <title>Roost Searchlight - Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#071019;
+      --bg2:#132a48;
+      --fg:#edf3ff;
+      --muted:#a6b8e8;
+      --accent:#8db6ff;
+      --accent2:#79f0d0;
+      --line:#2d467e;
+      --card:#0b1630de;
+      --panel:#091225dc;
+      --good:#81f0bf;
+      --warn:#ffd680;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 10% 12%, #23467a 0%, transparent 28%),
+        radial-gradient(circle at 88% 0%, #214b60 0%, transparent 24%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1200px, 94vw);
+      margin:28px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      padding:18px;
+      box-shadow:0 14px 38px #00000038;
+      backdrop-filter: blur(4px);
+    }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.4rem); }
+    h2 { margin:0; font-size:1.04rem; color:#dbe6ff; }
+    h3 { margin:0; font-size:1rem; color:#f5f8ff; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+    .tiny { font-size:.82rem; color:#9cb0e9; }
+    .site-nav, .toolbar, .meta, .chip-row, .link-row { display:flex; flex-wrap:wrap; gap:10px; }
+    .nav-link, .btn, .chip, .mode {
+      text-decoration:none;
+      color:#dbe6ff;
+      border:1px solid #4660be;
+      border-radius:999px;
+      padding:7px 12px;
+      background:#10245a;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn { border-radius:10px; }
+    .nav-link:hover, .btn:hover, .chip:hover, .mode:hover,
+    .nav-link:focus-visible, .btn:focus-visible, .chip:focus-visible, .mode:focus-visible {
+      transform:translateY(-1px);
+      border-color:#7e9cff;
+      outline:none;
+      background:#14306f;
+    }
+    .mode.is-active {
+      background:linear-gradient(180deg, #224898, #133065);
+      border-color:#90aefb;
+      color:#f5f8ff;
+    }
+    .hero {
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:14px;
+      align-items:stretch;
+    }
+    @media (max-width: 920px) {
+      .hero { grid-template-columns:1fr; }
+    }
+    .hero-panel {
+      border:1px solid #4461b6;
+      border-radius:16px;
+      background:linear-gradient(155deg, #11285d, #091225 68%);
+      padding:16px;
+      display:grid;
+      gap:12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero-panel::before {
+      content:"";
+      position:absolute;
+      inset:auto -80px -100px auto;
+      width:250px;
+      height:250px;
+      border-radius:999px;
+      background:radial-gradient(circle, #87a9ff30 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .hero-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#bfd0ff;
+      font-size:.8rem;
+      z-index:1;
+    }
+    .glow {
+      font-size:2.15rem;
+      line-height:1.05;
+      color:#f7f9ff;
+      z-index:1;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns:minmax(320px, 420px) 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns:1fr; }
+    }
+    .stack { display:grid; gap:12px; }
+    .control-grid {
+      display:grid;
+      gap:10px;
+    }
+    .input, .select, .textarea {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:10px;
+      color:#e6ecff;
+      font:inherit;
+      padding:10px 12px;
+      width:100%;
+    }
+    .textarea { min-height:84px; resize:vertical; }
+    .input:focus-visible, .select:focus-visible, .textarea:focus-visible {
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+      border-color:#6f8dff;
+    }
+    .results {
+      display:grid;
+      gap:10px;
+    }
+    .result {
+      border:1px solid #314788;
+      border-radius:14px;
+      background:var(--panel);
+      padding:14px;
+      display:grid;
+      gap:9px;
+    }
+    .result.is-lead {
+      background:linear-gradient(160deg, #17356f, #081228 72%);
+      border-color:#96afff;
+    }
+    .result-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .result-copy {
+      color:#d7e1ff;
+      line-height:1.5;
+      margin:0;
+    }
+    .result-meta, .brief-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#bfd0ff;
+      font-size:.78rem;
+    }
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      width:max-content;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid #4d66c7;
+      background:#13245f;
+      font-size:.75rem;
+      color:#d9e2ff;
+    }
+    .pill.good { border-color:#4e8e7c; background:#133831; color:#d9fff0; }
+    .pill.warn { border-color:#8a7236; background:#3f3110; color:#fff0c7; }
+    .brief {
+      border:1px solid #3950a0;
+      border-radius:14px;
+      background:#081022;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#e7edff;
+      line-height:1.5;
+      font:inherit;
+    }
+    .empty {
+      color:#9cb0e9;
+      border:1px dashed #435d9f;
+      border-radius:14px;
+      padding:14px;
+      background:#091126;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card hero">
+      <div>
+        <h1>roost searchlight</h1>
+        <p>Keyboard-first command palette for the roost. Search every major page, recent ship, note, expedition, and queue item from one place, then open or copy the route you want.</p>
+        <nav class="site-nav" aria-label="Site sections" style="margin-top:10px;">
+          <a class="nav-link" href="index.html">home</a>
+          <a class="nav-link" href="command-center.html">command center</a>
+          <a class="nav-link" href="roost-workbench.html">workbench</a>
+          <a class="nav-link" href="roost-atlas.html">atlas</a>
+          <a class="nav-link" href="signal-board.html">signal board</a>
+          <a class="nav-link" href="roost-searchlight.html">searchlight</a>
+        </nav>
+      </div>
+      <aside class="hero-panel" aria-live="polite">
+        <div class="hero-meta">
+          <span class="pill" id="matchPill">matches: loading</span>
+          <span class="pill" id="scopePill">scope: all sources</span>
+          <span class="pill" id="recentPill">recent: empty</span>
+        </div>
+        <div class="glow" id="heroTitle">type to find a page, ship, or note</div>
+        <p id="heroCopy">Searchlight keeps the roost fast to navigate: one query, ranked matches, and a copyable handoff for the next move.</p>
+        <div class="link-row">
+          <button class="btn" id="copyBriefBtn">copy brief</button>
+          <button class="btn" id="focusFirstBtn">focus top match</button>
+          <button class="btn" id="clearHistoryBtn">clear history</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <section class="stack">
+        <article class="card">
+          <h2>search controls</h2>
+          <div class="control-grid" style="margin-top:10px;">
+            <label>
+              <span class="tiny">query</span>
+              <input id="queryInput" class="input" placeholder="Search pages, updates, notes, expeditions..." autocomplete="off" />
+            </label>
+            <div class="toolbar" id="scopeButtons" role="toolbar" aria-label="Search scopes"></div>
+            <label>
+              <span class="tiny">boost tag match</span>
+              <input id="tagInput" class="input" placeholder="Optional tag hint, like build or navigation" />
+            </label>
+            <div class="meta">
+              <span class="pill" id="savedPill">saved: local</span>
+              <span class="pill" id="hintPill">hint: open, pin, or copy</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>results</h2>
+          <p class="tiny">The top hit is the most relevant route for the current query. Enter / focus stays on the search field so it works like a command palette.</p>
+          <div class="results" id="results" aria-live="polite" style="margin-top:12px;"></div>
+        </article>
+      </section>
+
+      <section class="stack">
+        <article class="card brief">
+          <h2>copyable brief</h2>
+          <div class="brief-meta" id="briefMeta"></div>
+          <pre id="brief">Searchlight is loading…</pre>
+        </article>
+        <article class="card">
+          <h2>recent picks</h2>
+          <p class="tiny">This browser remembers the last few searches so the roost feels like a command surface, not a dead-end search box.</p>
+          <div class="results" id="recentResults" style="margin-top:12px;"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const storage = (() => {
+      const probe = '__roost_searchlight_probe__';
+      try {
+        localStorage.setItem(probe, '1');
+        localStorage.removeItem(probe);
+        return {
+          get: (key) => localStorage.getItem(key),
+          set: (key, value) => localStorage.setItem(key, value),
+          remove: (key) => localStorage.removeItem(key),
+        };
+      } catch {
+        const memory = new Map();
+        return {
+          get: (key) => memory.get(key) ?? null,
+          set: (key, value) => memory.set(key, value),
+          remove: (key) => memory.delete(key),
+        };
+      }
+    })();
+
+    const pageCatalog = [
+      { title: 'home', href: 'index.html', type: 'page', description: 'front door with live routebook, launch deck, and the roost explorer.' , tags: ['home', 'navigation', 'launch'] },
+      { title: 'command center', href: 'command-center.html', type: 'page', description: 'dashboard for momentum, focus, and cross-feed activity.', tags: ['dashboard', 'overview', 'metrics'] },
+      { title: 'workbench', href: 'roost-workbench.html', type: 'page', description: 'ranked daily build recommendation surface.', tags: ['build', 'planning', 'recommendation'] },
+      { title: 'searchlight', href: 'roost-searchlight.html', type: 'page', description: 'keyboard-first command palette for the roost.', tags: ['search', 'navigation', 'commands'] },
+      { title: 'atlas', href: 'roost-atlas.html', type: 'page', description: 'interactive map of site sections and links.', tags: ['map', 'navigation', 'structure'] },
+      { title: 'signal board', href: 'signal-board.html', type: 'page', description: 'cross-site timeline across ships and notes.', tags: ['signals', 'timeline', 'search'] },
+      { title: 'flight deck', href: 'flight-deck.html', type: 'page', description: 'release log and roadmap landing page.', tags: ['releases', 'timeline', 'shipping'] },
+      { title: 'now', href: 'now.html', type: 'page', description: 'current focus cards with progress and priorities.', tags: ['focus', 'status', 'current'] },
+      { title: 'shipyard', href: 'shipyard.html', type: 'page', description: 'roadmap cockpit with sortable queue and pins.', tags: ['roadmap', 'queue', 'planning'] },
+      { title: 'roost briefing', href: 'roost-briefing.html', type: 'page', description: 'daily briefing combining focus, ship, and soundtrack cues.', tags: ['briefing', 'daily', 'overview'] },
+      { title: 'notes', href: 'notes.html', type: 'page', description: 'searchable field-notes archive.', tags: ['writing', 'archive', 'journal'] },
+      { title: 'timeline', href: 'timeline.html', type: 'page', description: 'searchable milestone timeline.', tags: ['history', 'milestones', 'progress'] },
+      { title: 'expeditions', href: 'expeditions.html', type: 'page', description: 'mission board for active and planned product work.', tags: ['roadmap', 'missions', 'strategy'] },
+      { title: 'roost chronicle', href: 'roost-chronicle.html', type: 'page', description: 'story-arc explorer that ties launches and notes together.', tags: ['story', 'history', 'content'] },
+      { title: 'roost trail intelligence', href: 'roost-trails.html', type: 'page', description: 'trail board showing shipped momentum and reusable paths.', tags: ['insights', 'momentum', 'history'] },
+      { title: 'roost routines', href: 'roost-routines.html', type: 'page', description: 'cadence-aware checklist cockpit with streaks.', tags: ['habits', 'ops', 'streaks'] }
+    ];
+
+    const sources = {
+      pages: pageCatalog,
+      updates: [],
+      notes: [],
+      expeditions: [],
+      shipyard: [],
+    };
+
+    const scopeButtons = document.getElementById('scopeButtons');
+    const queryInput = document.getElementById('queryInput');
+    const tagInput = document.getElementById('tagInput');
+    const resultsEl = document.getElementById('results');
+    const recentResultsEl = document.getElementById('recentResults');
+    const briefEl = document.getElementById('brief');
+    const briefMetaEl = document.getElementById('briefMeta');
+    const heroTitle = document.getElementById('heroTitle');
+    const heroCopy = document.getElementById('heroCopy');
+    const matchPill = document.getElementById('matchPill');
+    const scopePill = document.getElementById('scopePill');
+    const recentPill = document.getElementById('recentPill');
+    const savedPill = document.getElementById('savedPill');
+    const hintPill = document.getElementById('hintPill');
+    const copyBriefBtn = document.getElementById('copyBriefBtn');
+    const focusFirstBtn = document.getElementById('focusFirstBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+    const scopes = [
+      { id: 'all', label: 'all sources' },
+      { id: 'pages', label: 'pages' },
+      { id: 'updates', label: 'updates' },
+      { id: 'notes', label: 'notes' },
+      { id: 'ops', label: 'expeditions + shipyard' },
+    ];
+
+    const loadJson = async (path) => {
+      const res = await fetch(path, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`${path} ${res.status}`);
+      return res.json();
+    };
+
+    let state = {
+      scope: storage.get('roostSearchlightScope') || 'all',
+      query: storage.get('roostSearchlightQuery') || '',
+      tag: storage.get('roostSearchlightTag') || '',
+      recent: [],
+      selectedId: storage.get('roostSearchlightSelected') || '',
+    };
+
+    try {
+      state.recent = JSON.parse(storage.get('roostSearchlightRecent') || '[]');
+      if (!Array.isArray(state.recent)) state.recent = [];
+    } catch {
+      state.recent = [];
+    }
+
+    function saveRecent(item) {
+      state.recent = [item, ...state.recent.filter((entry) => entry.id !== item.id)].slice(0, 5);
+      storage.set('roostSearchlightRecent', JSON.stringify(state.recent));
+      renderRecent();
+    }
+
+    function scoreEntry(entry, query, tagHint) {
+      const q = query.trim().toLowerCase();
+      const tag = tagHint.trim().toLowerCase();
+      const haystack = `${entry.title} ${entry.description} ${entry.body || ''} ${(entry.tags || []).join(' ')} ${(entry.meta || []).join(' ')}`.toLowerCase();
+
+      if (!q && !tag) return 1;
+
+      let score = 0;
+      if (q && haystack.includes(q)) score += 4;
+      if (q && entry.title.toLowerCase().startsWith(q)) score += 4;
+      if (q && entry.title.toLowerCase().includes(q)) score += 2;
+      if (q && entry.description.toLowerCase().includes(q)) score += 1;
+      if (tag && (entry.tags || []).some((item) => item.toLowerCase().includes(tag))) score += 3;
+      if (entry.type === 'page' && q) score += 1;
+      return score;
+    }
+
+    function entryFromPage(page) {
+      return {
+        id: `page:${page.href}`,
+        type: page.type,
+        title: page.title,
+        href: page.href,
+        description: page.description,
+        tags: page.tags || [],
+        meta: ['page'],
+      };
+    }
+
+    function collectEntries() {
+      const entries = [];
+      if (state.scope === 'all' || state.scope === 'pages') entries.push(...sources.pages.map(entryFromPage));
+      if (state.scope === 'all' || state.scope === 'updates') {
+        entries.push(...sources.updates.map((item) => ({
+          id: `update:${item.slug}`,
+          type: 'update',
+          title: item.title,
+          href: item.page || 'changelog.html',
+          description: item.impact || item.details || '',
+          body: item.details || '',
+          tags: [item.type, ...(item.relatedNotes || []).slice(0, 2)],
+          meta: [item.date, item.pageLabel || 'update'],
+        })));
+      }
+      if (state.scope === 'all' || state.scope === 'notes') {
+        entries.push(...sources.notes.map((item) => ({
+          id: `note:${item.id}`,
+          type: 'note',
+          title: item.title,
+          href: item.relatedPage || 'notes.html',
+          description: item.summary,
+          body: (item.body || []).join(' '),
+          tags: item.tags || [],
+          meta: [item.date, item.relatedPageLabel || 'note'],
+        })));
+      }
+      if (state.scope === 'all' || state.scope === 'ops') {
+        entries.push(...sources.expeditions.map((item) => ({
+          id: `expedition:${item.id}`,
+          type: 'expedition',
+          title: item.name,
+          href: (item.links && item.links[0] && item.links[0].href) || 'expeditions.html',
+          description: item.summary,
+          body: item.milestones ? item.milestones.map((m) => m.title).join(' ') : '',
+          tags: [item.theme, item.status].filter(Boolean),
+          meta: [`${item.progress}% progress`, item.shipTarget || ''],
+        })));
+        entries.push(...sources.shipyard.map((item) => ({
+          id: `shipyard:${item.id}`,
+          type: 'shipyard',
+          title: item.title,
+          href: item.link || 'shipyard.html',
+          description: item.summary,
+          body: item.tags ? item.tags.join(' ') : '',
+          tags: item.tags || [],
+          meta: [item.status, item.horizon, `${item.impact}/${item.effort}`],
+        })));
+      }
+      return entries;
+    }
+
+    function renderScopeButtons() {
+      scopeButtons.innerHTML = scopes.map((scope) => `
+        <button class="mode ${scope.id === state.scope ? 'is-active' : ''}" data-scope="${scope.id}">${scope.label}</button>
+      `).join('');
+      scopeButtons.querySelectorAll('[data-scope]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.scope = button.dataset.scope;
+          storage.set('roostSearchlightScope', state.scope);
+          scopePill.textContent = `scope: ${scopes.find((item) => item.id === state.scope)?.label || 'all sources'}`;
+          render();
+        });
+      });
+    }
+
+    function renderRecent() {
+      recentResultsEl.innerHTML = '';
+      if (!state.recent.length) {
+        recentPill.textContent = 'recent: empty';
+        recentResultsEl.innerHTML = '<div class="empty">No recent picks yet. Search for a page or ship, then it will appear here.</div>';
+        return;
+      }
+      recentPill.textContent = `recent: ${state.recent.length}`;
+      for (const item of state.recent) {
+        const card = document.createElement('article');
+        card.className = 'result';
+        card.innerHTML = `
+          <div class="result-head">
+            <div>
+              <h3>${item.title}</h3>
+              <p class="tiny">${item.description}</p>
+            </div>
+            <span class="pill">${item.type}</span>
+          </div>
+          <div class="result-meta">${(item.meta || []).map((meta) => `<span class="pill">${meta}</span>`).join('')}</div>
+          <div class="link-row">
+            <a class="btn" href="${item.href}">open</a>
+            <button class="btn" data-copy="${item.href}">copy link</button>
+          </div>
+        `;
+        recentResultsEl.appendChild(card);
+      }
+    }
+
+    function render(entries = collectEntries()) {
+      const query = state.query.trim();
+      const tag = state.tag.trim();
+      const ranked = entries
+        .map((entry) => ({ entry, score: scoreEntry(entry, query, tag) }))
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title))
+        .slice(0, 8);
+
+      matchPill.textContent = `matches: ${ranked.length}`;
+      savedPill.textContent = 'saved: local';
+      hintPill.textContent = ranked[0] ? `hint: ${ranked[0].entry.type}` : 'hint: try broader words';
+
+      if (ranked[0]) {
+        heroTitle.textContent = ranked[0].entry.title;
+        heroCopy.textContent = ranked[0].entry.description;
+      } else {
+        heroTitle.textContent = 'no direct hit yet';
+        heroCopy.textContent = 'Try a looser search term, switch scope, or add a tag hint to widen the search.';
+      }
+
+      resultsEl.innerHTML = '';
+      if (!ranked.length) {
+        resultsEl.innerHTML = '<div class="empty">No results yet. Try terms like “build”, “notes”, “roadmap”, or “launch”.</div>';
+      } else {
+        ranked.forEach(({ entry, score }, index) => {
+          const card = document.createElement('article');
+          card.className = `result ${index === 0 ? 'is-lead' : ''}`;
+          card.dataset.id = entry.id;
+          card.innerHTML = `
+            <div class="result-head">
+              <div>
+                <h3>${index === 0 ? 'best match: ' : ''}${entry.title}</h3>
+                <p class="result-copy">${entry.description}</p>
+              </div>
+              <span class="pill ${index === 0 ? 'good' : ''}">score ${score}</span>
+            </div>
+            <div class="result-meta">
+              <span class="pill">${entry.type}</span>
+              ${(entry.meta || []).map((meta) => `<span class="pill">${meta}</span>`).join('')}
+            </div>
+            <div class="chip-row">${(entry.tags || []).slice(0, 4).map((tag) => `<span class="chip">${tag}</span>`).join('')}</div>
+            <div class="link-row">
+              <a class="btn" href="${entry.href}">open</a>
+              <button class="btn" data-copy="${entry.href}">copy link</button>
+            </div>
+          `;
+          resultsEl.appendChild(card);
+        });
+      }
+
+      briefMetaEl.innerHTML = [
+        `<span class="pill">${state.scope}</span>`,
+        `<span class="pill">${query ? `query: ${query}` : 'query: empty'}</span>`,
+        `<span class="pill">${tag ? `tag: ${tag}` : 'tag: none'}</span>`,
+      ].join('');
+
+      briefEl.textContent = [
+        'roost searchlight brief',
+        '',
+        `scope: ${state.scope}`,
+        `query: ${query || '(empty)'}${tag ? ` | tag hint: ${tag}` : ''}`,
+        `top match: ${ranked[0] ? `${ranked[0].entry.title} -> ${ranked[0].entry.href}` : 'none yet'}`,
+        '',
+        ranked.slice(0, 3).map((item, index) => `${index + 1}. ${item.entry.title} (${item.entry.type}) -> ${item.entry.href}`).join('\n') || 'No results yet.',
+        '',
+        'why it matters: search becomes a first-class roost surface, so the site can scale without burying important pages behind a long nav list.'
+      ].join('\n');
+
+      if (ranked[0]) state.selectedId = ranked[0].entry.id;
+      storage.set('roostSearchlightSelected', state.selectedId || '');
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const area = document.createElement('textarea');
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+      }
+    }
+
+    async function copyBrief() {
+      await copyText(briefEl.textContent || '');
+      copyBriefBtn.textContent = 'brief copied';
+      setTimeout(() => { copyBriefBtn.textContent = 'copy brief'; }, 1200);
+    }
+
+    async function focusTopMatch() {
+      const first = resultsEl.querySelector('.result.is-lead a.btn');
+      if (first instanceof HTMLAnchorElement) {
+        first.focus();
+        saveRecent({
+          id: state.selectedId || 'top-match',
+          title: first.closest('.result')?.querySelector('h3')?.textContent || 'top match',
+          href: first.href.split(location.origin + '/').pop() || first.getAttribute('href') || '',
+          description: first.closest('.result')?.querySelector('.result-copy')?.textContent || '',
+          type: first.closest('.result')?.querySelector('.pill')?.textContent || 'page',
+          meta: [],
+        });
+      }
+    }
+
+    function hydrate() {
+      const query = storage.get('roostSearchlightQuery') || '';
+      const tag = storage.get('roostSearchlightTag') || '';
+      queryInput.value = query;
+      tagInput.value = tag;
+      state.query = query;
+      state.tag = tag;
+    }
+
+    async function loadData() {
+      const [updates, notes, expeditions, shipyard] = await Promise.all([
+        loadJson('assets/roost-updates.json'),
+        loadJson('assets/roost-notes.json'),
+        loadJson('assets/roost-expeditions.json'),
+        loadJson('assets/roost-shipyard.json'),
+      ]);
+      sources.updates = updates.updates || [];
+      sources.notes = notes.notes || [];
+      sources.expeditions = Array.isArray(expeditions) ? expeditions : [];
+      sources.shipyard = Array.isArray(shipyard) ? shipyard : [];
+    }
+
+    resultsEl.addEventListener('click', async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const copyTarget = target.closest('[data-copy]');
+      if (copyTarget instanceof HTMLElement) {
+        await copyText(copyTarget.dataset.copy || '');
+      }
+    });
+
+    queryInput.addEventListener('input', () => {
+      state.query = queryInput.value;
+      storage.set('roostSearchlightQuery', state.query);
+      render();
+    });
+
+    tagInput.addEventListener('input', () => {
+      state.tag = tagInput.value;
+      storage.set('roostSearchlightTag', state.tag);
+      render();
+    });
+
+    copyBriefBtn.addEventListener('click', copyBrief);
+    focusFirstBtn.addEventListener('click', focusTopMatch);
+    clearHistoryBtn.addEventListener('click', () => {
+      state.recent = [];
+      storage.remove('roostSearchlightRecent');
+      renderRecent();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        queryInput.value = '';
+        tagInput.value = '';
+        state.query = '';
+        state.tag = '';
+        storage.remove('roostSearchlightQuery');
+        storage.remove('roostSearchlightTag');
+        render();
+        queryInput.focus();
+      }
+      if ((event.key === 'Enter' && document.activeElement === queryInput) && resultsEl.firstElementChild) {
+        const leadLink = resultsEl.querySelector('.result.is-lead a.btn');
+        if (leadLink instanceof HTMLAnchorElement) leadLink.click();
+      }
+    });
+
+    (async () => {
+      hydrate();
+      renderScopeButtons();
+      scopePill.textContent = `scope: ${scopes.find((item) => item.id === state.scope)?.label || 'all sources'}`;
+      try {
+        await loadData();
+        const entries = collectEntries();
+        render(entries);
+      } catch (error) {
+        resultsEl.innerHTML = `<div class="empty">Failed to load shared roost data: ${String(error.message || error)}</div>`;
+        briefEl.textContent = 'Searchlight could not load shared data files.';
+      }
+      renderRecent();
+      queryInput.focus();
+    })();
+  </script>
+</body>
+</html>

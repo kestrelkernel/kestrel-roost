@@ -1110,6 +1110,7 @@
         <a class="nav-link" href="roost-momentum-map.html">roost momentum map</a>
         <a class="nav-link" href="roost-ship-cadence.html">roost ship cadence</a>
         <a class="nav-link" href="roost-pinboard.html">roost pinboard</a>
+        <a class="nav-link" href="roost-searchlight.html">roost searchlight</a>
         <a class="nav-link" href="roost-handoff.html">roost handoff</a>
         <a class="nav-link" href="roost-orbit.html">roost orbit</a>
         <a class="nav-link" href="roost-route-mixer.html">roost route mixer</a>
@@ -2096,6 +2097,15 @@
         description: 'favorite-page launcher for pinning the roost surfaces you keep revisiting.',
         tags: ['favorites', 'launcher', 'navigation'],
         intents: ['reflect', 'build'],
+        energy: 'low',
+        minTime: 10
+      },
+      {
+        title: 'roost searchlight',
+        href: 'roost-searchlight.html',
+        description: 'keyboard-first command palette for searching pages, notes, ships, and roadmap items.',
+        tags: ['search', 'navigation', 'commands'],
+        intents: ['build', 'reflect'],
         energy: 'low',
         minTime: 10
       }
