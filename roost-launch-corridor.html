@@ -149,6 +149,79 @@
       line-height:1.55;
     }
     .status{color:var(--muted);font-size:.82rem;min-height:1.2em}
+    .history-list{
+      margin:0;
+      padding-left:18px;
+      color:#b4c2ea;
+      display:grid;
+      gap:8px;
+    }
+    .history-list li{
+      margin:0;
+      line-height:1.45;
+    }
+    .history-list button{
+      border:0;
+      background:transparent;
+      color:#dfe8ff;
+      font:inherit;
+      cursor:pointer;
+      padding:0;
+      text-decoration:underline;
+      text-decoration-color:#5874cb;
+      text-underline-offset:2px;
+    }
+    .history-list button:hover,
+    .history-list button:focus-visible{
+      color:#ffffff;
+      text-decoration-color:#9db7ff;
+      outline:none;
+    }
+    .mode-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:12px;
+    }
+    .mode-card{
+      border:1px solid #344877;
+      border-radius:14px;
+      background:#081127;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .mode-card.is-picked{
+      background:linear-gradient(160deg,#132a63,#081127 72%);
+      border-color:#7a94e8;
+    }
+    .mode-card h3{margin:0;font-size:1rem}
+    .mode-card p{margin:0;color:#b4c2ea;line-height:1.45;font-size:.93rem}
+    .mode-score{font-size:1.6rem;font-weight:700}
+    .breakdown{
+      display:grid;
+      gap:8px;
+      margin:0;
+    }
+    .breakdown-row{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:10px;
+      align-items:center;
+      font-size:.88rem;
+      color:#bfd0ff;
+    }
+    .breakdown-track{
+      height:7px;
+      border-radius:999px;
+      background:#172548;
+      overflow:hidden;
+      margin-top:4px;
+    }
+    .breakdown-fill{
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+    }
     @media (max-width: 720px){
       .shell{padding:18px 12px 36px}
       .hero,.panel,.summary{border-radius:16px}
@@ -175,6 +248,7 @@
           <button class="chip" id="modeBuild" type="button" aria-pressed="true">build first</button>
           <button class="chip" id="modeShip" type="button" aria-pressed="false">ship first</button>
           <button class="chip" id="modeExplore" type="button" aria-pressed="false">explore first</button>
+          <button class="chip" id="copyShare" type="button">copy share link</button>
           <button class="chip" id="copyBrief" type="button">copy corridor brief</button>
         </div>
       </div>
@@ -192,8 +266,16 @@
 
       <article class="panel">
         <div class="panel-head">
+          <h2>Mode comparison</h2>
+          <p class="panel-note">Each mode scores the same signals differently, so the page can explain its opinion.</p>
+        </div>
+        <div class="mode-grid" id="modeGrid"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
           <h2>Pressure signals</h2>
-          <p class="panel-note">Roadmap items, active focus, and recent wins summarized for quick scanning.</p>
+          <p class="panel-note">Roadmap items, active focus, recent wins, and shipyard pressure summarized for quick scanning.</p>
         </div>
         <div class="signal-grid" id="signalGrid"></div>
       </article>
@@ -208,6 +290,18 @@
 
       <article class="summary">
         <div class="panel-head">
+          <h2>Saved briefs</h2>
+          <p class="panel-note">Pin the corridor to local snapshots and reopen the last few decisions later.</p>
+        </div>
+        <ul class="history-list" id="historyList"></ul>
+        <div class="action-row" style="margin-top:12px">
+          <button class="button" id="saveSnapshot" type="button">save snapshot</button>
+          <button class="button" id="clearSnapshots" type="button">clear snapshots</button>
+        </div>
+      </article>
+
+      <article class="summary">
+        <div class="panel-head">
           <h2>Copyable brief</h2>
           <p class="panel-note">Useful for a commit message, status update, or handoff note.</p>
         </div>
@@ -218,9 +312,12 @@
   </main>
 
   <script>
+    const STORAGE_KEY = 'roost-launch-corridor-state';
+    const SNAPSHOT_KEY = 'roost-launch-corridor-snapshots';
     const state = { mode: 'build' };
     const $ = (id) => document.getElementById(id);
     const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
     async function load(path, fallback) {
       try {
@@ -243,10 +340,58 @@
       return weight * 10 + Math.min(impact / 12, 10);
     }
 
+    function readJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function writeJSON(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function loadModeFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const mode = params.get('mode');
+      if (['build', 'ship', 'explore'].includes(mode)) return mode;
+      const saved = readJSON(STORAGE_KEY, null);
+      return saved?.mode || 'build';
+    }
+
+    function saveMode(mode) {
+      writeJSON(STORAGE_KEY, { mode });
+      const url = new URL(location.href);
+      url.searchParams.set('mode', mode);
+      history.replaceState({}, '', url);
+    }
+
+    function getSnapshots() {
+      return readJSON(SNAPSHOT_KEY, []);
+    }
+
+    function saveSnapshot(snapshot) {
+      const snapshots = getSnapshots();
+      snapshots.unshift(snapshot);
+      return writeJSON(SNAPSHOT_KEY, snapshots.slice(0, 5));
+    }
+
+    function clearSnapshots() {
+      return writeJSON(SNAPSHOT_KEY, []);
+    }
+
     function buildCandidatePool(now, updates) {
       const focus = now.activeFocus || [];
       const roadmap = topRoadmapItems(updates);
       const wins = now.recentWins || [];
+      const shipyard = (updates?.roadmap?.later || []).slice(0, 2);
       return [
         ...focus.map((item) => ({
           title: item.title,
@@ -254,6 +399,7 @@
           source: item.horizon === 'now' ? 'active focus' : 'near-term focus',
           tag: `${item.progress}%`,
           score: 80 + item.progress,
+          breakdown: { focus: item.progress, roadmap: 18, momentum: 8 },
           href: 'now.html'
         })),
         ...roadmap.map((item, index) => ({
@@ -262,6 +408,7 @@
           source: 'roadmap',
           tag: `#${index + 1}`,
           score: 70 - index * 4,
+          breakdown: { focus: 10, roadmap: 70 - index * 4, momentum: 6 },
           href: 'index.html#launchDeckBoard'
         })),
         ...wins.map((item, index) => ({
@@ -270,9 +417,30 @@
           source: 'recent win',
           tag: `win ${index + 1}`,
           score: 50 - index * 3,
+          breakdown: { focus: 6, roadmap: 12, momentum: 50 - index * 3 },
+          href: 'release-radar.html'
+        })),
+        ...shipyard.map((item, index) => ({
+          title: item,
+          body: 'Later-lane pressure that can shape the next build if surfaced early.',
+          source: 'shipyard signal',
+          tag: `later ${index + 1}`,
+          score: 42 - index * 4,
+          breakdown: { focus: 8, roadmap: 28 - index * 2, momentum: 18 },
           href: 'release-radar.html'
         }))
       ];
+    }
+
+    function scoreByMode(item, mode) {
+      const base = item.score || 0;
+      const breakdown = item.breakdown || {};
+      const focus = breakdown.focus || 0;
+      const roadmap = breakdown.roadmap || 0;
+      const momentum = breakdown.momentum || 0;
+      if (mode === 'build') return base + focus * 0.7 + roadmap * 0.5;
+      if (mode === 'ship') return base + momentum * 0.8 + roadmap * 0.4;
+      return base + roadmap * 0.8 + focus * 0.3;
     }
 
     function routeOrder(pool) {
@@ -283,7 +451,7 @@
       }[state.mode];
       return pool
         .slice()
-        .sort((a, b) => b.score - a.score)
+        .sort((a, b) => scoreByMode(b, state.mode) - scoreByMode(a, state.mode))
         .sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source))
         .slice(0, 6);
     }
@@ -294,11 +462,20 @@
       const topCandidates = ordered.slice(0, 3);
       const roadmap = topRoadmapItems(updates);
       const scoreTotal = Math.round(ordered.reduce((sum, item) => sum + item.score, 0));
+      const modeScores = ['build', 'ship', 'explore'].map((mode) => {
+        const best = candidatePool.slice().sort((a, b) => scoreByMode(b, mode) - scoreByMode(a, mode)).slice(0, 3);
+        return {
+          mode,
+          score: Math.round(best.reduce((sum, item) => sum + scoreByMode(item, mode), 0)),
+          lead: best[0]
+        };
+      });
 
       $('stats').innerHTML = [
         { label: 'active focus', value: now.activeFocus?.length || 0, note: 'live bets currently in motion' },
         { label: 'roadmap items', value: roadmap.length, note: 'pressure points pulled from the updates feed' },
         { label: 'recent wins', value: now.recentWins?.length || 0, note: 'shipping momentum worth reusing' },
+        { label: 'shipyard signals', value: (updates?.roadmap?.later || []).length, note: 'future pressure that still matters today' },
         { label: 'corridor score', value: scoreTotal, note: 'combined pressure for the current mode' }
       ].map((item) => `
         <article class="stat">
@@ -335,12 +512,29 @@
           title: 'recent wins',
           body: now.recentWins?.[0] || 'No recent wins loaded.',
           details: (now.recentWins || []).slice(1, 4).join(' • ') || 'n/a'
+        },
+        {
+          title: 'shipyard pressure',
+          body: (updates?.roadmap?.later || [])[0] || 'No later-lane items loaded.',
+          details: (updates?.roadmap?.later || []).slice(1, 4).join(' • ') || 'n/a'
         }
       ].map((item, index) => `
         <article class="signal ${index === 0 ? 'is-primary' : ''}">
           <h3>${item.title}</h3>
           <p>${item.body}</p>
           <p><strong>Signals:</strong> ${item.details}</p>
+        </article>
+      `).join('');
+
+      $('modeGrid').innerHTML = modeScores.map((item, index) => `
+        <article class="mode-card ${item.mode === state.mode ? 'is-picked' : ''}">
+          <div class="meta-row">
+            <span class="badge ${item.mode === state.mode ? 'good' : ''}">${item.mode} mode</span>
+            <span class="badge">${index === 0 ? 'best fit' : 'alt lane'}</span>
+          </div>
+          <div class="mode-score">${item.score}</div>
+          <h3>${item.lead?.title || 'n/a'}</h3>
+          <p>${item.lead?.body || 'No lead candidate loaded.'}</p>
         </article>
       `).join('');
 
@@ -362,11 +556,31 @@
         `- Current focus: ${now.activeFocus?.[0]?.title || 'n/a'}`,
         `- Strongest roadmap pressure: ${roadmap[0] || 'n/a'}`,
         `- Recent win to reuse: ${now.recentWins?.[0] || 'n/a'}`,
+        `- Shipyard pressure: ${(updates?.roadmap?.later || [])[0] || 'n/a'}`,
         `- Recommended route: ${route.map((item) => item.step).join(' -> ')}`,
         `- Why it matters: the corridor compresses live focus, roadmap pressure, and momentum into one next-build choice.`
       ].join('\n');
       $('brief').textContent = brief;
       $('status').textContent = `Refreshed ${fmt.format(new Date(now.updatedAt || updates.updates?.[0]?.date || Date.now()))}.`;
+      renderSnapshots(brief);
+    }
+
+    function renderSnapshots(brief) {
+      const snapshots = getSnapshots();
+      $('historyList').innerHTML = snapshots.length ? snapshots.map((snapshot, index) => `
+        <li>
+          <button type="button" data-snapshot="${index}">${timeFmt.format(new Date(snapshot.savedAt))}</button>
+          <span> - ${snapshot.mode} mode, ${snapshot.route}</span>
+        </li>
+      `).join('') : '<li>No saved snapshots yet. Save one after you like a route.</li>';
+      $('historyList').querySelectorAll('button[data-snapshot]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const snapshot = getSnapshots()[Number(button.dataset.snapshot)];
+          if (!snapshot) return;
+          $('brief').textContent = snapshot.brief;
+          $('status').textContent = `Loaded snapshot from ${timeFmt.format(new Date(snapshot.savedAt))}.`;
+        });
+      });
     }
 
     function setMode(mode) {
@@ -374,6 +588,7 @@
       $('modeBuild').setAttribute('aria-pressed', String(mode === 'build'));
       $('modeShip').setAttribute('aria-pressed', String(mode === 'ship'));
       $('modeExplore').setAttribute('aria-pressed', String(mode === 'explore'));
+      saveMode(mode);
       boot();
     }
 
@@ -384,6 +599,29 @@
       } catch {
         $('status').textContent = 'Clipboard copy failed, but the brief is still visible.';
       }
+    }
+
+    async function copyShareLink() {
+      const url = new URL(location.href);
+      url.searchParams.set('mode', state.mode);
+      try {
+        await navigator.clipboard.writeText(url.toString());
+        $('status').textContent = 'Share link copied.';
+      } catch {
+        $('status').textContent = url.toString();
+      }
+    }
+
+    async function saveCurrentSnapshot() {
+      const brief = $('brief').textContent;
+      const ok = saveSnapshot({
+        savedAt: new Date().toISOString(),
+        mode: state.mode,
+        route: $('routeGrid').textContent.trim().slice(0, 80),
+        brief
+      });
+      $('status').textContent = ok ? 'Saved a corridor snapshot.' : 'Could not save the snapshot in this browser.';
+      boot();
     }
 
     async function boot() {
@@ -397,7 +635,18 @@
     $('modeBuild').addEventListener('click', () => setMode('build'));
     $('modeShip').addEventListener('click', () => setMode('ship'));
     $('modeExplore').addEventListener('click', () => setMode('explore'));
+    $('copyShare').addEventListener('click', copyShareLink);
     $('copyBrief').addEventListener('click', copyBrief);
+    $('saveSnapshot').addEventListener('click', saveCurrentSnapshot);
+    $('clearSnapshots').addEventListener('click', () => {
+      clearSnapshots();
+      boot();
+      $('status').textContent = 'Cleared saved corridor snapshots.';
+    });
+    state.mode = loadModeFromUrl();
+    $('modeBuild').setAttribute('aria-pressed', String(state.mode === 'build'));
+    $('modeShip').setAttribute('aria-pressed', String(state.mode === 'ship'));
+    $('modeExplore').setAttribute('aria-pressed', String(state.mode === 'explore'));
     boot();
   </script>
 </body>

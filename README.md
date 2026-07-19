@@ -49,6 +49,7 @@ python3 -m http.server 8080
 - `roost-council.html` — decision studio with seasonal context, mode filters, draw history, and copyable briefs
 - `roost-handoff.html` — copyable session brief generator that distills the latest now/updates/milestones data into a next-step handoff
 - `roost-orbit.html` — daily orbit planner that turns intent, energy, and time into a copyable 3-stop route
+- `roost-launch-corridor.html` — launch compass that ranks the next build, compares mode scores, and saves local briefing snapshots
 - `roost-route-mixer.html` — interactive route builder that turns updates, roadmap pressure, and note trails into a copyable three-stop visit plan
 - `roost-workbench.html` — ranked daily workbench that scores roadmap, expedition, note, and shipyard signals into one recommended next move
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
@@ -56,6 +57,7 @@ python3 -m http.server 8080
 ## New in this iteration
 
 - **Roost Searchlight launch:** added `roost-searchlight.html`, a keyboard-first command palette that searches pages, notes, expeditions, and shipyard items with scoped filters, local recent picks, and a copyable brief for faster cross-roost navigation
+- **Roost Launch Corridor expansion:** upgraded `roost-launch-corridor.html` with URL-synced mode state, a share-link copier, a mode comparison panel, shipyard pressure in the signal mix, and local saved briefing snapshots so the compass can reopen a decision later
 - **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks
 - **Roost Route Mixer launch:** added `roost-route-mixer.html`, a route-builder surface that blends updates, roadmap pressure, and note trails into a copyable three-stop visit plan with seed history and mode-based routing
 - **Roost Workbench launch:** added `roost-workbench.html`, a ranked daily recommendation surface that turns roadmap, expedition, note, and shipyard signals into one opinionated next move with mode switching, pinning, and a copyable brief
