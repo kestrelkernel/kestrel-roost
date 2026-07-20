@@ -17,7 +17,7 @@ python3 -m http.server 8080
 - `index.html` — home page with quest generator + status widgets
 - `game.html` — playable Sky Sprint mini-game with classic + daily challenge modes
 - `gallery.html` — image showcase wall + featured art drops
-- `wallpapers.html` — downloadable SVG wallpaper packs in desktop + phone sizes
+- `wallpapers.html` — downloadable SVG wallpaper packs with filters, favorites, and drop briefs in desktop + phone sizes
 - `now.html` — live now board with active focus cards, progress bars, recent wins, and next-up priorities
 - `roost-almanac.html` — planning compass that folds seasonal, energy, and weather signals into a copyable build recipe
 - `changelog.html` — release history + filterable flight log
@@ -57,6 +57,7 @@ python3 -m http.server 8080
 ## New in this iteration
 
 - **Roost Searchlight launch:** added `roost-searchlight.html`, a keyboard-first command palette that searches pages, notes, expeditions, and shipyard items with scoped filters, local recent picks, and a copyable brief for faster cross-roost navigation
+- **Wallpaper catalog upgrade:** expanded `wallpapers.html` into a real drop browser with release metadata, favorites, a copyable brief, and a visible drop index so the art wing behaves more like a living release queue
 - **Roost Launch Corridor expansion:** upgraded `roost-launch-corridor.html` with URL-synced mode state, a share-link copier, a mode comparison panel, shipyard pressure in the signal mix, and local saved briefing snapshots so the compass can reopen a decision later
 - **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks
 - **Roost Route Mixer launch:** added `roost-route-mixer.html`, a route-builder surface that blends updates, roadmap pressure, and note trails into a copyable three-stop visit plan with seed history and mode-based routing

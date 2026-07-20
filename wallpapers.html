@@ -65,7 +65,8 @@
     .palette-row,
     .hero-grid,
     .pack-grid,
-    .tip-grid {
+    .tip-grid,
+    .drop-rail {
       display:flex;
       gap:8px;
       flex-wrap:wrap;
@@ -80,6 +81,7 @@
     .hero-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
     .tip-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
     .pack-grid { grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); }
+    .drop-rail { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
 
     .nav-link,
     .filter-chip,
@@ -87,7 +89,8 @@
     .ghost-btn,
     .mini-link,
     .tag,
-    .size-badge {
+    .size-badge,
+    .date-badge {
       border:1px solid #3a4f9d;
       border-radius:999px;
       color:#d7e0ff;
@@ -123,13 +126,15 @@
     }
     .mini-link,
     .tag,
-    .size-badge {
+    .size-badge,
+    .date-badge {
       padding:4px 9px;
       font-size:.75rem;
       background:#0d1840;
     }
     .tag,
-    .size-badge { cursor:default; }
+    .size-badge,
+    .date-badge { cursor:default; }
 
     .hero-box,
     .tip-box,
@@ -140,6 +145,39 @@
       padding:14px;
       display:grid;
       gap:10px;
+    }
+    .pack-card.is-favorite {
+      border-color:#86a6ff;
+      background:linear-gradient(155deg, #13295f, #0b173f 68%);
+    }
+    .pack-topline {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .pack-title {
+      display:grid;
+      gap:6px;
+    }
+    .pack-title p,
+    .brief p {
+      color:var(--muted);
+    }
+    .fav-btn {
+      border:1px solid #3a4f9d;
+      border-radius:999px;
+      background:#0f1d4d;
+      color:#d7e0ff;
+      font:inherit;
+      cursor:pointer;
+      padding:6px 10px;
+    }
+    .fav-btn.is-active {
+      border-color:#8fffcf;
+      background:#123a39;
+      color:#dbfff0;
     }
     .hero-stat {
       font-size:1.8rem;
@@ -207,6 +245,29 @@
       font-size:.82rem;
       min-height:1.2em;
     }
+    .brief-grid {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:12px;
+    }
+    .brief {
+      border:1px solid #30418a;
+      border-radius:12px;
+      background:#081127;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      font:inherit;
+      color:#e6ecff;
+      line-height:1.55;
+    }
+    @media (max-width: 960px) {
+      .brief-grid { grid-template-columns:1fr; }
+    }
     @media (max-width: 760px) {
       .pack-preview { grid-template-columns:1fr; }
     }
@@ -243,14 +304,19 @@
         <p>Distinct moods, each with matching desktop and phone versions.</p>
       </article>
       <article class="hero-box">
+        <h3>latest drop</h3>
+        <div class="hero-stat" id="latestDrop">--</div>
+        <p id="latestDropCopy">Newest pack and release notes, surfaced here first so the art wing can behave like a real launch queue.</p>
+      </article>
+      <article class="hero-box">
         <h3>formats</h3>
         <div class="hero-stat">svg</div>
         <p>Vector files stay crisp on weird screens and download almost instantly.</p>
       </article>
       <article class="hero-box">
-        <h3>random launch</h3>
-        <div class="hero-stat">yes</div>
-        <p>Use the randomizer if you want the roost to choose your next backdrop for you.</p>
+        <h3>favorites</h3>
+        <div class="hero-stat" id="favoriteCount">0</div>
+        <p>Mark packs you keep coming back to, then reopen them without digging through the full list.</p>
       </article>
     </section>
 
@@ -259,6 +325,7 @@
       <div class="filter-row" id="moodFilters" role="toolbar" aria-label="Filter packs by mood"></div>
       <div class="hero-actions">
         <button type="button" class="btn" id="randomPackBtn">pick random pack</button>
+        <button type="button" class="ghost-btn" id="copyBriefBtn">copy drop brief</button>
         <a class="ghost-btn" href="gallery.html">back to gallery wall</a>
       </div>
       <p class="results-meta" id="resultsMeta">loading packs…</p>
@@ -270,6 +337,17 @@
       <div class="pack-grid" id="packGrid" aria-live="polite">
         <div class="empty">loading wallpaper packs…</div>
       </div>
+    </section>
+
+    <section class="card brief-grid" aria-label="Wallpaper drop briefing">
+      <article class="brief">
+        <h2>drop brief</h2>
+        <pre id="briefOutput">Loading wallpaper brief…</pre>
+      </article>
+      <article class="brief">
+        <h2>drop index</h2>
+        <div class="drop-rail" id="dropRail" aria-live="polite"></div>
+      </article>
     </section>
 
     <section class="card tip-grid" aria-label="Wallpaper notes">
@@ -295,17 +373,53 @@
     const packSearch = document.getElementById('packSearch');
     const moodFilters = document.getElementById('moodFilters');
     const randomPackBtn = document.getElementById('randomPackBtn');
+    const copyBriefBtn = document.getElementById('copyBriefBtn');
     const resultsMeta = document.getElementById('resultsMeta');
     const statusNote = document.getElementById('statusNote');
     const packCount = document.getElementById('packCount');
+    const latestDrop = document.getElementById('latestDrop');
+    const latestDropCopy = document.getElementById('latestDropCopy');
+    const favoriteCount = document.getElementById('favoriteCount');
+    const briefOutput = document.getElementById('briefOutput');
+    const dropRail = document.getElementById('dropRail');
 
     let allPacks = [];
     let activeMood = 'all';
+    let favoriteIds = new Set();
+    let selectedPackId = '';
+
+    const storageKey = 'kestrel-roost.wallpaper-favorites';
 
     const normalize = (value) => String(value || '').toLowerCase();
+    const formatDate = (value) => {
+      if (!value) return 'undated';
+      return new Date(`${value}T00:00:00Z`).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    };
 
     const setStatus = (message) => {
       statusNote.textContent = message;
+    };
+
+    const loadFavorites = () => {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        const parsed = raw ? JSON.parse(raw) : [];
+        favoriteIds = new Set(Array.isArray(parsed) ? parsed : []);
+      } catch {
+        favoriteIds = new Set();
+      }
+    };
+
+    const saveFavorites = () => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify([...favoriteIds]));
+      } catch {
+        /* storage can be blocked in preview */
+      }
     };
 
     const renderFilters = () => {
@@ -377,10 +491,78 @@
       ], { duration: 1100, easing: 'ease-out' });
     };
 
+    const visiblePacks = () => filteredPacks();
+
+    const pickSelectedPack = () => {
+      const packs = visiblePacks();
+      if (!packs.length) return null;
+      return packs.find((pack) => pack.id === selectedPackId) || packs[0];
+    };
+
+    const copyText = async (text) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(area);
+        return ok;
+      }
+    };
+
+    const buildBrief = (packs) => {
+      const lead = packs[0];
+      if (!lead) return 'No wallpaper packs are visible right now.';
+      const lines = [
+        `Wallpaper drop brief: ${lead.title}`,
+        `Mood: ${lead.mood} | Released: ${formatDate(lead.released)}`,
+        `Why it matters: ${lead.blurb}`,
+        `Use case: ${lead.useCase}`,
+        '',
+        'Visible packs:',
+        ...packs.map((pack) => `- ${pack.title} (${pack.mood}) - ${pack.tagline}`)
+      ];
+      return lines.join('\n');
+    };
+
+    const renderDropRail = (packs) => {
+      dropRail.innerHTML = '';
+      for (const pack of packs) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'chip';
+        button.textContent = `${pack.title} · ${pack.mood}`;
+        button.addEventListener('click', () => {
+          selectedPackId = pack.id;
+          renderPacks();
+          scrollToPack(pack.id);
+        });
+        dropRail.appendChild(button);
+      }
+    };
+
     const renderPacks = () => {
       const packs = filteredPacks();
+      const selectedPack = pickSelectedPack();
       packGrid.innerHTML = '';
       resultsMeta.textContent = `${packs.length} ${packs.length === 1 ? 'pack' : 'packs'} shown`;
+      favoriteCount.textContent = String(favoriteIds.size);
+      briefOutput.textContent = buildBrief(packs);
+      renderDropRail(packs);
+      if (selectedPack) {
+        latestDrop.textContent = selectedPack.title;
+        latestDropCopy.textContent = `${selectedPack.tagline} Released ${formatDate(selectedPack.released)}.`;
+      } else {
+        latestDrop.textContent = '--';
+        latestDropCopy.textContent = 'No pack selected yet.';
+      }
 
       if (packs.length === 0) {
         const empty = document.createElement('div');
@@ -393,14 +575,40 @@
       for (const pack of packs) {
         const card = document.createElement('article');
         card.className = 'pack-card';
+        card.classList.toggle('is-favorite', favoriteIds.has(pack.id));
         card.id = pack.id;
 
+        const head = document.createElement('div');
+        head.className = 'pack-topline';
+
+        const titleWrap = document.createElement('div');
+        titleWrap.className = 'pack-title';
         const title = document.createElement('h3');
         title.textContent = pack.title || 'Untitled pack';
+        const subtitle = document.createElement('p');
+        subtitle.textContent = `${formatDate(pack.released)} · ${pack.useCase || 'no use case yet'}`;
+        titleWrap.append(title, subtitle);
+
+        const favButton = document.createElement('button');
+        favButton.type = 'button';
+        favButton.className = 'fav-btn';
+        favButton.classList.toggle('is-active', favoriteIds.has(pack.id));
+        favButton.textContent = favoriteIds.has(pack.id) ? 'favorited' : 'favorite';
+        favButton.addEventListener('click', () => {
+          if (favoriteIds.has(pack.id)) {
+            favoriteIds.delete(pack.id);
+          } else {
+            favoriteIds.add(pack.id);
+          }
+          saveFavorites();
+          renderPacks();
+        });
+
+        head.append(titleWrap, favButton);
 
         const meta = document.createElement('div');
         meta.className = 'link-row';
-        meta.innerHTML = `<span class="tag">${pack.mood || 'moodless'}</span><span class="size-badge">desktop + phone</span>`;
+        meta.innerHTML = `<span class="tag">${pack.mood || 'moodless'}</span><span class="size-badge">desktop + phone</span><span class="date-badge">${formatDate(pack.released)}</span>`;
 
         const tagline = document.createElement('p');
         tagline.textContent = pack.tagline || '';
@@ -419,6 +627,9 @@
         const blurb = document.createElement('p');
         blurb.textContent = pack.blurb || '';
 
+        const useCase = document.createElement('p');
+        useCase.textContent = pack.useCase || '';
+
         const palette = renderPalette(pack.palette);
 
         const actions = document.createElement('div');
@@ -435,7 +646,7 @@
           <span class="size-badge">${pack.phone.label}</span>
         `;
 
-        card.append(title, meta, tagline, preview, blurb, palette, actions, specs);
+        card.append(head, meta, tagline, preview, blurb, useCase, palette, actions, specs);
         packGrid.appendChild(card);
       }
     };
@@ -449,17 +660,30 @@
         return;
       }
       const pick = packs[Math.floor(Math.random() * packs.length)];
+      selectedPackId = pick.id;
       scrollToPack(pick.id);
       setStatus(`Random pick: ${pick.title}.`);
+      renderPacks();
+    });
+
+    copyBriefBtn.addEventListener('click', async () => {
+      const ok = await copyText(briefOutput.textContent || '');
+      setStatus(ok ? 'Wallpaper brief copied.' : 'Could not copy the wallpaper brief.');
     });
 
     const bootstrap = async () => {
       try {
+        loadFavorites();
         const response = await fetch('assets/wallpapers.json', { cache: 'no-store' });
         if (!response.ok) throw new Error('Failed to load wallpaper packs');
         const data = await response.json();
         allPacks = Array.isArray(data.packs) ? data.packs : [];
         packCount.textContent = String(allPacks.length);
+        const latest = [...allPacks].sort((a, b) => String(b.released || '').localeCompare(String(a.released || '')))[0];
+        if (latest) {
+          latestDrop.textContent = latest.title;
+          latestDropCopy.textContent = `${latest.tagline} Released ${formatDate(latest.released)}.`;
+        }
         renderFilters();
         renderPacks();
 
@@ -471,6 +695,7 @@
         packGrid.innerHTML = '<div class="empty">Unable to load wallpaper packs right now.</div>';
         resultsMeta.textContent = 'packs unavailable';
         packCount.textContent = '0';
+        briefOutput.textContent = 'Wallpaper packs could not be loaded.';
       }
     };
 

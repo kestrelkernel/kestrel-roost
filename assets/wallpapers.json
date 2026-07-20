@@ -3,8 +3,10 @@
     {
       "id": "midnight-dive",
       "title": "Midnight Dive",
+      "released": "2026-03-28",
       "tagline": "Deep blue orbital gradients for calm focus.",
       "mood": "calm",
+      "useCase": "best for long work blocks, late-night planning, and screens that need to feel quieter.",
       "palette": ["#0b1020", "#132552", "#2749a3", "#7aa2ff", "#dce6ff"],
       "blurb": "A colder, cleaner roost palette for when the browser should feel like a cockpit instead of a carnival.",
       "desktop": {
@@ -23,8 +25,10 @@
     {
       "id": "sunrise-thermals",
       "title": "Sunrise Thermals",
+      "released": "2026-03-28",
       "tagline": "Warm launch colors for days that need momentum.",
       "mood": "bright",
+      "useCase": "best for morning starts, launch days, and any session that needs a little lift off the runway.",
       "palette": ["#1b1638", "#592b83", "#ff8f70", "#ffd479", "#fff4d8"],
       "blurb": "A warmer pack with lift-off energy: still moody, but less bunker and more early-morning launch pad.",
       "desktop": {
@@ -43,8 +47,10 @@
     {
       "id": "signal-bloom",
       "title": "Signal Bloom",
+      "released": "2026-03-28",
       "tagline": "Violet-green contrast for playful terminals and loud tabs.",
       "mood": "neon",
+      "useCase": "best for playful work, demo days, and when the browser can afford to look a little feral.",
       "palette": ["#09111f", "#1f2157", "#7e5dff", "#76e7c7", "#f2fbff"],
       "blurb": "The slightly unhinged pack. Still readable, just with more ‘bird found a synth’ energy.",
       "desktop": {
