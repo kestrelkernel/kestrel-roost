@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A forecast desk that turns roost signals into a near-term build plan." />
+  <title>roost forecast desk</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#070e1a;
+      --bg2:#111f3f;
+      --panel:#0d1830dc;
+      --line:#35538f;
+      --line2:#86b4ff;
+      --fg:#e7edff;
+      --muted:#99add8;
+      --accent:#9bcbff;
+      --good:#92efc0;
+      --warn:#ffd37d;
+      --bad:#ff91a6;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 14% 0%, #26467f 0%, transparent 30%),
+        radial-gradient(circle at 90% 12%, #14486d33 0%, transparent 24%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    main {
+      width:min(1180px, 92vw);
+      margin:0 auto;
+      padding:30px 0 44px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .panel, .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+      box-shadow:0 16px 40px #00000033;
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:22px;
+      display:grid;
+      gap:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -100px -120px auto;
+      width:340px;
+      height:340px;
+      border-radius:999px;
+      background:radial-gradient(circle, #94c5ff22 0%, transparent 70%);
+      pointer-events:none;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.35rem); line-height:1; }
+    .lede { color:var(--muted); line-height:1.6; max-width:76ch; }
+    .topline, .controls, .chips, .meta-row, .row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .pill, .chip, .tag {
+      border:1px solid #4967b7;
+      border-radius:999px;
+      padding:5px 10px;
+      background:#112246;
+      color:#dbe6ff;
+      font-size:.8rem;
+    }
+    .pill.is-accent {
+      background:#dbe6ff;
+      color:#0e2047;
+      border-color:#dbe6ff;
+    }
+    .panel, .card {
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .workspace {
+      display:grid;
+      grid-template-columns:minmax(300px, .92fr) minmax(0, 1.18fr);
+      gap:14px;
+      align-items:start;
+    }
+    .forecast-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .forecast-card {
+      border:1px solid #3956a0;
+      border-radius:14px;
+      background:#08122a;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:220px;
+    }
+    .forecast-card.is-lead {
+      background:linear-gradient(155deg, #12285d, #08122a 70%);
+      border-color:#7f9cec;
+    }
+    .forecast-card h3 {
+      font-size:1rem;
+      color:#f4f8ff;
+    }
+    .forecast-copy, .panel p, .footer-copy {
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .forecast-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .metric-row {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));
+      gap:8px;
+    }
+    .metric {
+      border:1px solid #39589a;
+      border-radius:12px;
+      background:#0d1732;
+      padding:10px;
+      display:grid;
+      gap:4px;
+    }
+    .metric strong { font-size:1.16rem; color:#f4f8ff; }
+    .metric span { font-size:.8rem; color:#a9bbff; line-height:1.35; }
+    .mode-grid {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .mode-btn, .button, a.button, button {
+      font:inherit;
+    }
+    .mode-btn, button, a.button {
+      cursor:pointer;
+      border:1px solid #4b70ae;
+      border-radius:10px;
+      padding:9px 12px;
+      background:#12274a;
+      color:var(--fg);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .mode-btn.is-active {
+      background:#dbe6ff;
+      border-color:#dbe6ff;
+      color:#0f2148;
+    }
+    button:hover, button:focus-visible, a.button:hover, a.button:focus-visible, .mode-btn:hover, .mode-btn:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline:none;
+      border-color:var(--line2);
+      box-shadow:0 0 0 2px #87abff29;
+    }
+    input, textarea {
+      width:100%;
+      background:#10243e;
+      color:var(--fg);
+      border:1px solid #3f6391;
+      border-radius:10px;
+      padding:10px 11px;
+      font:inherit;
+    }
+    textarea { min-height:112px; resize:vertical; }
+    .brief {
+      border:1px solid #3956a0;
+      border-radius:14px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.48;
+    }
+    .sidebar {
+      display:grid;
+      gap:12px;
+    }
+    .timeline {
+      display:grid;
+      gap:10px;
+    }
+    .timeline-item {
+      border:1px solid #3956a0;
+      border-radius:12px;
+      background:#091225;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .timeline-item strong { color:#f4f7ff; }
+    .timeline-item p { color:var(--muted); line-height:1.5; }
+    .bars {
+      display:grid;
+      gap:10px;
+    }
+    .bar-row {
+      display:grid;
+      grid-template-columns:76px 1fr 44px;
+      gap:8px;
+      align-items:center;
+      color:#bed0ff;
+      font-size:.82rem;
+    }
+    .bar {
+      height:10px;
+      background:#0c1730;
+      border:1px solid #334d80;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .bar span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg, #79b4ff, #9fe0c7); }
+    .empty {
+      border:1px dashed #415f97;
+      border-radius:12px;
+      padding:14px;
+      color:var(--muted);
+      background:#08111f;
+    }
+    .status { min-height:1.2em; color:#c7d5ff; font-size:.84rem; }
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div class="topline">
+      <span class="pill is-accent">roost forecast desk</span>
+      <span class="pill">near-term planner</span>
+      <span class="pill">local-first</span>
+    </div>
+    <h1>read the weather before you pick the next build.</h1>
+    <p class="lede">This desk turns the roost’s live roadmap, recent wins, and focus signals into a near-term forecast. It is opinionated on purpose: one mode, one lead, one brief you can copy, plus a small local note so the next session starts with memory instead of guesswork.</p>
+    <div class="controls">
+      <a class="button" href="index.html">back home</a>
+      <button id="refreshBtn" type="button">refresh forecast</button>
+      <button id="copyBtn" type="button">copy brief</button>
+      <button id="resetBtn" type="button">reset note</button>
+    </div>
+    <div class="topline" id="statusLine"><span>loading forecast desk…</span></div>
+  </section>
+
+  <section class="workspace">
+    <section class="panel">
+      <h2>forecast modes</h2>
+      <p>Pick the lens that should shape the forecast. Ship-first pushes momentum. Story-first favors release framing. Signal-first leans into the strongest data trail.</p>
+      <div class="mode-grid" id="modeGrid">
+        <button class="mode-btn" data-mode="ship">ship-first</button>
+        <button class="mode-btn" data-mode="story">story-first</button>
+        <button class="mode-btn" data-mode="signal">signal-first</button>
+      </div>
+
+      <div class="metric-row" id="metricRow">
+        <div class="metric"><strong>--</strong><span>forecast lead</span></div>
+        <div class="metric"><strong>--</strong><span>pressure score</span></div>
+        <div class="metric"><strong>--</strong><span>days ahead</span></div>
+      </div>
+
+      <div class="card">
+        <h3>forecast note</h3>
+        <p class="footer-copy">Use this field to leave one sentence for future-you. It is saved locally and folded into the copied brief.</p>
+        <textarea id="noteInput" placeholder="One sentence for the next session..."></textarea>
+        <div class="row">
+          <button id="saveNoteBtn" type="button">save note</button>
+          <button id="randomizeBtn" type="button">reroll lens</button>
+        </div>
+      </div>
+
+      <div class="brief">
+        <h3>copyable brief</h3>
+        <pre id="briefOutput">loading brief…</pre>
+      </div>
+    </section>
+
+    <section class="sidebar">
+      <section class="card">
+        <h2>three-day forecast</h2>
+        <p>Each lane points at a different planning horizon so the page stays useful whether you are about to ship, frame, or refocus.</p>
+        <div id="forecastGrid" class="forecast-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <h2>signal barometer</h2>
+        <p>These bars show where the current signals lean. They are intentionally rough, because the page is about direction, not false precision.</p>
+        <div class="bars" id="barometer"></div>
+      </section>
+
+      <section class="card">
+        <h2>supporting signals</h2>
+        <div id="signalList" class="timeline"></div>
+      </section>
+    </section>
+  </section>
+</main>
+<script>
+  const STORAGE_KEY = 'roost_forecast_desk_v1';
+  const modes = {
+    ship: {
+      label: 'ship-first',
+      tone: 'Push the smallest visible change that makes the roost feel more alive.',
+      weights: { now: 3, next: 2, later: 1, notes: 1, wins: 2 }
+    },
+    story: {
+      label: 'story-first',
+      tone: 'Pick the page that makes the site easier to explain and easier to return to.',
+      weights: { now: 2, next: 2, later: 1, notes: 2, wins: 1 }
+    },
+    signal: {
+      label: 'signal-first',
+      tone: 'Follow the strongest repeated pattern and let the pressure decide the next move.',
+      weights: { now: 2, next: 3, later: 1, notes: 2, wins: 1 }
+    }
+  };
+  const state = { mode: 'ship', note: '', seed: Math.floor(Math.random() * 1_000_000), data: null };
+
+  const els = {
+    statusLine: document.getElementById('statusLine'),
+    modeGrid: document.getElementById('modeGrid'),
+    metricRow: document.getElementById('metricRow'),
+    noteInput: document.getElementById('noteInput'),
+    saveNoteBtn: document.getElementById('saveNoteBtn'),
+    randomizeBtn: document.getElementById('randomizeBtn'),
+    refreshBtn: document.getElementById('refreshBtn'),
+    copyBtn: document.getElementById('copyBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    forecastGrid: document.getElementById('forecastGrid'),
+    barometer: document.getElementById('barometer'),
+    signalList: document.getElementById('signalList'),
+    briefOutput: document.getElementById('briefOutput')
+  };
+
+  const storage = {
+    get(key) { try { return localStorage.getItem(key); } catch { return null; } },
+    set(key, value) { try { localStorage.setItem(key, value); return true; } catch { return false; } },
+    remove(key) { try { localStorage.removeItem(key); return true; } catch { return false; } }
+  };
+
+  const seededRandom = (seed) => {
+    let x = seed % 2147483647;
+    if (x <= 0) x += 2147483646;
+    return () => ((x = (x * 16807) % 2147483647) - 1) / 2147483646;
+  };
+
+  const pick = (array, rng) => array[Math.floor(rng() * array.length)] || '';
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const fmtList = (items) => items.filter(Boolean).slice(0, 3).join(' · ');
+
+  const computeScore = (mode, data) => {
+    const weights = modes[mode].weights;
+    const now = (data.roadmap?.now || []).length * weights.now;
+    const next = (data.roadmap?.next || []).length * weights.next;
+    const later = (data.roadmap?.later || []).length * weights.later;
+    const notes = (data.notes || []).reduce((total, note) => total + (note.tags || []).length, 0) * weights.notes;
+    const wins = (data.now?.recentWins || []).length * weights.wins;
+    return now + next + later + notes + wins;
+  };
+
+  const getLeadPage = (data) => {
+    const recentUpdate = data.updates?.[0];
+    const forecastPage = recentUpdate?.pageLabel || recentUpdate?.page || 'the lead page';
+    return { title: recentUpdate?.title || 'No update loaded yet', page: forecastPage, impact: recentUpdate?.impact || 'No impact data yet.' };
+  };
+
+  const buildForecastCards = (data, mode) => {
+    const recentUpdate = data.updates?.[0];
+    const lead = getLeadPage(data);
+    const roadmap = data.roadmap || { now: [], next: [], later: [] };
+    const recentNote = data.notes?.[0];
+    const nowScore = roadmap.now.length * 3 + (data.now?.activeFocus?.[0]?.progress || 0) / 20;
+    const nextScore = roadmap.next.length * 3 + (recentNote?.tags || []).length;
+    const laterScore = roadmap.later.length * 2 + (data.now?.nextUp || []).length;
+    const modeTone = modes[mode].tone;
+
+    return [
+      {
+        label: 'today',
+        title: recentUpdate?.title || 'Open the freshest ship',
+        copy: recentUpdate ? recentUpdate.details : 'No recent release loaded, so the forecast leans on the shared roadmap.',
+        meta: [recentUpdate?.date || 'unknown date', recentUpdate?.type || 'release', lead.page],
+        score: clamp(Math.round(nowScore), 1, 99),
+        lead: true
+      },
+      {
+        label: 'tomorrow',
+        title: data.now?.activeFocus?.[0]?.title || 'Use the active focus lane',
+        copy: data.now?.activeFocus?.[0]?.summary || modeTone,
+        meta: [fmtList(data.now?.activeFocus?.[0]?.targets || []), data.now?.activeFocus?.[0]?.horizon || 'next'],
+        score: clamp(Math.round(nextScore), 1, 99)
+      },
+      {
+        label: 'later',
+        title: roadmap.later[0] || 'Keep one eye on the long game',
+        copy: roadmap.later[0] ? `Later pressure: ${roadmap.later[0]}` : 'No later-item loaded, so the page keeps the future lane intentionally light.',
+        meta: [data.now?.updatedAt || 'roost data', 'future lane'],
+        score: clamp(Math.round(laterScore), 1, 99)
+      }
+    ];
+  };
+
+  const buildSignalBars = (data) => {
+    const items = [
+      { label: 'now', value: (data.roadmap?.now || []).length * 10 + (data.now?.activeFocus?.[0]?.progress || 0) / 2 },
+      { label: 'next', value: (data.roadmap?.next || []).length * 14 + (data.updates || []).slice(0, 3).length * 6 },
+      { label: 'later', value: (data.roadmap?.later || []).length * 18 + (data.notes || []).filter((note) => (note.tags || []).includes('planning')).length * 8 }
+    ];
+    const max = Math.max(...items.map((item) => item.value), 1);
+    els.barometer.innerHTML = items.map((item) => `
+      <div class="bar-row">
+        <span>${item.label}</span>
+        <div class="bar"><span style="width:${Math.max(8, Math.round((item.value / max) * 100))}%"></span></div>
+        <span>${Math.round(item.value)}</span>
+      </div>
+    `).join('');
+  };
+
+  const buildSignals = (data) => {
+    const note = data.notes?.[0];
+    const focus = data.now?.activeFocus?.[0];
+    const update = data.updates?.[0];
+    els.signalList.innerHTML = [
+      update && `
+        <article class="timeline-item">
+          <strong>${update.title}</strong>
+          <p>${update.impact}</p>
+          <div class="forecast-meta"><span>${update.date}</span><span>${update.type}</span><span>${update.pageLabel || update.page}</span></div>
+        </article>
+      `,
+      focus && `
+        <article class="timeline-item">
+          <strong>${focus.title}</strong>
+          <p>${focus.summary}</p>
+          <div class="forecast-meta"><span>${focus.horizon}</span><span>${focus.progress}% progress</span><span>${fmtList(focus.targets || [])}</span></div>
+        </article>
+      `,
+      note && `
+        <article class="timeline-item">
+          <strong>${note.title}</strong>
+          <p>${note.summary}</p>
+          <div class="forecast-meta"><span>${note.date}</span><span>${fmtList(note.tags || [])}</span></div>
+        </article>
+      `
+    ].filter(Boolean).join('');
+  };
+
+  const render = () => {
+    const data = state.data;
+    if (!data) return;
+    const cards = buildForecastCards(data, state.mode);
+    els.modeGrid.querySelectorAll('.mode-btn').forEach((btn) => {
+      btn.classList.toggle('is-active', btn.dataset.mode === state.mode);
+    });
+    els.forecastGrid.innerHTML = cards.map((card) => `
+      <article class="forecast-card ${card.lead ? 'is-lead' : ''}">
+        <h3>${card.label}: ${card.title}</h3>
+        <p class="forecast-copy">${card.copy}</p>
+        <div class="metric-row">
+          <div class="metric"><strong>${card.score}</strong><span>forecast fit</span></div>
+        </div>
+        <div class="forecast-meta">${card.meta.map((item) => `<span>${item}</span>`).join('')}</div>
+      </article>
+    `).join('');
+
+    buildSignalBars(data);
+    buildSignals(data);
+
+    const lead = getLeadPage(data);
+    const note = state.note.trim();
+    const score = computeScore(state.mode, data);
+    els.metricRow.innerHTML = `
+      <div class="metric"><strong>${lead.page}</strong><span>best next surface</span></div>
+      <div class="metric"><strong>${score}</strong><span>pressure score</span></div>
+      <div class="metric"><strong>${data.roadmap?.now?.length || 0}</strong><span>near-term moves</span></div>
+    `;
+
+    const brief = [
+      `roost forecast desk / ${modes[state.mode].label}`,
+      '',
+      `Forecast: ${modes[state.mode].tone}`,
+      `Lead surface: ${lead.page} (${lead.title})`,
+      `Pressure score: ${score}`,
+      '',
+      'Three-day forecast:',
+      `- Today: ${cards[0].title}`,
+      `- Tomorrow: ${cards[1].title}`,
+      `- Later: ${cards[2].title}`,
+      '',
+      note ? `Session note: ${note}` : 'Session note: none saved yet.',
+      '',
+      'Why it matters: this page compresses the live roost signals into one opinionated planning brief so the next build starts with direction instead of drift.'
+    ].join('\n');
+    els.briefOutput.textContent = brief;
+    els.statusLine.textContent = `forecast refreshed for ${modes[state.mode].label} ✓`;
+  };
+
+  const loadData = async () => {
+    try {
+      const [updatesRes, nowRes, notesRes] = await Promise.all([
+        fetch('assets/roost-updates.json'),
+        fetch('assets/roost-now.json'),
+        fetch('assets/roost-notes.json')
+      ]);
+      const [updates, now, notes] = await Promise.all([
+        updatesRes.json(),
+        nowRes.json(),
+        notesRes.json()
+      ]);
+      state.data = { roadmap: updates.roadmap, updates: updates.updates || [], now, notes: notes.notes || [] };
+      if (!state.note) state.note = storage.get(STORAGE_KEY)?.trim() || '';
+      els.noteInput.value = state.note;
+      render();
+    } catch (error) {
+      els.forecastGrid.innerHTML = '<div class="empty">forecast data unavailable. start a local server and try again.</div>';
+      els.signalList.innerHTML = '<div class="empty">signals unavailable.</div>';
+      els.barometer.innerHTML = '<div class="empty">barometer unavailable.</div>';
+      els.briefOutput.textContent = 'Unable to load forecast data right now.';
+      els.statusLine.textContent = 'forecast load failed.';
+    }
+  };
+
+  els.modeGrid.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-mode]');
+    if (!btn) return;
+    state.mode = btn.dataset.mode;
+    storage.set(STORAGE_KEY + ':mode', state.mode);
+    render();
+  });
+
+  els.saveNoteBtn.addEventListener('click', () => {
+    state.note = els.noteInput.value.trim();
+    storage.set(STORAGE_KEY, state.note);
+    render();
+  });
+
+  els.randomizeBtn.addEventListener('click', () => {
+    state.seed = Math.floor(Math.random() * 1_000_000);
+    const order = ['ship', 'story', 'signal'];
+    state.mode = order[Math.floor(Math.random() * order.length)];
+    storage.set(STORAGE_KEY + ':mode', state.mode);
+    render();
+  });
+
+  els.refreshBtn.addEventListener('click', loadData);
+  els.resetBtn.addEventListener('click', () => {
+    state.note = '';
+    els.noteInput.value = '';
+    storage.remove(STORAGE_KEY);
+    render();
+  });
+
+  els.copyBtn.addEventListener('click', async () => {
+    const text = els.briefOutput.textContent || '';
+    try {
+      await navigator.clipboard.writeText(text);
+      els.statusLine.textContent = 'forecast brief copied ✓';
+    } catch {
+      els.statusLine.textContent = 'clipboard blocked for forecast brief.';
+    }
+  });
+
+  const savedMode = storage.get(STORAGE_KEY + ':mode');
+  if (savedMode && modes[savedMode]) state.mode = savedMode;
+  const savedNote = storage.get(STORAGE_KEY);
+  if (savedNote) state.note = savedNote;
+  els.noteInput.value = state.note;
+  loadData();
+</script>
+</body>
+</html>
