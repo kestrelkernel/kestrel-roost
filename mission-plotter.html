@@ -65,6 +65,100 @@
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       align-items:start;
     }
+    .replay {
+      display:grid;
+      gap:12px;
+    }
+    .replay-top {
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) auto;
+      gap:10px;
+      align-items:end;
+    }
+    .replay-slider {
+      width:100%;
+      accent-color:#86b4ff;
+    }
+    .replay-body {
+      display:grid;
+      grid-template-columns:minmax(280px, .95fr) minmax(0, 1.05fr);
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width: 900px) {
+      .replay-body { grid-template-columns:1fr; }
+    }
+    .timeline {
+      display:grid;
+      gap:8px;
+    }
+    .snapshot {
+      border:1px solid #334d8f;
+      border-radius:12px;
+      background:#0a1333;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .snapshot.is-active {
+      border-color:#8db1ff;
+      background:linear-gradient(160deg, #10255d, #081126 74%);
+    }
+    .snapshot button {
+      width:100%;
+      text-align:left;
+    }
+    .snapshot-head {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+      color:#dfe8ff;
+    }
+    .snapshot-strip {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(34px, 1fr));
+      gap:4px;
+      align-items:end;
+    }
+    .lane-tick {
+      border-radius:8px 8px 4px 4px;
+      min-height:10px;
+      background:#243a78;
+      position:relative;
+      overflow:hidden;
+    }
+    .lane-tick span {
+      position:absolute;
+      inset:auto 0 0;
+      display:block;
+      border-radius:inherit;
+      background:linear-gradient(180deg, #9dc6ff, #6be8d0);
+    }
+    .lane-labels {
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:4px;
+      font-size:.72rem;
+      color:#9fb0ff;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .replay-panel {
+      border:1px solid #3956a0;
+      border-radius:14px;
+      background:#081022;
+      padding:14px;
+      display:grid;
+      gap:12px;
+    }
+    .replay-panel pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dfe7ff;
+      line-height:1.48;
+      font:inherit;
+    }
     .nav-link,
     .btn,
     .chip,
@@ -233,6 +327,41 @@
       <article class="card kpi"><strong id="completionRate">0%</strong><span>done this session</span></article>
     </section>
 
+    <section class="card replay">
+      <div class="replay-top">
+        <div>
+          <h2>replay desk</h2>
+          <p class="hint">scrub through saved board snapshots to see how the plan shifted. restore one when an older direction deserves another pass.</p>
+        </div>
+        <div class="controls">
+          <button id="liveBtn" class="chip">jump to live</button>
+          <button id="restoreBtn" class="chip">restore snapshot</button>
+        </div>
+      </div>
+      <input id="replaySlider" class="replay-slider" type="range" min="0" max="0" value="0" />
+      <div class="replay-body">
+        <div class="timeline">
+          <div class="lane-labels">
+            <span>today</span>
+            <span>next</span>
+            <span>later</span>
+          </div>
+          <div id="snapshotList"></div>
+        </div>
+        <div class="replay-panel">
+          <div class="row" style="justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h3 id="snapshotTitle">live board</h3>
+              <p id="snapshotMeta" class="hint">current board state</p>
+            </div>
+            <span id="snapshotState" class="tag">live</span>
+          </div>
+          <div id="snapshotStats" class="grid"></div>
+          <pre id="snapshotBrief"></pre>
+        </div>
+      </div>
+    </section>
+
     <section class="card">
       <div class="row" style="justify-content:space-between; align-items:flex-end; margin-bottom:10px;">
         <div>
@@ -277,6 +406,15 @@
       todayCount: document.getElementById('todayCount'),
       highCount: document.getElementById('highCount'),
       completionRate: document.getElementById('completionRate'),
+      replaySlider: document.getElementById('replaySlider'),
+      liveBtn: document.getElementById('liveBtn'),
+      restoreBtn: document.getElementById('restoreBtn'),
+      snapshotList: document.getElementById('snapshotList'),
+      snapshotTitle: document.getElementById('snapshotTitle'),
+      snapshotMeta: document.getElementById('snapshotMeta'),
+      snapshotState: document.getElementById('snapshotState'),
+      snapshotStats: document.getElementById('snapshotStats'),
+      snapshotBrief: document.getElementById('snapshotBrief'),
       todayLane: document.getElementById('todayLane'),
       nextLane: document.getElementById('nextLane'),
       laterLane: document.getElementById('laterLane'),
@@ -298,12 +436,25 @@
       completed: 0,
       tasks: []
     };
+    const history = [];
+    const historyMeta = [];
+    let replayIndex = -1;
 
     const makeId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const cloneState = (source) => ({
+      completed: Number(source.completed) || 0,
+      tasks: Array.isArray(source.tasks)
+        ? source.tasks.map((task) => ({ ...task }))
+        : []
+    });
 
     const save = () => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          state,
+          history,
+          replayIndex
+        }));
         els.saveState.textContent = `saved ${new Date().toLocaleTimeString()}`;
         els.saveState.className = 'hint success';
       } catch {
@@ -317,8 +468,9 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed.tasks)) return;
-        state.tasks = parsed.tasks.filter((task) => laneNames[task.lane]).map((task) => ({
+        const incomingState = parsed.state && typeof parsed.state === 'object' ? parsed.state : parsed;
+        if (!Array.isArray(incomingState.tasks)) return;
+        state.tasks = incomingState.tasks.filter((task) => laneNames[task.lane]).map((task) => ({
           id: task.id || makeId(),
           title: String(task.title || 'untitled mission').slice(0, 90),
           details: String(task.details || '').slice(0, 400),
@@ -326,16 +478,109 @@
           lane: laneNames[task.lane] ? task.lane : 'later',
           createdAt: task.createdAt || new Date().toISOString()
         }));
-        state.completed = Number(parsed.completed) || 0;
+        state.completed = Number(incomingState.completed) || 0;
+        if (Array.isArray(parsed.history)) {
+          history.splice(0, history.length, ...parsed.history
+            .filter((snapshot) => snapshot && Array.isArray(snapshot.tasks))
+            .map((snapshot) => normalizeSnapshot(snapshot)));
+        }
+        replayIndex = Number.isInteger(parsed.replayIndex) ? parsed.replayIndex : history.length - 1;
       } catch {
         els.saveState.textContent = 'load skipped: invalid saved state';
         els.saveState.className = 'hint warn';
       }
     };
 
-    const laneMeta = () => {
+    const laneCounts = (snapshot) => {
       const counts = { today: 0, next: 0, later: 0 };
-      state.tasks.forEach((task) => {
+      snapshot.tasks.forEach((task) => {
+        if (laneNames[task.lane]) counts[task.lane] += 1;
+      });
+      return counts;
+    };
+
+    const normalizeSnapshot = (snapshot) => ({
+      id: snapshot.id || makeId(),
+      label: snapshot.label || 'saved snapshot',
+      capturedAt: snapshot.capturedAt || new Date().toISOString(),
+      completed: Number(snapshot.completed) || 0,
+      tasks: cloneState({ tasks: snapshot.tasks }).tasks
+    });
+
+    const snapshotTitle = (index) => {
+      if (index < 0) return 'live board';
+      const snapshot = history[index];
+      return `${snapshot.label} #${index + 1}`;
+    };
+
+    const snapshotSummary = (snapshot) => {
+      const counts = laneCounts(snapshot);
+      const total = snapshot.tasks.length;
+      const high = snapshot.tasks.filter((task) => task.priority === 'high').length;
+      const doneTotal = snapshot.completed + total;
+      const rate = doneTotal ? Math.round((snapshot.completed / doneTotal) * 100) : 0;
+      return { counts, total, high, rate };
+    };
+
+    const diffBrief = (current, previous) => {
+      const currentIds = new Set(current.tasks.map((task) => task.id));
+      const previousIds = new Set(previous.tasks.map((task) => task.id));
+      const added = current.tasks.filter((task) => !previousIds.has(task.id));
+      const removed = previous.tasks.filter((task) => !currentIds.has(task.id));
+      const moved = current.tasks.filter((task) => {
+        const prior = previous.tasks.find((entry) => entry.id === task.id);
+        return prior && prior.lane !== task.lane;
+      });
+      const counts = laneCounts(current);
+      const lines = [
+        `missions: ${current.tasks.length} total, ${counts.today} today, ${counts.next} next, ${counts.later} later`,
+        `done archive: ${current.completed}`,
+        `added since previous: ${added.length ? added.map((task) => task.title).join(' | ') : 'none'}`,
+        `removed since previous: ${removed.length ? removed.map((task) => task.title).join(' | ') : 'none'}`,
+        `lane moves since previous: ${moved.length ? moved.map((task) => `${task.title} -> ${task.lane}`).join(' | ') : 'none'}`
+      ];
+      return lines.join('\n');
+    };
+
+    const setReplayIndex = (index) => {
+      if (!history.length) {
+        replayIndex = -1;
+        renderReplay();
+        return;
+      }
+      replayIndex = Math.max(-1, Math.min(index, history.length - 1));
+      els.replaySlider.value = String(Math.max(0, replayIndex));
+      renderReplay();
+      save();
+    };
+
+    const recordSnapshot = (label) => {
+      const snapshot = normalizeSnapshot({
+        label,
+        completed: state.completed,
+        tasks: state.tasks,
+        capturedAt: new Date().toISOString()
+      });
+      const last = history[history.length - 1];
+      const lastSignature = last ? JSON.stringify({ completed: last.completed, tasks: last.tasks }) : '';
+      const nextSignature = JSON.stringify({ completed: snapshot.completed, tasks: snapshot.tasks });
+      if (lastSignature === nextSignature) {
+        replayIndex = history.length - 1;
+        return;
+      }
+      history.push(snapshot);
+      while (history.length > 18) history.shift();
+      replayIndex = history.length - 1;
+    };
+
+    const currentView = () => {
+      if (replayIndex >= 0 && history[replayIndex]) return history[replayIndex];
+      return cloneState(state);
+    };
+
+    const laneMeta = (source = state) => {
+      const counts = { today: 0, next: 0, later: 0 };
+      source.tasks.forEach((task) => {
         counts[task.lane] += 1;
       });
       els.todayMeta.textContent = `${counts.today} missions`;
@@ -345,12 +590,12 @@
       return counts;
     };
 
-    const updateKpis = () => {
-      const counts = laneMeta();
-      const total = state.tasks.length;
-      const high = state.tasks.filter((task) => task.priority === 'high').length;
-      const doneTotal = state.completed + total;
-      const rate = doneTotal ? Math.round((state.completed / doneTotal) * 100) : 0;
+    const updateKpis = (source = state) => {
+      const counts = laneMeta(source);
+      const total = source.tasks.length;
+      const high = source.tasks.filter((task) => task.priority === 'high').length;
+      const doneTotal = source.completed + total;
+      const rate = doneTotal ? Math.round((source.completed / doneTotal) * 100) : 0;
       els.totalCount.textContent = total;
       els.highCount.textContent = high;
       els.completionRate.textContent = `${rate}%`;
@@ -369,36 +614,105 @@
       return '<span class="tag warn">normal</span>';
     };
 
-    const renderLane = (lane, element) => {
-      const tasks = state.tasks.filter((task) => task.lane === lane);
+    const renderLane = (lane, element, source = currentView()) => {
+      const editable = replayIndex < 0;
+      const tasks = source.tasks.filter((task) => task.lane === lane);
       if (!tasks.length) {
         element.innerHTML = `<li class="empty">no missions in ${lane}. drag one here or add a new mission.</li>`;
         return;
       }
       element.innerHTML = tasks.map((task) => `
-        <li class="task" draggable="true" data-id="${task.id}">
+        <li class="task" ${editable ? 'draggable="true"' : ''} data-id="${task.id}">
           <h3>${escapeHtml(task.title)}</h3>
           ${task.details ? `<p>${escapeHtml(task.details)}</p>` : ''}
           <div class="tag-row">
             ${priorityTag(task.priority)}
             <span class="tag">${new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
           </div>
-          <div class="controls">
-            <button class="small-btn" data-action="cycle" data-id="${task.id}">move</button>
-            <button class="small-btn" data-action="complete" data-id="${task.id}">complete</button>
-            <button class="small-btn" data-action="delete" data-id="${task.id}">delete</button>
-          </div>
+          ${editable ? `
+            <div class="controls">
+              <button class="small-btn" data-action="cycle" data-id="${task.id}">move</button>
+              <button class="small-btn" data-action="complete" data-id="${task.id}">complete</button>
+              <button class="small-btn" data-action="delete" data-id="${task.id}">delete</button>
+            </div>
+          ` : '<div class="hint">read-only snapshot</div>'}
         </li>
       `).join('');
     };
 
     const render = () => {
-      renderLane('today', els.todayLane);
-      renderLane('next', els.nextLane);
-      renderLane('later', els.laterLane);
-      updateKpis();
+      const source = currentView();
+      renderLane('today', els.todayLane, source);
+      renderLane('next', els.nextLane, source);
+      renderLane('later', els.laterLane, source);
+      updateKpis(source);
       bindTaskButtons();
-      bindDrag();
+      if (replayIndex < 0) {
+        bindDrag();
+      }
+    };
+
+    const renderReplay = () => {
+      const selected = replayIndex >= 0 ? history[replayIndex] : null;
+      els.replaySlider.max = String(Math.max(0, history.length - 1));
+      els.replaySlider.value = String(Math.max(0, replayIndex));
+      els.liveBtn.textContent = replayIndex >= 0 ? 'jump to live' : 'live board';
+      els.restoreBtn.disabled = !selected;
+      els.snapshotList.innerHTML = history.length
+        ? history.map((snapshot, index) => {
+          const summary = snapshotSummary(snapshot);
+          const active = index === replayIndex ? 'is-active' : '';
+          return `
+            <article class="snapshot ${active}">
+              <button type="button" data-replay-index="${index}">
+                <div class="snapshot-head">
+                  <strong>${escapeHtml(snapshot.label)}</strong>
+                  <span>${new Date(snapshot.capturedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="snapshot-strip" aria-hidden="true">
+                  <div class="lane-tick" title="today"><span style="height:${Math.max(12, summary.counts.today * 100)}%"></span></div>
+                  <div class="lane-tick" title="next"><span style="height:${Math.max(12, summary.counts.next * 100)}%"></span></div>
+                  <div class="lane-tick" title="later"><span style="height:${Math.max(12, summary.counts.later * 100)}%"></span></div>
+                </div>
+                <div class="hint">${summary.total} missions, ${summary.high} high focus, ${summary.rate}% archived</div>
+              </button>
+            </article>
+          `;
+        }).join('')
+        : '<div class="empty">no replay snapshots yet. any board change will start the timeline.</div>';
+
+      document.querySelectorAll('[data-replay-index]').forEach((button) => {
+        button.onclick = () => setReplayIndex(Number(button.dataset.replayIndex));
+      });
+
+      if (!selected) {
+        els.snapshotTitle.textContent = 'live board';
+        els.snapshotMeta.textContent = 'current planning state';
+        els.snapshotState.textContent = 'live';
+        els.snapshotState.className = 'tag';
+        els.snapshotStats.innerHTML = `
+          <article class="card kpi"><strong>${state.tasks.length}</strong><span>missions now</span></article>
+          <article class="card kpi"><strong>${state.completed}</strong><span>done archived</span></article>
+          <article class="card kpi"><strong>${history.length}</strong><span>snapshots saved</span></article>
+          <article class="card kpi"><strong>${laneMeta(state).today}</strong><span>today lane</span></article>
+        `;
+        els.snapshotBrief.textContent = 'The live board is the current working set. Make a change to capture a replay snapshot.';
+        return;
+      }
+
+      const summary = snapshotSummary(selected);
+      const previous = history[replayIndex - 1] || selected;
+      els.snapshotTitle.textContent = snapshotTitle(replayIndex);
+      els.snapshotMeta.textContent = `captured ${new Date(selected.capturedAt).toLocaleString()}`;
+      els.snapshotState.textContent = replayIndex === history.length - 1 ? 'current replay' : 'historic replay';
+      els.snapshotState.className = `tag ${replayIndex === history.length - 1 ? 'warn' : ''}`.trim();
+      els.snapshotStats.innerHTML = `
+        <article class="card kpi"><strong>${summary.total}</strong><span>missions</span></article>
+        <article class="card kpi"><strong>${summary.counts.today}</strong><span>today lane</span></article>
+        <article class="card kpi"><strong>${summary.counts.next}</strong><span>next lane</span></article>
+        <article class="card kpi"><strong>${summary.counts.later}</strong><span>later lane</span></article>
+      `;
+      els.snapshotBrief.textContent = diffBrief(selected, previous);
     };
 
     const addTask = () => {
@@ -418,14 +732,18 @@
       });
       els.titleInput.value = '';
       els.detailsInput.value = '';
+      recordSnapshot('added mission');
       render();
+      renderReplay();
       save();
       els.titleInput.focus();
     };
 
     const removeTask = (id) => {
       state.tasks = state.tasks.filter((task) => task.id !== id);
+      recordSnapshot('removed mission');
       render();
+      renderReplay();
       save();
     };
 
@@ -433,7 +751,9 @@
       const task = state.tasks.find((entry) => entry.id === id);
       if (!task) return;
       task.lane = task.lane === 'today' ? 'next' : task.lane === 'next' ? 'later' : 'today';
+      recordSnapshot('moved mission');
       render();
+      renderReplay();
       save();
     };
 
@@ -442,7 +762,9 @@
       if (!exists) return;
       state.completed += 1;
       state.tasks = state.tasks.filter((task) => task.id !== id);
+      recordSnapshot('completed mission');
       render();
+      renderReplay();
       save();
       els.saveState.textContent = 'mission completed and archived';
       els.saveState.className = 'hint success';
@@ -479,14 +801,16 @@
           lane.classList.add('drop');
         });
         lane.addEventListener('dragleave', () => lane.classList.remove('drop'));
-        lane.addEventListener('drop', (event) => {
+          lane.addEventListener('drop', (event) => {
           event.preventDefault();
           lane.classList.remove('drop');
           const id = event.dataTransfer.getData('text/plain');
           const task = state.tasks.find((entry) => entry.id === id);
           if (!task) return;
           task.lane = lane.dataset.lane;
+          recordSnapshot('dragged mission');
           render();
+          renderReplay();
           save();
         });
       });
@@ -524,7 +848,9 @@
           createdAt: new Date().toISOString()
         }
       ];
+      recordSnapshot('seeded example missions');
       render();
+      renderReplay();
       save();
     };
 
@@ -532,7 +858,9 @@
       if (!window.confirm('Clear every mission from this board?')) return;
       state.tasks = [];
       state.completed = 0;
+      recordSnapshot('cleared board');
       render();
+      renderReplay();
       save();
       els.saveState.textContent = 'board reset';
       els.saveState.className = 'hint success';
@@ -567,9 +895,27 @@
     els.seedBtn.addEventListener('click', seed);
     els.resetBtn.addEventListener('click', reset);
     els.exportBtn.addEventListener('click', exportBoard);
+    els.replaySlider.addEventListener('input', () => {
+      setReplayIndex(Number(els.replaySlider.value));
+    });
+    els.liveBtn.addEventListener('click', () => setReplayIndex(-1));
+    els.restoreBtn.addEventListener('click', () => {
+      if (replayIndex < 0 || !history[replayIndex]) return;
+      const selected = history[replayIndex];
+      state.completed = selected.completed;
+      state.tasks = cloneState(selected).tasks;
+      recordSnapshot(`restored ${selected.label}`);
+      render();
+      renderReplay();
+      save();
+    });
 
     load();
+    if (!history.length) {
+      recordSnapshot('initial board');
+    }
     render();
+    renderReplay();
   </script>
 </body>
 </html>

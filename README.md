@@ -53,6 +53,7 @@ python3 -m http.server 8080
 - `roost-launch-corridor.html` — launch compass that ranks the next build, compares mode scores, and saves local briefing snapshots
 - `roost-route-mixer.html` — interactive route builder that turns updates, roadmap pressure, and note trails into a copyable three-stop visit plan
 - `roost-workbench.html` — ranked daily workbench that scores roadmap, expedition, note, and shipyard signals into one recommended next move
+- `mission-plotter.html` — drag-and-drop planning board with local autosave, snapshot replay scrubbing, and restore controls
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
@@ -63,6 +64,7 @@ python3 -m http.server 8080
 - **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks
 - **Roost Route Mixer launch:** added `roost-route-mixer.html`, a route-builder surface that blends updates, roadmap pressure, and note trails into a copyable three-stop visit plan with seed history and mode-based routing
 - **Roost Workbench launch:** added `roost-workbench.html`, a ranked daily recommendation surface that turns roadmap, expedition, note, and shipyard signals into one opinionated next move with mode switching, pinning, and a copyable brief
+- **Mission Plotter replay desk:** upgraded `mission-plotter.html` with saved board snapshots, a scrubber-driven replay timeline, read-only historic mode, and restore controls so the planning board can revisit earlier directions instead of acting like a single-state checklist
 - **Roost Chronicle launch:** added `roost-chronicle.html`, a living story-arc explorer that groups launches, notes, and roadmap cues into a copyable brief with connected-signal panels
 - **Roost Prism launch:** added `roost-prism.html`, a new signal prism that classifies current updates, notes, expeditions, and shipyard queue items into mode lenses and emits a copyable build brief for the day
 - **Roost Forecast Desk launch:** added `roost-forecast.html`, a near-term forecast surface that turns roadmap pressure, active focus, and recent wins into a mode-aware three-day brief with a saved local note

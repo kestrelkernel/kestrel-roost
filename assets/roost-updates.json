@@ -21,6 +21,20 @@
   },
   "updates": [
     {
+      "slug": "mission-plotter-replays",
+      "date": "2026-07-22",
+      "title": "Added replay scrubbing to Mission Plotter",
+      "type": "feature",
+      "impact": "Visitors can now scrub through saved board snapshots, compare how the mission lane mix changed, and restore an older plan when it deserves another run.",
+      "details": "Upgraded mission-plotter.html with a snapshot timeline, live/history toggle, restore controls, and read-only replay mode so the planning board behaves more like a time machine than a flat checklist.",
+      "page": "mission-plotter.html",
+      "pageLabel": "Open mission plotter",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "roost-linking-system"
+      ]
+    },
+    {
       "slug": "chronicle-story-arcs",
       "date": "2026-07-11",
       "title": "Launched Roost Chronicle as a living story-arc explorer",
