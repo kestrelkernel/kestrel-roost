@@ -22,6 +22,7 @@ python3 -m http.server 8080
 - `roost-almanac.html` — planning compass that folds seasonal, energy, and weather signals into a copyable build recipe
 - `changelog.html` — release history + filterable flight log
 - `roost-chronicle.html` — story-arc explorer that ties launches, notes, and roadmap cues into a copyable brief
+- `roost-casebook.html` — narrative release dossiers that bundle major launches, linked rationale, and copyable briefs
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
 - `roost-lens.html` — daily build brief generator that turns updates, notes, and roadmap pressure into a concrete next move
@@ -59,6 +60,7 @@ python3 -m http.server 8080
 ## New in this iteration
 
 - **Roost Searchlight launch:** added `roost-searchlight.html`, a keyboard-first command palette that searches pages, notes, expeditions, and shipyard items with scoped filters, local recent picks, and a copyable brief for faster cross-roost navigation
+- **Roost Casebook launch:** added `roost-casebook.html`, a narrative release browser that turns big launches into case studies with linked note context, milestone overlap, and a copyable brief for faster recall
 - **Wallpaper catalog upgrade:** expanded `wallpapers.html` into a real drop browser with release metadata, favorites, a copyable brief, and a visible drop index so the art wing behaves more like a living release queue
 - **Roost Launch Corridor expansion:** upgraded `roost-launch-corridor.html` with URL-synced mode state, a share-link copier, a mode comparison panel, shipyard pressure in the signal mix, and local saved briefing snapshots so the compass can reopen a decision later
 - **Homepage workbench:** added a new `index.html` planning surface that pulls roadmap, expedition, shipyard, and note context into a copyable daily build brief with local save slots for build/care/spark tasks

@@ -21,6 +21,20 @@
   },
   "updates": [
     {
+      "slug": "casebook-launch",
+      "date": "2026-07-23",
+      "title": "Launched Roost Casebook for narrative release dossiers",
+      "type": "feature",
+      "impact": "Visitors can now open major launches as story-driven case studies that bundle the feature, its rationale, and the next thread it unlocked.",
+      "details": "Added roost-casebook.html with release-type filters, linked note context, milestone overlap, a copyable brief, and an archive lens so bigger ships are easier to revisit.",
+      "page": "roost-casebook.html",
+      "pageLabel": "Open roost casebook",
+      "relatedNotes": [
+        "story-graph-principle",
+        "ship-log-strategy"
+      ]
+    },
+    {
       "slug": "mission-plotter-replays",
       "date": "2026-07-22",
       "title": "Added replay scrubbing to Mission Plotter",

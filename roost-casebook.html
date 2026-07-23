@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Casebook: narrative release dossiers for the biggest launches." />
+  <title>Roost Casebook - Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0d0b18;
+      --bg2:#20153f;
+      --fg:#f3edff;
+      --muted:#c4b7ea;
+      --accent:#f4b86a;
+      --accent2:#8ee7d1;
+      --line:#5a478f;
+      --card:#17112ae6;
+      --panel:#120d20e0;
+      --good:#88e2bf;
+      --warn:#ffd582;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      color:var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background:
+        radial-gradient(circle at 14% 10%, #6f4fc433 0%, transparent 30%),
+        radial-gradient(circle at 88% 0%, #f2b46324 0%, transparent 22%),
+        radial-gradient(circle at 70% 100%, #6dd5c224 0%, transparent 28%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1160px, 94vw);
+      margin:28px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      padding:18px;
+      box-shadow:0 16px 38px #00000040;
+      backdrop-filter: blur(4px);
+    }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.4rem); }
+    h2 { margin:0 0 10px; font-size:1.02rem; color:#f6eefd; }
+    h3 { margin:0; font-size:.98rem; color:#fff7ea; }
+    p { margin:0; color:var(--muted); line-height:1.55; }
+    a { color:inherit; }
+    .site-nav,
+    .toolbar,
+    .pill-row,
+    .link-row,
+    .meta-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .site-nav { margin-top:12px; }
+    .nav-link,
+    .btn,
+    .pill,
+    .mode {
+      text-decoration:none;
+      color:#f6efff;
+      border:1px solid #7258a8;
+      border-radius:999px;
+      padding:7px 12px;
+      background:#22163d;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn { border-radius:10px; }
+    .nav-link:hover, .nav-link:focus-visible,
+    .btn:hover, .btn:focus-visible,
+    .pill:hover, .pill:focus-visible,
+    .mode:hover, .mode:focus-visible {
+      transform:translateY(-1px);
+      border-color:#a587f3;
+      background:#2a1b4d;
+      outline:none;
+    }
+    .mode.is-active {
+      background:linear-gradient(180deg, #3c2965, #24163e);
+      border-color:#d4b5ff;
+      color:#fff;
+    }
+    .hero {
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:14px;
+      align-items:stretch;
+    }
+    @media (max-width: 960px) {
+      .hero { grid-template-columns:1fr; }
+    }
+    .hero-panel {
+      border:1px solid #7b5ab6;
+      background:linear-gradient(155deg, #241540, #100c1d 72%);
+      border-radius:16px;
+      padding:16px;
+      display:grid;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero-panel::before {
+      content:"";
+      position:absolute;
+      inset:auto -90px -100px auto;
+      width:260px;
+      height:260px;
+      border-radius:999px;
+      background:radial-gradient(circle, #f7c67d2b 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .hero-meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      color:#e5d6ff;
+      font-size:.8rem;
+    }
+    .score {
+      font-size:2.3rem;
+      line-height:1;
+      font-weight:700;
+      color:#fffaf3;
+    }
+    .score span {
+      font-size:.95rem;
+      color:#ead9ff;
+      font-weight:400;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns:minmax(320px, 400px) 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns:1fr; }
+    }
+    .stack {
+      display:grid;
+      gap:12px;
+    }
+    .case {
+      border:1px solid #6b549c;
+      border-radius:14px;
+      background:var(--panel);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .case.is-lead {
+      background:linear-gradient(160deg, #2b1a49, #100c1d 72%);
+      border-color:#e0b26e;
+    }
+    .case-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .case-copy {
+      color:#f1e9ff;
+      line-height:1.55;
+      margin:0;
+    }
+    .meter {
+      height:10px;
+      border-radius:999px;
+      background:#120d23;
+      overflow:hidden;
+      border:1px solid #58437e;
+    }
+    .meter > span {
+      display:block;
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .case-footer {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      color:#dccfff;
+      font-size:.78rem;
+    }
+    .insight-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:12px;
+    }
+    .insight {
+      border:1px solid #604987;
+      border-radius:14px;
+      background:#140f24;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .insight strong { color:#fff6e5; }
+    .insight ul {
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+      line-height:1.45;
+      display:grid;
+      gap:5px;
+    }
+    .brief {
+      border:1px solid #604987;
+      border-radius:14px;
+      background:#100c1d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#f4ebff;
+      line-height:1.55;
+      font:inherit;
+    }
+    .filters {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .filter-btn {
+      border:1px solid #6d549d;
+      border-radius:999px;
+      background:#1f1730;
+      color:#f0e7ff;
+      padding:7px 12px;
+      font:inherit;
+      cursor:pointer;
+    }
+    .filter-btn.is-active {
+      background:#40295f;
+      border-color:#d9b9ff;
+    }
+    .archive {
+      display:grid;
+      gap:12px;
+    }
+    .archive-item {
+      border:1px solid #5f4a84;
+      border-radius:14px;
+      background:#130f22;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .archive-item h3 { font-size:1rem; }
+    .archive-item p { font-size:.92rem; }
+    .empty {
+      border:1px dashed #6b549c;
+      border-radius:14px;
+      padding:14px;
+      color:#d6c3f0;
+      background:#120d1e;
+    }
+    .tiny { font-size:.82rem; color:#c9b9eb; }
+    .status { min-height:1.2em; font-size:.82rem; color:#e7d7ff; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card hero">
+      <div>
+        <h1>roost casebook</h1>
+        <p>A narrative release browser for the biggest launches. Each case study bundles the feature, the reason it exists, the support cast, and the next thing it unlocked so the site reads like a story, not a pile of changelog entries.</p>
+        <nav class="site-nav" aria-label="Site sections">
+          <a class="nav-link" href="index.html">home</a>
+          <a class="nav-link" href="changelog.html">changelog</a>
+          <a class="nav-link" href="flight-deck.html">flight deck</a>
+          <a class="nav-link" href="roost-chronicle.html">chronicle</a>
+          <a class="nav-link" href="roost-trails.html">trails</a>
+          <a class="nav-link" href="roost-casebook.html">casebook</a>
+        </nav>
+      </div>
+      <aside class="hero-panel" aria-live="polite">
+        <div class="hero-meta">
+          <span>built from updates, notes, and milestones</span>
+          <span>copyable brief included</span>
+        </div>
+        <div class="score" id="heroScore">-- <span>story threads mapped</span></div>
+        <p id="heroCopy">Loading the current launch archive...</p>
+        <div class="meta-row" id="heroChips"></div>
+      </aside>
+    </section>
+
+    <section class="card">
+      <h2>today's framing</h2>
+      <div class="insight-grid" id="insights"></div>
+    </section>
+
+    <section class="layout">
+      <section class="card stack">
+        <div>
+          <h2>case studies</h2>
+          <p class="tiny">Filter by release type, then open a case to see the linked rationale and source surfaces.</p>
+        </div>
+        <div class="filters" id="filters" role="toolbar" aria-label="Case filters"></div>
+        <div id="featuredCase"></div>
+      </section>
+
+      <section class="card stack">
+        <div class="brief">
+          <h2>copyable brief</h2>
+          <p class="tiny">A compact summary you can paste into notes, chat, or a planning doc.</p>
+          <pre id="briefOutput">Loading brief...</pre>
+          <div class="toolbar">
+            <button class="btn" id="copyBrief">copy brief</button>
+            <button class="btn" id="shuffleCase">next case</button>
+          </div>
+          <p class="status" id="briefStatus" aria-live="polite"></p>
+        </div>
+
+        <div class="archive">
+          <div>
+            <h2>archive lens</h2>
+            <p class="tiny">The current archive view, sorted by launch recency.</p>
+          </div>
+          <div id="archiveList"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const byId = (id) => document.getElementById(id);
+    const filtersEl = byId('filters');
+    const featuredCase = byId('featuredCase');
+    const archiveList = byId('archiveList');
+    const briefOutput = byId('briefOutput');
+    const briefStatus = byId('briefStatus');
+    const heroScore = byId('heroScore');
+    const heroCopy = byId('heroCopy');
+    const heroChips = byId('heroChips');
+    const insights = byId('insights');
+    const copyBrief = byId('copyBrief');
+    const shuffleCase = byId('shuffleCase');
+
+    const state = {
+      filter: 'all',
+      selected: 0,
+      cases: [],
+      updates: [],
+      notes: [],
+      milestones: []
+    };
+
+    const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
+    const fmtList = (items, fallback = 'none yet') => items.length ? items.join(' · ') : fallback;
+    const bullets = (items) => items.map((item) => `<li>${item}</li>`).join('');
+    const niceDate = (date) => new Date(`${date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    function buildCases(updates, notes, milestones) {
+      return updates.map((update, index) => {
+        const relatedNotes = (update.relatedNotes || []).map((id) => notes.find((note) => note.id === id)).filter(Boolean);
+        const milestoneHits = milestones.filter((milestone) => milestone.date <= update.date).slice(-2);
+        const tags = [update.type, ...(relatedNotes.flatMap((note) => note.tags || [])), 'release'];
+        const storyRole = index === 0 ? 'current lead' : index < 3 ? 'recent arc' : 'archive thread';
+        const intensity = Math.max(35, 100 - index * 11);
+        return {
+          ...update,
+          relatedNotes,
+          milestoneHits,
+          tags: [...new Set(tags)],
+          storyRole,
+          intensity
+        };
+      });
+    }
+
+    function scoreCase(item) {
+      const noteBoost = item.relatedNotes.length * 3;
+      const milestoneBoost = item.milestoneHits.length * 2;
+      const detailBoost = clean(item.details).length > 120 ? 2 : 1;
+      return item.intensity + noteBoost + milestoneBoost + detailBoost;
+    }
+
+    function filteredCases() {
+      if (state.filter === 'all') return state.cases;
+      return state.cases.filter((item) => item.type === state.filter || item.tags.includes(state.filter));
+    }
+
+    function renderFilters() {
+      const types = ['all', ...new Set(state.cases.map((item) => item.type))];
+      filtersEl.innerHTML = types.map((type) => `
+        <button class="filter-btn ${state.filter === type ? 'is-active' : ''}" data-filter="${type}">
+          ${type === 'all' ? 'all cases' : type}
+        </button>
+      `).join('');
+    }
+
+    function renderInsights() {
+      const latest = state.cases[0];
+      const relatedPageCount = new Set(state.cases.flatMap((item) => [item.page, ...(item.relatedNotes || []).map((note) => note.relatedPage)].filter(Boolean))).size;
+      insights.innerHTML = [
+        {
+          title: 'story pressure',
+          body: `The strongest release currently steering the archive is ${latest?.title || 'unknown'}.`
+        },
+        {
+          title: 'linked rationale',
+          body: `${state.notes.filter((note) => note.relatedUpdates?.length).length} notes connect directly back to launches.`
+        },
+        {
+          title: 'connected surfaces',
+          body: `${relatedPageCount} pages or note trails are referenced across the current case set.`
+        }
+      ].map((item) => `
+        <article class="insight">
+          <strong>${item.title}</strong>
+          <p>${item.body}</p>
+        </article>
+      `).join('');
+    }
+
+    function briefText(item) {
+      const notes = item.relatedNotes.map((note) => `${note.title} (${niceDate(note.date)})`).join('; ') || 'no direct notes';
+      const milestones = item.milestoneHits.map((milestone) => `${milestone.date}: ${milestone.title}`).join(' | ') || 'no milestone overlap';
+      return [
+        `roost casebook / ${item.title}`,
+        `date: ${niceDate(item.date)} · type: ${item.type} · role: ${item.storyRole}`,
+        '',
+        item.impact,
+        '',
+        `why it matters: ${item.details}`,
+        `linked notes: ${notes}`,
+        `milestones nearby: ${milestones}`,
+        `next thread: ${item.pageLabel || item.page}`
+      ].join('\n');
+    }
+
+    function renderFeatured() {
+      const items = filteredCases();
+      if (!items.length) {
+        featuredCase.innerHTML = '<div class="empty">No case studies match this filter yet.</div>';
+        archiveList.innerHTML = '';
+        briefOutput.textContent = 'No matching case study.';
+        heroScore.textContent = '0 <span>story threads mapped</span>';
+        heroCopy.textContent = 'Try a different filter.';
+        heroChips.innerHTML = '';
+        return;
+      }
+
+      const item = items[state.selected % items.length];
+      const rank = scoreCase(item);
+      heroScore.innerHTML = `${rank} <span>story threads mapped</span>`;
+      heroCopy.textContent = item.impact;
+      heroChips.innerHTML = [
+        `<span class="pill">${item.type}</span>`,
+        `<span class="pill">${item.storyRole}</span>`,
+        `<span class="pill">${item.relatedNotes.length} linked notes</span>`,
+        `<span class="pill">${item.milestoneHits.length} nearby milestones</span>`
+      ].join('');
+      briefOutput.textContent = briefText(item);
+
+      featuredCase.innerHTML = `
+        <article class="case is-lead">
+          <div class="case-head">
+            <div>
+              <div class="tiny">${niceDate(item.date)} · ${item.type}</div>
+              <h3>${item.title}</h3>
+            </div>
+            <div class="tiny">${item.storyRole}</div>
+          </div>
+          <p class="case-copy">${item.details}</p>
+          <div class="meter"><span style="width:${item.intensity}%"></span></div>
+          <div class="case-footer">
+            <span>impact ${item.impact}</span>
+            <span>${item.pageLabel || item.page}</span>
+          </div>
+          <div class="link-row">
+            <a class="btn" href="${item.page}">${item.pageLabel || 'open release page'}</a>
+            <a class="btn" href="changelog.html">open changelog</a>
+            <button class="btn" data-copy-case="${item.slug}">copy brief</button>
+          </div>
+          <div class="stack">
+            ${item.relatedNotes.map((note) => `
+              <article class="case">
+                <div class="tiny">${niceDate(note.date)} · ${note.tags.join(' · ')}</div>
+                <h3>${note.title}</h3>
+                <p class="case-copy">${note.summary}</p>
+              </article>
+            `).join('')}
+          </div>
+        </article>
+      `;
+
+      archiveList.innerHTML = items.slice(0, 6).map((entry, index) => `
+        <article class="archive-item">
+          <div class="tiny">${niceDate(entry.date)} · ${entry.type} · ${entry.storyRole}</div>
+          <h3>${entry.title}</h3>
+          <p>${entry.impact}</p>
+          <div class="meter"><span style="width:${entry.intensity}%"></span></div>
+          <div class="meta-row">
+            <a class="pill" href="${entry.page}">${entry.pageLabel || 'open page'}</a>
+            <button class="pill" data-pick-case="${index}">focus</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function setStatus(message) {
+      briefStatus.textContent = message;
+      window.setTimeout(() => {
+        if (briefStatus.textContent === message) briefStatus.textContent = '';
+      }, 2200);
+    }
+
+    async function copyCurrentBrief() {
+      const text = briefOutput.textContent || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('brief copied to clipboard.');
+      } catch {
+        setStatus('clipboard blocked in this browser.');
+      }
+    }
+
+    async function boot() {
+      const [updatesRes, notesRes, milestonesRes] = await Promise.all([
+        fetch('assets/roost-updates.json', { cache: 'no-store' }),
+        fetch('assets/roost-notes.json', { cache: 'no-store' }),
+        fetch('assets/roost-milestones.json', { cache: 'no-store' })
+      ]);
+      const updates = await updatesRes.json();
+      const notes = await notesRes.json();
+      const milestones = await milestonesRes.json();
+      state.updates = updates.updates || [];
+      state.notes = notes.notes || [];
+      state.milestones = milestones || [];
+      state.cases = buildCases(state.updates, state.notes, state.milestones).sort((a, b) => b.date.localeCompare(a.date));
+      renderFilters();
+      renderInsights();
+      renderFeatured();
+    }
+
+    filtersEl.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-filter]');
+      if (!button) return;
+      state.filter = button.dataset.filter;
+      state.selected = 0;
+      renderFilters();
+      renderFeatured();
+    });
+
+    featuredCase.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-copy-case]');
+      if (!button) return;
+      const item = filteredCases().find((entry) => entry.slug === button.dataset.copyCase);
+      if (!item) return;
+      briefOutput.textContent = briefText(item);
+      await copyCurrentBrief();
+    });
+
+    archiveList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-pick-case]');
+      if (!button) return;
+      state.selected = Number(button.dataset.pickCase) || 0;
+      renderFeatured();
+      setStatus('case focus updated.');
+    });
+
+    copyBrief.addEventListener('click', copyCurrentBrief);
+    shuffleCase.addEventListener('click', () => {
+      const items = filteredCases();
+      if (!items.length) return;
+      state.selected = (state.selected + 1) % items.length;
+      renderFeatured();
+      setStatus('next case loaded.');
+    });
+
+    boot().catch(() => {
+      heroCopy.textContent = 'Casebook data unavailable. Reload to try again.';
+      featuredCase.innerHTML = '<div class="empty">Could not load case studies.</div>';
+    });
+  </script>
+</body>
+</html>
