@@ -273,6 +273,117 @@
       font:inherit;
       line-height:1.45;
     }
+    .runway-board {
+      border:1px solid #4b67c8;
+      background:linear-gradient(160deg, #0e1a41, #081026 58%, #132a67);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .runway-board::before {
+      content:"";
+      position:absolute;
+      inset:auto -100px -130px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #86a8ff25 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .runway-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .runway-head h2 { margin:0; }
+    .runway-note {
+      margin:0;
+      color:#a8b9ff;
+      font-size:.85rem;
+    }
+    .runway-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      z-index:1;
+    }
+    .runway-mode {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:999px;
+      color:#dfe7ff;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .runway-mode.is-active {
+      background:#183170;
+      border-color:#8da7ff;
+      color:#f5f8ff;
+    }
+    .runway-mode:hover,
+    .runway-mode:focus-visible {
+      transform: translateY(-1px);
+      border-color:#6f8dff;
+      outline:none;
+    }
+    .runway-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .runway-card {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .runway-card.is-lead {
+      background:linear-gradient(155deg, #132a66, #081231 72%);
+      border-color:#7a95ea;
+    }
+    .runway-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .runway-copy {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .runway-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .runway-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .runway-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .seasonal-desk {
       border:1px solid #4d69c5;
       background:linear-gradient(155deg, #0c1738, #09112a 58%, #12265d);
@@ -1269,6 +1380,27 @@
       </div>
     </section>
 
+    <section class="card runway-board" id="runwayBoard" aria-live="polite">
+      <div class="runway-head">
+        <h2>build runway</h2>
+        <p class="runway-note">a ranked next-build queue that mixes roadmap pressure, shipped momentum, and the shipyard backlog.</p>
+      </div>
+      <div class="runway-controls" id="runwayModes">
+        <button class="runway-mode is-active" type="button" data-runway-mode="ship">ship</button>
+        <button class="runway-mode" type="button" data-runway-mode="stretch">stretch</button>
+        <button class="runway-mode" type="button" data-runway-mode="quiet">quiet</button>
+      </div>
+      <div class="runway-grid" id="runwayGrid"></div>
+      <div class="runway-summary">
+        <div class="links">
+          <button class="btn" id="copyRunwayBrief">copy runway brief</button>
+          <a class="btn" href="shipyard.html">open shipyard</a>
+          <a class="btn" href="roost-launch-corridor.html">open launch corridor</a>
+        </div>
+        <pre id="runwayBrief">loading runway…</pre>
+      </div>
+    </section>
+
     <section class="card" id="releasePulseBoard" aria-live="polite">
       <h2>release pulse</h2>
       <p class="tiny" style="margin-bottom:10px;">a quick scan of what just shipped, what is in motion, and where the roadmap is leaning next.</p>
@@ -1596,6 +1728,10 @@
     const dispatchBrief = document.getElementById('dispatchBrief');
     const dispatchShuffle = document.getElementById('dispatchShuffle');
     const dispatchCopy = document.getElementById('dispatchCopy');
+    const runwayModes = document.getElementById('runwayModes');
+    const runwayGrid = document.getElementById('runwayGrid');
+    const runwayBrief = document.getElementById('runwayBrief');
+    const copyRunwayBrief = document.getElementById('copyRunwayBrief');
     const releasePulseStats = document.getElementById('releasePulseStats');
     const releasePulseLatest = document.getElementById('releasePulseLatest');
     const releasePulseRoadmap = document.getElementById('releasePulseRoadmap');
@@ -1611,6 +1747,15 @@
     const timelineTags = ['all', 'build', 'write', 'learn'];
     let timelineEntries = [];
     let timelineFilter = 'all';
+    let runwayMode = storage.get('roostRunwayMode') || 'ship';
+    const runwayModeLabels = { ship: 'ship', stretch: 'stretch', quiet: 'quiet' };
+    let runwayData = {
+      roadmap: { now: [], next: [], later: [] },
+      updates: [],
+      shipyard: [],
+      activeFocus: [],
+      recentWins: []
+    };
     let workbenchSignals = {
       focus: [],
       pressure: [],
@@ -2940,6 +3085,71 @@
       }
     };
 
+    const scoreRunwayCandidate = (entry, pref) => {
+      let score = (Number(entry.impact) || 0) * 2 - (Number(entry.effort) || 0);
+      if (pref.mode === 'ship' && entry.status === 'building') score += 4;
+      if (pref.mode === 'ship' && entry.horizon === 'near') score += 3;
+      if (pref.mode === 'stretch' && entry.status === 'prototype') score += 4;
+      if (pref.mode === 'stretch' && entry.horizon === 'mid') score += 2;
+      if (pref.mode === 'quiet' && (Number(entry.effort) || 0) <= 2) score += 5;
+      if (pref.mode === 'quiet' && entry.status === 'planned') score += 2;
+      if ((entry.tags || []).includes('interaction')) score += 1;
+      if ((entry.tags || []).includes('design')) score += 1;
+      if (runwayData.recentWins.some((win) => normalize(win).includes(normalize(entry.title)))) score += 1;
+      if (runwayData.roadmap.now.some((item) => normalize(item).includes(normalize(entry.title)))) score += 2;
+      return score;
+    };
+
+    const renderRunwayBoard = () => {
+      if (!runwayGrid || !runwayBrief) return;
+
+      const ranked = [...runwayData.shipyard]
+        .map((entry) => ({ entry, score: scoreRunwayCandidate(entry, { mode: runwayMode }) }))
+        .sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title))
+        .slice(0, 3);
+
+      if (!ranked.length) {
+        runwayGrid.innerHTML = '<div class="empty-card">runway feed unavailable.</div>';
+        runwayBrief.textContent = 'runway unavailable right now.';
+        return;
+      }
+
+      runwayGrid.innerHTML = ranked.map(({ entry, score }, idx) => `
+        <article class="runway-card ${idx === 0 ? 'is-lead' : ''}">
+          <div class="runway-meta"><span>slot ${idx + 1}</span><span>fit ${score}</span><span>${entry.status || 'planned'}</span></div>
+          <h3>${entry.title}</h3>
+          <p class="runway-copy">${entry.summary}</p>
+          <div class="tag-row">${(entry.tags || []).slice(0, 3).map((tag) => `<span class="tag">${tag}</span>`).join('')}</div>
+          <div class="link-row"><a class="btn" href="${entry.link}">open surface</a></div>
+        </article>
+      `).join('');
+
+      const lead = ranked[0]?.entry;
+      const nextTwo = ranked.slice(1).map(({ entry }) => entry.title).join(' and ');
+      runwayBrief.textContent = [
+        `build runway / ${runwayModeLabels[runwayMode] || runwayMode}`,
+        '',
+        `lead: ${lead.title}`,
+        `why now: ${lead.summary}`,
+        '',
+        `supporting surfaces: ${nextTwo || 'none'}`,
+        `roadmap pressure: ${(runwayData.roadmap.now || []).slice(0, 2).join(' | ') || 'quiet'}`,
+        `recent wins to reuse: ${(runwayData.recentWins || []).slice(0, 2).join(' | ') || 'none'}`,
+        '',
+        'why it matters: the homepage can now point at a ranked build lane that blends backlog, momentum, and the current now feed.'
+      ].join('\n');
+    };
+
+    const setRunwayMode = (nextMode) => {
+      if (!runwayModeLabels[nextMode]) return;
+      runwayMode = nextMode;
+      storage.set('roostRunwayMode', runwayMode);
+      runwayModes?.querySelectorAll('.runway-mode').forEach((btn) => {
+        btn.classList.toggle('is-active', btn.dataset.runwayMode === runwayMode);
+      });
+      renderRunwayBoard();
+    };
+
     const renderStorySpotlight = (updates, notesById) => {
       const latest = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
       if (!latest) {
@@ -3216,6 +3426,38 @@
 
       loadWorkbenchState();
       renderWorkbench();
+    };
+
+    const loadRunwayData = async () => {
+      const [updatesRes, shipyardRes, nowRes] = await Promise.allSettled([
+        fetch('assets/roost-updates.json', { cache: 'no-store' }),
+        fetch('assets/roost-shipyard.json', { cache: 'no-store' }),
+        fetch('assets/roost-now.json', { cache: 'no-store' })
+      ]);
+
+      let updatesData = null;
+      let shipyard = [];
+      let nowData = null;
+
+      try {
+        if (updatesRes.status === 'fulfilled' && updatesRes.value.ok) updatesData = await updatesRes.value.json();
+      } catch { updatesData = null; }
+      try {
+        if (shipyardRes.status === 'fulfilled' && shipyardRes.value.ok) shipyard = await shipyardRes.value.json();
+      } catch { shipyard = []; }
+      try {
+        if (nowRes.status === 'fulfilled' && nowRes.value.ok) nowData = await nowRes.value.json();
+      } catch { nowData = null; }
+
+      runwayData = {
+        roadmap: updatesData?.roadmap || { now: [], next: [], later: [] },
+        updates: Array.isArray(updatesData?.updates) ? updatesData.updates : [],
+        shipyard: Array.isArray(shipyard) ? shipyard : [],
+        activeFocus: Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [],
+        recentWins: Array.isArray(nowData?.recentWins) ? nowData.recentWins : []
+      };
+
+      renderRunwayBoard();
     };
 
     const renderLatestShips = (updates, notesById) => {
@@ -3681,6 +3923,23 @@
         setActionStatus('clipboard blocked for radio setlist.', 'warn');
       }
     });
+    runwayModes?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const nextMode = target.dataset.runwayMode;
+      if (!nextMode) return;
+      setRunwayMode(nextMode);
+    });
+    copyRunwayBrief?.addEventListener('click', async () => {
+      const text = runwayBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('runway brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for runway brief.', 'warn');
+      }
+    });
 
     runPathfinderBtn.addEventListener('click', runPathfinder);
     rerollLaunchDeckBtn.addEventListener('click', () => {
@@ -3757,9 +4016,11 @@
       if (savedPrefs?.time) pathfinderTime.value = String(savedPrefs.time);
     } catch { }
 
+    setRunwayMode(runwayMode);
     renderExplorer('');
     runPathfinder();
     renderLaunchDeck();
+    loadRunwayData();
     loadWorkbenchSignals();
     renderRoutebook();
     renderRouteRelay();
