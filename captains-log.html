@@ -77,6 +77,49 @@
       grid-template-columns: 1.1fr .9fr;
       gap:14px;
     }
+    .publish-panel {
+      display:grid;
+      gap:12px;
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px solid #31448b;
+    }
+    .publish-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+      flex-wrap:wrap;
+    }
+    .publish-head h3 {
+      margin:0;
+      font-size:.95rem;
+      color:#e4ebff;
+    }
+    .publish-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+    }
+    .publish-box {
+      border:1px solid #31448b;
+      border-radius:12px;
+      padding:12px;
+      background:#09122f;
+      display:grid;
+      gap:8px;
+    }
+    .publish-box strong {
+      color:#f0f4ff;
+      font-size:.9rem;
+    }
+    .publish-box p {
+      font-size:.82rem;
+      line-height:1.45;
+    }
+    .publish-box .tiny {
+      margin-top:0;
+    }
     .summary-grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -172,6 +215,8 @@
           </select>
         </label>
         <button id="regenerateBtn" type="button">regenerate digest</button>
+        <button id="publishDiscordBtn" type="button">copy Discord post</button>
+        <button id="publishGithubBtn" type="button">copy GitHub note</button>
         <button id="copyBtn" type="button">copy markdown</button>
       </div>
       <div class="status" id="status" aria-live="polite"></div>
@@ -186,6 +231,13 @@
       <article class="card" id="contextPanel">
         <h2>digest snapshot</h2>
         <div class="summary-grid" id="summaryGrid"></div>
+        <section class="publish-panel" aria-label="Publish targets">
+          <div class="publish-head">
+            <h3>publish targets</h3>
+            <span class="small" id="publishHint">ready to package</span>
+          </div>
+          <div class="publish-grid" id="publishGrid"></div>
+        </section>
         <h3 style="margin-top:14px;">included ships</h3>
         <ol class="entry-list" id="shipList"></ol>
         <h3 style="margin-top:14px;">included notes</h3>
@@ -205,6 +257,8 @@
     const statusEl = document.getElementById('status');
     const outputEl = document.getElementById('digestOutput');
     const summaryGridEl = document.getElementById('summaryGrid');
+    const publishGridEl = document.getElementById('publishGrid');
+    const publishHintEl = document.getElementById('publishHint');
     const shipListEl = document.getElementById('shipList');
     const noteListEl = document.getElementById('noteList');
     const tagChipsEl = document.getElementById('tagChips');
@@ -265,6 +319,10 @@
 
       const today = new Date();
       const headingWindow = windowValue === 'all' ? 'all-time' : `${windowValue}-day`;
+      const nextMove = visibleUpdates.length
+        ? `Expand on **${visibleUpdates[0].title}** with a follow-up interaction or content drop this week.`
+        : 'Ship one visible feature before the next digest so this section has momentum to report.';
+
       const lines = [
         `# Kestrel Roost Captain's Log (${headingWindow} digest)`,
         '',
@@ -288,9 +346,7 @@
           : ['- No notes matched this filter window yet.']),
         '',
         '## Next move',
-        visibleUpdates.length
-          ? `- Expand on **${visibleUpdates[0].title}** with a follow-up interaction or content drop this week.`
-          : '- Ship one visible feature before the next digest so this section has momentum to report.'
+        `- ${nextMove}`
       ];
 
       return {
@@ -298,8 +354,41 @@
         visibleUpdates,
         visibleNotes,
         typeMix,
-        orderedTags
+        orderedTags,
+        nextMove,
+        headingWindow
       };
+    }
+
+    function formatDiscordPost(model) {
+      const topShip = model.visibleUpdates[0];
+      const topNote = model.visibleNotes[0];
+      const shipLine = topShip ? `Top ship: ${topShip.title} (${topShip.type})` : 'Top ship: nothing matched this filter';
+      const noteLine = topNote ? `Note signal: ${topNote.title}` : 'Note signal: nothing matched this filter';
+      return [
+        `Kestrel Roost ${model.headingWindow} digest`,
+        `${shipLine}. ${noteLine}.`,
+        `Next move: ${model.nextMove}`,
+        'Full log: captains-log.html'
+      ].join('\n');
+    }
+
+    function formatGithubNote(model) {
+      const topTags = model.orderedTags.slice(0, 3).map(([tag]) => `\`${tag}\``).join(', ') || 'none';
+      const lines = [
+        `### Kestrel Roost ${model.headingWindow} digest`,
+        '',
+        `- Ships logged: ${model.visibleUpdates.length}`,
+        `- Notes included: ${model.visibleNotes.length}`,
+        `- Strongest tags: ${topTags}`,
+        `- Next move: ${model.nextMove}`,
+        '',
+        '### Suggested publish targets',
+        '- Discord: short momentum update',
+        '- GitHub: changelog or release note',
+        '- Docs: paste the full markdown digest'
+      ];
+      return lines.join('\n');
     }
 
     function renderSummary(model) {
@@ -361,6 +450,36 @@
           tagChipsEl.appendChild(chip);
         });
       }
+
+      publishGridEl.innerHTML = '';
+      const publishTargets = [
+        {
+          label: 'discord',
+          title: 'fast momentum post',
+          body: 'Use the compact digest to announce what shipped, what it means, and the next move without forcing readers through the full markdown.'
+        },
+        {
+          label: 'github',
+          title: 'release note',
+          body: 'Use the bullet summary to feed a changelog entry, release comment, or issue update with the important metrics already trimmed.'
+        },
+        {
+          label: 'docs',
+          title: 'full markdown',
+          body: 'Use the raw digest when you want the entire ship and note set for a weekly review or planning memo.'
+        }
+      ];
+      publishTargets.forEach((target) => {
+        const box = document.createElement('div');
+        box.className = 'publish-box';
+        box.innerHTML = `
+          <strong>${target.label}</strong>
+          <div>${target.title}</div>
+          <p>${target.body}</p>
+        `;
+        publishGridEl.appendChild(box);
+      });
+      publishHintEl.textContent = `Ready for ${model.visibleUpdates.length ? model.visibleUpdates[0].type : 'general'} momentum packaging.`;
     }
 
     function regenerate() {
@@ -385,6 +504,23 @@
       }
     }
 
+    async function copyPublishText(factory, label) {
+      const windowValue = document.getElementById('windowSelect').value;
+      const focus = document.getElementById('focusSelect').value;
+      const model = makeDigest(state.updates, state.notes, windowValue, focus);
+      const text = factory(model);
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus(`Copied ${label} to clipboard.`, 'ok');
+      } catch {
+        outputEl.value = text;
+        outputEl.focus();
+        outputEl.select();
+        const ok = document.execCommand('copy');
+        setStatus(ok ? `Copied ${label} to clipboard.` : `Copy failed, select the ${label} text manually.`, ok ? 'ok' : 'warn');
+      }
+    }
+
     async function init() {
       setStatus('Loading ships and notes...');
       try {
@@ -402,6 +538,8 @@
 
         document.getElementById('regenerateBtn').addEventListener('click', regenerate);
         document.getElementById('copyBtn').addEventListener('click', copyMarkdown);
+        document.getElementById('publishDiscordBtn').addEventListener('click', () => copyPublishText(formatDiscordPost, 'Discord post'));
+        document.getElementById('publishGithubBtn').addEventListener('click', () => copyPublishText(formatGithubNote, 'GitHub note'));
         document.getElementById('windowSelect').addEventListener('change', regenerate);
         document.getElementById('focusSelect').addEventListener('change', regenerate);
 
