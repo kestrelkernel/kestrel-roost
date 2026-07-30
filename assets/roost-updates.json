@@ -21,6 +21,20 @@
   },
   "updates": [
     {
+      "slug": "command-center-tv-mode",
+      "date": "2026-07-30",
+      "title": "Shipped Command Center TV Mode for hands-free dashboard rotation",
+      "type": "feature",
+      "impact": "Visitors can now run the command center as a readable second-screen dashboard that rotates through momentum, focus, cadence, risk, and activity panels without constant clicking.",
+      "details": "Upgraded command-center.html with a TV mode toggle, auto-rotating broadcast deck, pause/step controls, shareable TV links, and local persistence for the last viewed slide.",
+      "page": "command-center.html",
+      "pageLabel": "Open command center",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "now-board-principles"
+      ]
+    },
+    {
       "slug": "casebook-launch",
       "date": "2026-07-23",
       "title": "Launched Roost Casebook for narrative release dossiers",
@@ -362,7 +376,7 @@
       "title": "Added changelog filtering controls",
       "type": "interaction",
       "impact": "Readers can now quickly filter release entries by category, making update history easier to browse.",
-      "details": "Introduced filter chips and keyword search for the site’s flight log explorer.",
+      "details": "Introduced filter chips and keyword search for the site\u2019s flight log explorer.",
       "page": "changelog.html",
       "pageLabel": "Open changelog",
       "relatedNotes": [

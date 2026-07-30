@@ -42,6 +42,17 @@
       backdrop-filter: blur(4px);
       box-shadow: 0 10px 30px #00000033;
     }
+    body.tv-mode .wrap {
+      width:min(1440px, 96vw);
+      margin:18px auto 28px;
+    }
+    body.tv-mode .card {
+      border-color:#4d69c9;
+      box-shadow:0 16px 40px #00000055;
+    }
+    body.tv-mode .hero {
+      background:linear-gradient(135deg, #172f66, #0b1020 72%);
+    }
     h1, h2, h3 { margin:0; }
     h1 { font-size:clamp(1.8rem, 4vw, 2.8rem); }
     h2 { font-size:1rem; color:#c4d1ff; margin-bottom:10px; }
@@ -59,6 +70,96 @@
     .grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .hero {
+      display:grid;
+      gap:14px;
+    }
+    .hero-top {
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px) {
+      .hero-top { grid-template-columns:1fr; }
+    }
+    .hero-copy {
+      display:grid;
+      gap:12px;
+    }
+    .hero-panel {
+      border:1px solid #4260ba;
+      border-radius:16px;
+      background:linear-gradient(160deg, #13285f, #081227 70%);
+      padding:16px;
+      display:grid;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero-panel::before {
+      content:"";
+      position:absolute;
+      inset:auto -70px -90px auto;
+      width:250px;
+      height:250px;
+      border-radius:999px;
+      background:radial-gradient(circle, #88a8ff2a 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .hero-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#bfd0ff;
+      font-size:.8rem;
+    }
+    .tv-panel {
+      display:grid;
+      gap:10px;
+      align-content:start;
+    }
+    .tv-display {
+      border:1px solid #4a67c6;
+      border-radius:18px;
+      background:linear-gradient(160deg, #0d1837, #0a1124);
+      min-height:250px;
+      padding:18px;
+      display:grid;
+      gap:12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .tv-display::after {
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg, transparent 35%, #8db0ff12 50%, transparent 65%);
+      pointer-events:none;
+      transform:translateX(var(--scan-x, -120%));
+      transition:transform 12s linear;
+    }
+    body.tv-mode .tv-display::after {
+      --scan-x: 120%;
+    }
+    .tv-title {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .tv-title strong { font-size:1.25rem; }
+    .tv-slot {
+      display:grid;
+      gap:10px;
+      align-content:start;
+    }
+    .tv-slot .kpi,
+    .tv-slot .item,
+    .tv-slot .empty {
+      min-height:100%;
     }
     .nav-link,
     .btn,
@@ -190,31 +291,80 @@
       font-size:.75rem;
       color:#d9e2ff;
     }
+    .tv-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .tv-controls .btn.is-active {
+      background:linear-gradient(180deg, #2851a5, #16306a);
+      border-color:#92abff;
+      color:#f6f8ff;
+    }
+    .status-line {
+      min-height:1.2em;
+      font-size:.82rem;
+      color:#bbcbff;
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
+    <section class="card hero">
+      <div class="hero-top">
+        <div class="hero-copy">
+          <div>
+            <h1>roost command center</h1>
+            <p>one glance dashboard for momentum, focus, and what shipped recently.</p>
+          </div>
+          <nav class="site-nav" aria-label="Site sections">
+            <a class="nav-link" href="index.html">home</a>
+            <a class="nav-link" href="now.html">now</a>
+            <a class="nav-link" href="timeline.html">timeline</a>
+            <a class="nav-link" href="expeditions.html">expeditions</a>
+            <a class="nav-link" href="mission-plotter.html">mission plotter</a>
+            <a class="nav-link" href="roost-briefing.html">roost briefing</a>
+            <a class="nav-link" href="shipyard.html">shipyard</a>
+            <a class="nav-link" href="roost-compass.html">roost compass</a>
+            <a class="nav-link" href="roost-observatory.html">roost observatory</a>
+            <a class="nav-link" href="flight-deck.html">flight deck</a>
+            <a class="nav-link" href="roost-soundscapes.html">roost soundscapes</a>
+            <a class="nav-link" href="roost-trails.html">roost trails</a>
+          </nav>
+        </div>
+        <div class="hero-panel tv-panel">
+          <div class="tv-title">
+            <strong>TV mode</strong>
+            <span class="tiny">hands-free dashboard for wall screens and second monitors</span>
+          </div>
+          <div class="tv-controls" role="toolbar" aria-label="TV controls">
+            <button class="btn" id="tvToggle" type="button">enable tv mode</button>
+            <button class="btn" id="rotateToggle" type="button">pause rotation</button>
+            <button class="btn" id="nextSlide" type="button">next panel</button>
+            <button class="btn" id="copyLink" type="button">copy tv link</button>
+          </div>
+          <div class="status-line" id="tvStatus">rotation is live and starts on the next panel with fresh data.</div>
+          <p class="tiny">tv mode keeps the dashboard readable from a few steps away, rotates through the live signals automatically, and remembers the last view locally.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="card">
-      <h1>roost command center</h1>
-      <p>one glance dashboard for momentum, focus, and what shipped recently.</p>
-      <nav class="site-nav" aria-label="Site sections" style="margin-top:10px;">
-        <a class="nav-link" href="index.html">home</a>
-        <a class="nav-link" href="now.html">now</a>
-        <a class="nav-link" href="timeline.html">timeline</a>
-        <a class="nav-link" href="expeditions.html">expeditions</a>
-        <a class="nav-link" href="mission-plotter.html">mission plotter</a>
-        <a class="nav-link" href="roost-briefing.html">roost briefing</a>
-        <a class="nav-link" href="shipyard.html">shipyard</a>
-        <a class="nav-link" href="roost-compass.html">roost compass</a>
-        <a class="nav-link" href="roost-observatory.html">roost observatory</a>
-        <a class="nav-link" href="flight-deck.html">flight deck</a>
-        <a class="nav-link" href="roost-soundscapes.html">roost soundscapes</a>
-        <a class="nav-link" href="roost-trails.html">roost trails</a>
-      </nav>
+      <h2>broadcast deck</h2>
+      <p class="tiny" style="margin-bottom:10px;">the currently featured panel rotates through the strongest signals unless paused.</p>
+      <div class="tv-display" id="tvDisplay" aria-live="polite">
+        <div class="empty">loading broadcast…</div>
+      </div>
     </section>
 
     <section class="grid kpis" id="kpiGrid" aria-live="polite">
       <article class="kpi"><span>loading</span><strong>…</strong></article>
+    </section>
+
+    <section class="card" id="focusDeck" aria-live="polite">
+      <h2>active focus snapshot</h2>
+      <div class="empty">loading focus…</div>
     </section>
 
     <section class="card">
@@ -237,11 +387,6 @@
       <h2>momentum by month</h2>
       <p class="tiny" style="margin-bottom:10px;">combined note + ship + milestone activity over the last 6 months.</p>
       <div class="bar-grid" id="momentumBars" aria-live="polite"></div>
-    </section>
-
-    <section class="card" id="focusDeck" aria-live="polite">
-      <h2>active focus snapshot</h2>
-      <div class="empty">loading focus…</div>
     </section>
 
     <section class="card" id="cadencePlanner">
@@ -304,6 +449,12 @@
     const kpiGrid = document.getElementById('kpiGrid');
     const momentumBars = document.getElementById('momentumBars');
     const focusDeck = document.getElementById('focusDeck');
+    const tvDisplay = document.getElementById('tvDisplay');
+    const tvToggle = document.getElementById('tvToggle');
+    const rotateToggle = document.getElementById('rotateToggle');
+    const nextSlide = document.getElementById('nextSlide');
+    const copyLink = document.getElementById('copyLink');
+    const tvStatus = document.getElementById('tvStatus');
     const stream = document.getElementById('stream');
     const hoursRange = document.getElementById('hours');
     const focusRange = document.getElementById('focus');
@@ -322,6 +473,7 @@
     const searchInput = document.getElementById('search');
     const sourceSelect = document.getElementById('source');
     const clearBtn = document.getElementById('clearFilters');
+    const tvKey = 'roost-command-center-tv-v1';
 
     const loadJson = async (path, fallback) => {
       try {
@@ -354,6 +506,17 @@
       const card = document.createElement('article');
       card.className = 'kpi';
       card.innerHTML = `<span>${label}</span><strong>${value}</strong><span>${hint}</span>`;
+      return card;
+    };
+
+    const createPanel = (title, body, meta = '', kind = 'kpi') => {
+      const card = document.createElement('article');
+      card.className = kind === 'stream' ? 'item' : kind === 'focus' ? 'kpi' : 'kpi';
+      card.innerHTML = `
+        <span class="tiny">${title}</span>
+        <strong>${body}</strong>
+        <span>${meta}</span>
+      `;
       return card;
     };
 
@@ -479,6 +642,108 @@
       `;
     };
 
+    const buildBroadcast = ({ updates, notes, milestones, nowData, telemetry, events }) => {
+      const focus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [];
+      const topFocus = focus[0] || {};
+      const topEvent = events[0] || {};
+      const topNote = (notes?.notes || [])[0] || {};
+      const topMilestone = (milestones || [])[0] || {};
+      return [
+        {
+          id: 'momentum',
+          label: 'momentum pulse',
+          kind: 'kpi',
+          node: createPanel(
+            'this month',
+            `${events.filter((entry) => new Date(entry.date).getUTCMonth() === new Date().getUTCMonth()).length} live events`,
+            `${(updates.updates || []).length} ships · ${notes.notes.length} notes · ${milestones.length} milestones`
+          )
+        },
+        {
+          id: 'focus',
+          label: 'active focus',
+          kind: 'focus',
+          node: topFocus.title
+            ? (() => {
+                const card = document.createElement('article');
+                card.className = 'kpi';
+                card.innerHTML = `
+                  <span>active focus</span>
+                  <strong>${topFocus.title}</strong>
+                  <span>${topFocus.summary || 'no summary available'}</span>
+                `;
+                return card;
+              })()
+            : createPanel('active focus', 'no focus cards found', 'nothing live yet')
+        },
+        {
+          id: 'cadence',
+          label: 'cadence planner',
+          kind: 'kpi',
+          node: createPanel(
+            'weekly output',
+            `${Math.max(1, Math.round((Number(hoursRange.value) * (Number(focusRange.value) / 10)) / (1 + Number(scopeRange.value) / 8)))} ships`,
+            'open the planner below for the exact forecast'
+          )
+        },
+        {
+          id: 'risk',
+          label: 'risk radar',
+          kind: 'kpi',
+          node: createPanel(
+            'mission risk',
+            `${Math.max(5, Math.min(95, Math.round((Number(interruptionsRange.value) * 3) + (Number(dependenciesRange.value) * 4) + (Number(qualityRange.value) * 2) + (telemetry.activeExpeditions * 2) - Math.round(telemetry.avgProgress / 8))))} / 95`,
+            'stress test the plan before it grows teeth'
+          )
+        },
+        {
+          id: 'latest',
+          label: 'latest ship',
+          kind: 'stream',
+          node: (() => {
+            const card = document.createElement('article');
+            card.className = 'item';
+            card.innerHTML = `
+              <div class="meta tiny">${topEvent.kind || 'update'} · ${fmtDate(topEvent.date || new Date().toISOString())}</div>
+              <h3>${topEvent.title || 'no recent ship'}</h3>
+              <p>${topEvent.summary || 'the latest release summary will appear here.'}</p>
+            `;
+            return card;
+          })()
+        },
+        {
+          id: 'note',
+          label: 'note of the day',
+          kind: 'stream',
+          node: (() => {
+            const card = document.createElement('article');
+            card.className = 'item';
+            card.innerHTML = `
+              <div class="meta tiny">${topNote.date ? fmtDate(topNote.date) : 'field note'}</div>
+              <h3>${topNote.title || 'no note loaded'}</h3>
+              <p>${topNote.summary || 'today has not left a note yet.'}</p>
+            `;
+            return card;
+          })()
+        },
+        {
+          id: 'milestone',
+          label: 'milestone beacon',
+          kind: 'stream',
+          node: (() => {
+            const card = document.createElement('article');
+            card.className = 'item';
+            card.innerHTML = `
+              <div class="meta tiny">${topMilestone.date ? fmtDate(topMilestone.date) : 'timeline'}</div>
+              <h3>${topMilestone.title || 'no milestone loaded'}</h3>
+              <p>${topMilestone.summary || topMilestone.impact || 'timeline anchors show up here.'}</p>
+            `;
+            return card;
+          })()
+        }
+      ];
+    };
+
     const cadenceKey = 'roost-command-center-cadence-v1';
 
     const renderCadence = () => {
@@ -582,6 +847,11 @@
         ? Math.round(expeditions.reduce((sum, entry) => sum + (Number(entry.progress) || 0), 0) / expeditions.length)
         : 0;
       const telemetry = { activeExpeditions, avgProgress };
+      const broadcast = buildBroadcast({ updates, notes, milestones, nowData, telemetry, events });
+      let slideIndex = 0;
+      let autoRotate = true;
+      let tvMode = false;
+      let rotateTimer = null;
 
       kpiGrid.innerHTML = '';
       kpiGrid.append(
@@ -597,6 +867,79 @@
       renderStream(events);
       initCadence();
       initRisk(telemetry);
+
+      const saved = (() => {
+        try { return JSON.parse(localStorage.getItem(tvKey) || '{}'); } catch { return {}; }
+      })();
+      tvMode = Boolean(saved.tvMode);
+      autoRotate = saved.autoRotate !== false;
+      slideIndex = Number.isFinite(saved.slideIndex) ? saved.slideIndex : 0;
+
+      const persistTv = () => {
+        localStorage.setItem(tvKey, JSON.stringify({ tvMode, autoRotate, slideIndex }));
+      };
+
+      const renderTv = () => {
+        const panel = broadcast[slideIndex % broadcast.length];
+        tvDisplay.innerHTML = '';
+        tvDisplay.appendChild(panel.node);
+        tvStatus.textContent = `${panel.label} is on deck · ${broadcast.length} panels in rotation · ${autoRotate ? 'auto-rotating' : 'paused'}.`;
+        tvToggle.textContent = tvMode ? 'disable tv mode' : 'enable tv mode';
+        rotateToggle.textContent = autoRotate ? 'pause rotation' : 'resume rotation';
+        tvToggle.classList.toggle('is-active', tvMode);
+        rotateToggle.classList.toggle('is-active', autoRotate);
+        document.body.classList.toggle('tv-mode', tvMode);
+        persistTv();
+      };
+
+      const advanceSlide = () => {
+        slideIndex = (slideIndex + 1) % broadcast.length;
+        renderTv();
+      };
+
+      const scheduleRotation = () => {
+        if (rotateTimer) clearInterval(rotateTimer);
+        if (!autoRotate) return;
+        rotateTimer = setInterval(advanceSlide, tvMode ? 9000 : 12000);
+      };
+
+      tvToggle.addEventListener('click', () => {
+        tvMode = !tvMode;
+        slideIndex = 0;
+        renderTv();
+        scheduleRotation();
+      });
+
+      rotateToggle.addEventListener('click', () => {
+        autoRotate = !autoRotate;
+        renderTv();
+        scheduleRotation();
+      });
+
+      nextSlide.addEventListener('click', () => {
+        advanceSlide();
+        scheduleRotation();
+      });
+
+      copyLink.addEventListener('click', async () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tv', tvMode ? '1' : '0');
+        url.searchParams.set('slide', String(slideIndex));
+        url.searchParams.set('rotate', autoRotate ? '1' : '0');
+        try {
+          await navigator.clipboard.writeText(url.toString());
+          tvStatus.textContent = 'tv link copied to clipboard.';
+        } catch {
+          tvStatus.textContent = 'clipboard blocked, but the tv link is ready in the address bar.';
+        }
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('tv')) tvMode = params.get('tv') === '1';
+      if (params.has('slide')) slideIndex = Number(params.get('slide')) || 0;
+      if (params.has('rotate')) autoRotate = params.get('rotate') !== '0';
+      renderTv();
+      scheduleRotation();
 
       searchInput.addEventListener('input', () => renderStream(events));
       sourceSelect.addEventListener('change', () => renderStream(events));

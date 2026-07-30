@@ -90,7 +90,7 @@
   {
     "id": "command-center-tv",
     "title": "Command Center TV Mode",
-    "status": "building",
+    "status": "shipped",
     "horizon": "near",
     "impact": 4,
     "effort": 2,

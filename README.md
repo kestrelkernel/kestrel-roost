@@ -59,6 +59,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Command Center TV Mode:** upgraded `command-center.html` into a hands-free dashboard with auto-rotating broadcast panels, pause/step controls, shareable TV links, and local persistence so the roost can run cleanly on a second screen
 - **Captain's Log publish deck:** upgraded `captains-log.html` with target-aware copy buttons for Discord and GitHub, plus a publish-target panel and stronger next-move output so shipped updates can move from draft to outbound post faster
 - **Roost Searchlight launch:** added `roost-searchlight.html`, a keyboard-first command palette that searches pages, notes, expeditions, and shipyard items with scoped filters, local recent picks, and a copyable brief for faster cross-roost navigation
 - **Roost Casebook launch:** added `roost-casebook.html`, a narrative release browser that turns big launches into case studies with linked note context, milestone overlap, and a copyable brief for faster recall
