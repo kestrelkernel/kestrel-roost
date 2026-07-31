@@ -73,6 +73,11 @@
     }
     .summary-grid { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
     .flight-grid { grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); }
+    .case-study-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+      gap:12px;
+    }
 
     .nav-link,
     .flight-filter,
@@ -126,6 +131,69 @@
       border-radius:12px;
       padding:14px;
       background:#0a1333;
+    }
+    .case-study {
+      border:1px solid #4a66c5;
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, #0c1639, #09112b);
+      display:grid;
+      gap:10px;
+      box-shadow:inset 0 1px 0 #ffffff08;
+    }
+    .case-study.is-lead {
+      border-color:#d9b06f;
+      background:linear-gradient(180deg, #1c1630, #0a1129);
+    }
+    .case-study-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .case-study-kicker {
+      color:#f2d7a0;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-size:.72rem;
+    }
+    .case-study h3 {
+      margin:0;
+      font-size:1.02rem;
+      color:#fff;
+    }
+    .case-study .impact {
+      color:#f0e8ff;
+      line-height:1.55;
+      margin:0;
+    }
+    .case-study-grid dl {
+      margin:0;
+      display:grid;
+      gap:8px;
+    }
+    .case-study-grid dt {
+      color:#cfe0ff;
+      font-size:.76rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .case-study-grid dd {
+      margin:2px 0 0;
+      color:#f0e8ff;
+      line-height:1.5;
+    }
+    .case-study-footer {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .case-study-meta {
+      color:#9fb0ff;
+      font-size:.78rem;
     }
     .summary-box h3,
     .flight-item h3 { margin:0 0 10px; color:#e3eaff; }
@@ -215,6 +283,12 @@
     </section>
 
     <section class="card">
+      <h2>mini case studies</h2>
+      <p>the biggest ships now get a more story-like readout: what changed, why it matters, and the next thread it opens.</p>
+      <div class="case-study-grid" id="caseStudyGrid" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
       <h2>flight log explorer</h2>
       <p>scan shipped work by category, keyword, page destination, or linked note trail.</p>
       <div class="flight-controls">
@@ -236,6 +310,7 @@
     const entryCount = document.getElementById('entryCount');
     const categoryCount = document.getElementById('categoryCount');
     const linkedRationaleCount = document.getElementById('linkedRationaleCount');
+    const caseStudyGrid = document.getElementById('caseStudyGrid');
 
     let flightLogEntries = [];
     let notesById = new Map();
@@ -253,10 +328,121 @@
       .map((id) => notesById.get(id))
       .filter(Boolean);
 
+    const buildCaseStudy = (entry) => {
+      const related = getRelatedNotes(entry);
+      const openingNote = related[0]?.summary || entry.details || entry.impact;
+      const whyItMatters = entry.impact || entry.details || 'It keeps the roost moving forward.';
+      const nextThread = related.slice(0, 2).map((note) => note.title).join(' and ') || 'the next release thread';
+      const scaleHint = related.length > 1 ? `${related.length} linked notes` : 'single-threaded ship';
+      return { openingNote, whyItMatters, nextThread, scaleHint, related };
+    };
+
     const renderSummary = () => {
       entryCount.textContent = String(flightLogEntries.length);
       categoryCount.textContent = String(new Set(flightLogEntries.map((entry) => entry.type).filter(Boolean)).size);
       linkedRationaleCount.textContent = String(new Set(flightLogEntries.flatMap((entry) => entry.relatedNotes || [])).size);
+    };
+
+    const renderCaseStudies = () => {
+      const featured = [...flightLogEntries]
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+        .slice(0, 3);
+
+      caseStudyGrid.innerHTML = '';
+
+      for (const [index, entry] of featured.entries()) {
+        const study = buildCaseStudy(entry);
+        const article = document.createElement('article');
+        article.className = `case-study${index === 0 ? ' is-lead' : ''}`;
+
+        const head = document.createElement('div');
+        head.className = 'case-study-head';
+
+        const titleBlock = document.createElement('div');
+        const kicker = document.createElement('div');
+        kicker.className = 'case-study-kicker';
+        kicker.textContent = index === 0 ? 'featured launch' : 'recent ship';
+
+        const title = document.createElement('h3');
+        title.textContent = entry.title;
+
+        const meta = document.createElement('p');
+        meta.className = 'case-study-meta';
+        meta.textContent = `${formatDate(entry.date)} · ${entry.type || 'update'} · ${study.scaleHint}`;
+
+        titleBlock.append(kicker, title, meta);
+
+        const tags = document.createElement('div');
+        tags.className = 'link-row';
+        if (entry.page) {
+          const pageLink = document.createElement('a');
+          pageLink.className = 'mini-link';
+          pageLink.href = entry.page;
+          pageLink.textContent = entry.pageLabel || 'open page';
+          tags.appendChild(pageLink);
+        }
+        const deckLink = document.createElement('a');
+        deckLink.className = 'mini-link';
+        deckLink.href = `flight-deck.html#${entry.slug || ''}`;
+        deckLink.textContent = 'flight deck';
+        tags.appendChild(deckLink);
+
+        head.append(titleBlock, tags);
+
+        const impact = document.createElement('p');
+        impact.className = 'impact';
+        impact.textContent = entry.impact;
+
+        const definitionList = document.createElement('dl');
+        const rows = [
+          ['what changed', entry.details || 'The release data explains the implementation directly.'],
+          ['why it matters', study.whyItMatters],
+          ['next thread', study.nextThread]
+        ];
+        for (const [label, value] of rows) {
+          const dt = document.createElement('dt');
+          dt.textContent = label;
+          const dd = document.createElement('dd');
+          dd.textContent = value;
+          definitionList.append(dt, dd);
+        }
+
+        const footer = document.createElement('div');
+        footer.className = 'case-study-footer';
+
+        const brief = document.createElement('span');
+        brief.className = 'case-study-meta';
+        brief.textContent = `Brief seeds: ${study.related.length ? study.related.length : 0} linked note${study.related.length === 1 ? '' : 's'}`;
+
+        const copy = document.createElement('button');
+        copy.type = 'button';
+        copy.className = 'btn';
+        copy.textContent = 'copy case brief';
+        copy.addEventListener('click', async () => {
+          const lines = [
+            entry.title,
+            `Date: ${formatDate(entry.date)}`,
+            `Type: ${entry.type || 'update'}`,
+            `What changed: ${entry.details || 'No details provided.'}`,
+            `Why it matters: ${study.whyItMatters}`,
+            `Next thread: ${study.nextThread}`,
+            entry.page ? `Page: ${entry.pageLabel || entry.page}` : null,
+            study.related.length ? `Linked notes: ${study.related.map((note) => note.title).join(', ')}` : null
+          ].filter(Boolean);
+          try {
+            await navigator.clipboard.writeText(lines.join('\n'));
+            copy.textContent = 'copied';
+            setTimeout(() => { copy.textContent = 'copy case brief'; }, 1200);
+          } catch {
+            copy.textContent = 'copy failed';
+            setTimeout(() => { copy.textContent = 'copy case brief'; }, 1200);
+          }
+        });
+
+        footer.append(brief, copy);
+        article.append(head, impact, definitionList, footer);
+        caseStudyGrid.appendChild(article);
+      }
     };
 
     const renderFilters = () => {
@@ -393,6 +579,7 @@
         notesById = new Map(notes.map((note) => [note.id, note]));
 
         renderSummary();
+        renderCaseStudies();
         renderFilters();
         renderFlightLog();
       } catch {
