@@ -273,6 +273,115 @@
       font:inherit;
       line-height:1.45;
     }
+    .skyline-board {
+      border:1px solid #4b67c8;
+      background:
+        radial-gradient(circle at top right, #94b0ff1c 0%, transparent 34%),
+        linear-gradient(155deg, #0c1537, #091125 60%, #11296a);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .skyline-board::before {
+      content:"";
+      position:absolute;
+      inset:-20% auto auto -8%;
+      width:240px;
+      height:240px;
+      border-radius:50%;
+      background:radial-gradient(circle, #a7c0ff24 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .skyline-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+      flex-wrap:wrap;
+      z-index:1;
+    }
+    .skyline-head h2 { margin:0; }
+    .skyline-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:44rem;
+    }
+    .skyline-grid {
+      display:grid;
+      grid-template-columns:1.2fr .9fr .9fr;
+      gap:12px;
+      z-index:1;
+    }
+    .skyline-panel {
+      border:1px solid #33498f;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .skyline-panel.is-primary {
+      background:linear-gradient(155deg, #132c68, #08112de6 68%);
+      border-color:#7b95e7;
+    }
+    .skyline-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .skyline-copy {
+      margin:0;
+      color:#c0ceff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .skyline-list {
+      margin:0;
+      padding-left:18px;
+      color:#c5d2ff;
+    }
+    .skyline-list li { margin:6px 0; }
+    .skyline-rail {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .skyline-stat {
+      border:1px solid #3a53a6;
+      border-radius:12px;
+      padding:10px 12px;
+      background:#0b1535;
+      display:grid;
+      gap:3px;
+      min-width:120px;
+    }
+    .skyline-stat strong {
+      font-size:1.2rem;
+      color:#f2f5ff;
+    }
+    .skyline-stat span {
+      font-size:.76rem;
+      color:#a9baff;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .skyline-brief {
+      margin:0;
+      white-space:pre-wrap;
+      line-height:1.55;
+      color:#e4ebff;
+      font-size:.94rem;
+    }
+    .skyline-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#b9caff;
+      font-size:.8rem;
+    }
     .runway-board {
       border:1px solid #4b67c8;
       background:linear-gradient(160deg, #0e1a41, #081026 58%, #132a67);
@@ -1380,6 +1489,38 @@
       </div>
     </section>
 
+    <section class="card skyline-board" id="skylineBoard" aria-live="polite">
+      <div class="skyline-head">
+        <h2>signal skyline</h2>
+        <p class="skyline-note">an opinionated read of the roost that turns updates, notes, and roadmap pressure into a plain-language plan.</p>
+      </div>
+      <div class="skyline-grid">
+        <article class="skyline-panel is-primary">
+          <h3>today's read</h3>
+          <p class="skyline-copy" id="skylineRead">loading the skyline…</p>
+          <div class="skyline-meta" id="skylineMeta"></div>
+          <div class="skyline-rail" id="skylineTags"></div>
+        </article>
+        <article class="skyline-panel">
+          <h3>pressure map</h3>
+          <div class="skyline-rail" id="skylineStats"></div>
+          <ul class="skyline-list" id="skylinePressure"></ul>
+        </article>
+        <article class="skyline-panel">
+          <h3>next move</h3>
+          <p class="skyline-copy" id="skylineNextCopy">loading route…</p>
+          <div class="link-row" id="skylineLinks"></div>
+        </article>
+      </div>
+      <div class="dispatch-brief">
+        <div class="link-row">
+          <button class="btn" id="skylineShuffle">reshuffle skyline</button>
+          <button class="btn" id="skylineCopy">copy skyline brief</button>
+        </div>
+        <pre id="skylineBrief">loading skyline brief…</pre>
+      </div>
+    </section>
+
     <section class="card runway-board" id="runwayBoard" aria-live="polite">
       <div class="runway-head">
         <h2>build runway</h2>
@@ -1728,6 +1869,16 @@
     const dispatchBrief = document.getElementById('dispatchBrief');
     const dispatchShuffle = document.getElementById('dispatchShuffle');
     const dispatchCopy = document.getElementById('dispatchCopy');
+    const skylineRead = document.getElementById('skylineRead');
+    const skylineMeta = document.getElementById('skylineMeta');
+    const skylineTags = document.getElementById('skylineTags');
+    const skylineStats = document.getElementById('skylineStats');
+    const skylinePressure = document.getElementById('skylinePressure');
+    const skylineNextCopy = document.getElementById('skylineNextCopy');
+    const skylineLinks = document.getElementById('skylineLinks');
+    const skylineBrief = document.getElementById('skylineBrief');
+    const skylineShuffle = document.getElementById('skylineShuffle');
+    const skylineCopy = document.getElementById('skylineCopy');
     const runwayModes = document.getElementById('runwayModes');
     const runwayGrid = document.getElementById('runwayGrid');
     const runwayBrief = document.getElementById('runwayBrief');
@@ -1749,6 +1900,11 @@
     let timelineFilter = 'all';
     let runwayMode = storage.get('roostRunwayMode') || 'ship';
     const runwayModeLabels = { ship: 'ship', stretch: 'stretch', quiet: 'quiet' };
+    let skylineSeed = Number.parseInt(storage.get('roostSkylineSeed') ?? '', 10);
+    if (!Number.isFinite(skylineSeed)) {
+      skylineSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+      storage.set('roostSkylineSeed', String(skylineSeed));
+    }
     let runwayData = {
       roadmap: { now: [], next: [], later: [] },
       updates: [],
@@ -3085,6 +3241,90 @@
       }
     };
 
+    const buildSkylineState = (updatesData, notesById, nowData) => {
+      const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
+      const roadmap = updatesData?.roadmap || { now: [], next: [], later: [] };
+      const notes = notesById instanceof Map ? [...notesById.values()] : Object.values(notesById || {});
+      const themeCounts = new Map();
+      notes.forEach((note) => {
+        (note.tags || []).forEach((tag) => themeCounts.set(tag, (themeCounts.get(tag) || 0) + 1));
+      });
+      const topThemes = [...themeCounts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([tag, count]) => ({ tag, count }));
+      const recentUpdate = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0] || null;
+      const focus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus[0] : null;
+      const pressureLine = [
+        ...(Array.isArray(roadmap.now) ? roadmap.now.slice(0, 2) : []),
+        ...(Array.isArray(roadmap.next) ? roadmap.next.slice(0, 1) : [])
+      ];
+      const primaryPage = focus?.title?.toLowerCase().includes('corridor')
+        ? 'roost-launch-corridor.html'
+        : recentUpdate?.page || 'flight-deck.html';
+      const pageLinks = [
+        { href: primaryPage, label: 'Open next page' },
+        { href: 'release-radar.html', label: 'Open release radar' },
+        { href: 'roost-signal-map.html', label: 'Open signal map' }
+      ];
+      const stats = [
+        { value: String(updates.length), label: 'releases' },
+        { value: String(topThemes.length), label: 'themes' },
+        { value: String(Array.isArray(roostPages) ? roostPages.length : 0), label: 'site pages' }
+      ];
+      const leadText = focus
+        ? `The roost is leaning toward ${focus.title.toLowerCase()}, while ${recentUpdate?.title || 'the latest ship'} keeps the day pointed at visible progress.`
+        : `The roost is leaning on ${recentUpdate?.title || 'the latest ship'} and the roadmap still favors visible progress over quiet maintenance.`;
+      const routeText = [
+        `Start with ${primaryPage.replace('.html', '')} to pick a concrete surface.`,
+        `Then read ${recentUpdate?.pageLabel || recentUpdate?.page || 'release radar'} for release context.`,
+        `Finish by scanning ${pressureLine[0] || 'the roadmap now lane'} so the next move stays honest.`
+      ].join('\n');
+      return { leadText, topThemes, pressureLine, recentUpdate, focus, pageLinks, routeText, stats };
+    };
+
+    let skylineState = null;
+    const renderSkyline = () => {
+      if (!skylineState) return;
+      const { leadText, topThemes, pressureLine, recentUpdate, focus, pageLinks, routeText, stats } = skylineState;
+      skylineRead.textContent = leadText;
+      skylineMeta.innerHTML = [
+        `<span class="tag">${recentUpdate?.type || 'update'}</span>`,
+        `<span>${recentUpdate?.date || 'unknown date'}</span>`,
+        `<span>${focus ? `focus: ${focus.horizon || 'now'}` : 'focus: none'}</span>`
+      ].join('');
+      skylineTags.innerHTML = topThemes.length
+        ? topThemes.slice(0, 4).map(({ tag, count }) => `<span class="tag">${tag} · ${count}</span>`).join('')
+        : '<span class="tag">no note themes yet</span>';
+      skylineStats.innerHTML = stats.map((stat) => `<div class="skyline-stat"><strong>${stat.value}</strong><span>${stat.label}</span></div>`).join('');
+      skylinePressure.innerHTML = pressureLine.length
+        ? pressureLine.map((item) => `<li>${item}</li>`).join('')
+        : '<li>roadmap pressure is quiet.</li>';
+      skylineNextCopy.textContent = routeText;
+      skylineLinks.innerHTML = pageLinks.map((page) => `<a class="mini-link" href="${page.href}">${page.label}</a>`).join('');
+      skylineBrief.textContent = [
+        'signal skyline / today',
+        `read: ${leadText}`,
+        `pressure: ${pressureLine.join(' | ') || 'quiet'}`,
+        `themes: ${topThemes.slice(0, 4).map(({ tag, count }) => `${tag} (${count})`).join(', ') || 'none'}`,
+        `next move: ${routeText.replace(/\n/g, ' ')}`
+      ].join('\n');
+    };
+
+    const reshuffleSkyline = () => {
+      skylineSeed += 1;
+      storage.set('roostSkylineSeed', String(skylineSeed));
+      if (!skylineState) return;
+      const rng = seededRandom(skylineSeed + 17);
+      const shuffledThemes = [...skylineState.topThemes].sort(() => rng() - 0.5);
+      const shuffledPressure = [...skylineState.pressureLine].sort(() => rng() - 0.5);
+      skylineState = {
+        ...skylineState,
+        topThemes: shuffledThemes.length ? shuffledThemes : skylineState.topThemes,
+        pressureLine: shuffledPressure.length ? shuffledPressure : skylineState.pressureLine
+      };
+      renderSkyline();
+    };
+
     const scoreRunwayCandidate = (entry, pref) => {
       let score = (Number(entry.impact) || 0) * 2 - (Number(entry.effort) || 0);
       if (pref.mode === 'ship' && entry.status === 'building') score += 4;
@@ -3600,6 +3840,8 @@
 
         renderReleasePulse(updatesData);
         renderStorySpotlight(updates, notesById);
+        skylineState = buildSkylineState(updatesData, notesById, nowData);
+        renderSkyline();
         renderLatestShips(updates, notesById);
         renderLatestNotes(notes);
         renderRadioConsole();
@@ -3698,6 +3940,20 @@
         setActionStatus('dispatch brief copied ✓', 'ok');
       } catch {
         setActionStatus('clipboard blocked for dispatch brief.', 'warn');
+      }
+    });
+    skylineShuffle?.addEventListener('click', () => {
+      reshuffleSkyline();
+      setActionStatus('skyline reshuffled ✓', 'ok');
+    });
+    skylineCopy?.addEventListener('click', async () => {
+      const text = skylineBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('skyline brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for skyline brief.', 'warn');
       }
     });
 
