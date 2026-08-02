@@ -141,6 +141,35 @@
     .route-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
     .track{height:8px;border-radius:999px;background:#172548;overflow:hidden}
     .fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .source-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      gap:10px;
+    }
+    .source{
+      border:1px solid #344877;
+      border-radius:14px;
+      background:#081127;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .source.is-primary{
+      background:linear-gradient(160deg,#132a63,#081127 72%);
+      border-color:#7a94e8;
+    }
+    .source strong{font-size:1.4rem;line-height:1}
+    .source span{color:var(--muted);line-height:1.45;font-size:.88rem}
+    .source small{color:#bfd0ff;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+    .thesis-list{
+      display:grid;
+      gap:10px;
+      margin:0;
+      padding-left:18px;
+      color:#b4c2ea;
+      line-height:1.5;
+    }
+    .thesis-list li{margin:0}
     .summary pre{
       margin:0;
       white-space:pre-wrap;
@@ -282,10 +311,26 @@
 
       <article class="panel">
         <div class="panel-head">
+          <h2>Source mix</h2>
+          <p class="panel-note">Which feed is currently steering the corridor, and how hard it is pulling.</p>
+        </div>
+        <div class="source-grid" id="sourceGrid"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
           <h2>Recommended sequence</h2>
           <p class="panel-note">A three-stop route chosen from the current corridor mode.</p>
         </div>
         <div class="route-grid" id="routeGrid"></div>
+      </article>
+
+      <article class="summary">
+        <div class="panel-head">
+          <h2>Why this lane</h2>
+          <p class="panel-note">A blunt thesis for the next build, tuned to the chosen mode.</p>
+        </div>
+        <ul class="thesis-list" id="thesisList"></ul>
       </article>
 
       <article class="summary">
@@ -318,6 +363,11 @@
     const $ = (id) => document.getElementById(id);
     const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
     const timeFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const MODE_NOTES = {
+      build: 'optimize for the most buildable surface and the least-friction path to visible progress.',
+      ship: 'optimize for release momentum, reusing recent wins and reducing finish-line drag.',
+      explore: 'optimize for insight, surfacing the most informative pressure before making the next move.'
+    };
 
     async function load(path, fallback) {
       try {
@@ -443,6 +493,35 @@
       return base + roadmap * 0.8 + focus * 0.3;
     }
 
+    function sourceBreakdown(now, updates) {
+      return [
+        {
+          key: 'active focus',
+          value: now.activeFocus?.length || 0,
+          note: now.activeFocus?.[0]?.title || 'nothing active yet',
+          primary: true
+        },
+        {
+          key: 'roadmap pressure',
+          value: topRoadmapItems(updates).length,
+          note: topRoadmapItems(updates)[0] || 'roadmap feed empty',
+          primary: false
+        },
+        {
+          key: 'recent wins',
+          value: now.recentWins?.length || 0,
+          note: now.recentWins?.[0] || 'no wins loaded',
+          primary: false
+        },
+        {
+          key: 'shipyard pressure',
+          value: (updates?.roadmap?.later || []).length,
+          note: (updates?.roadmap?.later || [])[0] || 'no later-lane pressure',
+          primary: false
+        }
+      ];
+    }
+
     function routeOrder(pool) {
       const order = {
         build: ['active focus', 'roadmap', 'recent win'],
@@ -526,6 +605,15 @@
         </article>
       `).join('');
 
+      const sources = sourceBreakdown(now, updates);
+      $('sourceGrid').innerHTML = sources.map((item) => `
+        <article class="source ${item.primary ? 'is-primary' : ''}">
+          <small>${item.key}</small>
+          <strong>${item.value}</strong>
+          <span>${item.note}</span>
+        </article>
+      `).join('');
+
       $('modeGrid').innerHTML = modeScores.map((item, index) => `
         <article class="mode-card ${item.mode === state.mode ? 'is-picked' : ''}">
           <div class="meta-row">
@@ -561,6 +649,12 @@
         `- Why it matters: the corridor compresses live focus, roadmap pressure, and momentum into one next-build choice.`
       ].join('\n');
       $('brief').textContent = brief;
+      $('thesisList').innerHTML = [
+        `Mode fit: ${MODE_NOTES[state.mode]}`,
+        `Lead reason: ${topCandidates[0]?.source || 'n/a'} is the strongest current signal, so it gets first claim on attention.`,
+        `Reuse rule: keep recent wins and shipyard pressure in view so the next page does not repeat stale work.`,
+        `Decision rule: if the lead candidate does not feel shippable in one sitting, the corridor should point back to the lower-friction surface.`
+      ].map((item) => `<li>${item}</li>`).join('');
       $('status').textContent = `Refreshed ${fmt.format(new Date(now.updatedAt || updates.updates?.[0]?.date || Date.now()))}.`;
       renderSnapshots(brief);
     }
