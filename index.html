@@ -665,6 +665,132 @@
       font-size:.8rem;
       color:#a9bbff;
     }
+    .thread-loom {
+      border:1px solid #506ac8;
+      background:
+        radial-gradient(circle at top left, #8fa8ff18 0%, transparent 28%),
+        linear-gradient(155deg, #0b1739, #091125 58%, #132965);
+      position:relative;
+      overflow:hidden;
+    }
+    .thread-loom::before {
+      content:"";
+      position:absolute;
+      inset:auto -110px -120px auto;
+      width:340px;
+      height:340px;
+      border-radius:999px;
+      background:radial-gradient(circle, #96b0ff24 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .thread-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      margin-bottom:12px;
+      z-index:1;
+      position:relative;
+    }
+    .thread-head h2 { margin:0; }
+    .thread-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:46rem;
+    }
+    .thread-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:12px;
+      z-index:1;
+      position:relative;
+    }
+    .thread-mode {
+      background:#0a1438;
+      border:1px solid #4056a8;
+      border-radius:999px;
+      color:#dfe7ff;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .thread-mode.is-active {
+      background:#183170;
+      border-color:#8da7ff;
+      color:#f5f8ff;
+    }
+    .thread-mode:hover,
+    .thread-mode:focus-visible {
+      transform:translateY(-1px);
+      border-color:#6f8dff;
+      outline:none;
+    }
+    .thread-grid {
+      display:grid;
+      grid-template-columns:1.2fr .95fr;
+      gap:12px;
+      z-index:1;
+      position:relative;
+    }
+    .thread-panel {
+      border:1px solid #33498f;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .thread-panel.is-lead {
+      background:linear-gradient(155deg, #132c68, #08112de6 68%);
+      border-color:#7b95e7;
+    }
+    .thread-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .thread-copy {
+      margin:0;
+      color:#c0ceff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .thread-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#bfd0ff;
+      font-size:.8rem;
+    }
+    .thread-list {
+      margin:0;
+      padding-left:18px;
+      color:#c8d5ff;
+    }
+    .thread-list li { margin:6px 0; }
+    .thread-brief {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      margin-top:12px;
+      z-index:1;
+      position:relative;
+    }
+    .thread-brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .launch-deck {
       border:1px solid #4a64bf;
       background:linear-gradient(160deg, #0d173d, #0a1331 58%, #111b47);
@@ -1675,6 +1801,33 @@
       </div>
     </section>
 
+    <section class="card thread-loom" id="threadLoom" aria-live="polite">
+      <div class="thread-head">
+        <h2>roost thread loom</h2>
+        <p class="thread-note">Pick a lens and the homepage braids updates, notes, and roadmap pressure into one story thread you can act on.</p>
+      </div>
+      <div class="thread-controls" id="threadControls" aria-label="thread filters"></div>
+      <div class="thread-grid">
+        <article class="thread-panel is-lead" id="threadLeadPanel">
+          <h3>loading thread…</h3>
+          <p class="thread-copy">finding the most useful lane for today.</p>
+        </article>
+        <article class="thread-panel">
+          <h3>thread brief</h3>
+          <div class="thread-meta" id="threadMeta"></div>
+          <ul class="thread-list" id="threadSignals"></ul>
+          <div class="link-row">
+            <button class="btn" id="threadShuffle">reshuffle thread</button>
+            <button class="btn" id="threadCopy">copy thread brief</button>
+          </div>
+        </article>
+      </div>
+      <div class="thread-brief">
+        <h3 style="margin:0; font-size:.98rem; color:#f0f4ff;">copyable thread brief</h3>
+        <pre id="threadBrief">loading thread brief…</pre>
+      </div>
+    </section>
+
     <section class="card launch-deck" id="launchDeckBoard" aria-live="polite">
       <div class="launch-deck-head">
         <h2>launch deck</h2>
@@ -2123,6 +2276,14 @@
     const routebookAlternates = document.getElementById('routebookAlternates');
     const routebookRecent = document.getElementById('routebookRecent');
     const routebookPinHint = document.getElementById('routebookPinHint');
+    const threadLoom = document.getElementById('threadLoom');
+    const threadControls = document.getElementById('threadControls');
+    const threadLeadPanel = document.getElementById('threadLeadPanel');
+    const threadMeta = document.getElementById('threadMeta');
+    const threadSignals = document.getElementById('threadSignals');
+    const threadShuffle = document.getElementById('threadShuffle');
+    const threadCopy = document.getElementById('threadCopy');
+    const threadBrief = document.getElementById('threadBrief');
     const routeRelayBoard = document.getElementById('routeRelayBoard');
     const routeRelayStops = document.getElementById('routeRelayStops');
     const routeRelaySummary = document.getElementById('routeRelaySummary');
@@ -2495,6 +2656,206 @@
     const saveRoutebookRecent = () => {
       storage.set('roostRoutebookRecent', JSON.stringify(routebookRecentState));
     };
+
+    const threadThemes = [
+      {
+        id: 'ship-story',
+        label: 'ship story',
+        keywords: ['release', 'launch', 'ship', 'case', 'chronicle'],
+        note: 'trace a release from rationale to destination page.',
+        page: 'changelog.html'
+      },
+      {
+        id: 'navigation',
+        label: 'navigation',
+        keywords: ['link', 'route', 'map', 'search', 'atlas', 'path'],
+        note: 'tighten the paths that help people move through the roost.',
+        page: 'roost-searchlight.html'
+      },
+      {
+        id: 'momentum',
+        label: 'momentum',
+        keywords: ['now', 'progress', 'focus', 'build', 'shipyard', 'workbench'],
+        note: 'highlight the visible work that should stay front and center.',
+        page: 'now.html'
+      },
+      {
+        id: 'playful-systems',
+        label: 'playful systems',
+        keywords: ['game', 'radio', 'sound', 'wallpaper', 'gallery', 'spark'],
+        note: 'keep the roost weird in a way people can actually enjoy.',
+        page: 'wallpapers.html'
+      }
+    ];
+
+    let threadState = {
+      themeId: storage.get('roostThreadTheme') || threadThemes[0].id
+    };
+    let threadFeedState = {
+      updates: [],
+      notes: [],
+      shipyard: []
+    };
+
+    const scoreThreadItem = (item, keywords) => {
+      const haystack = `${item.title || ''} ${item.summary || item.impact || item.details || ''} ${(item.tags || []).join(' ')}`.toLowerCase();
+      return keywords.reduce((score, keyword) => score + (haystack.includes(keyword) ? 1 : 0), 0);
+    };
+
+    const buildThreadSignals = (theme, updates, notes, shipyard) => {
+      const matchedUpdates = [...updates]
+        .map((item) => ({ item, score: scoreThreadItem(item, theme.keywords) }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score || String(b.item.date).localeCompare(String(a.item.date)))
+        .slice(0, 2)
+        .map((entry) => ({ type: 'ship', ...entry.item }));
+
+      const matchedNotes = [...notes]
+        .map((item) => ({ item, score: scoreThreadItem(item, theme.keywords) }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score || String(b.item.date).localeCompare(String(a.item.date)))
+        .slice(0, 2)
+        .map((entry) => ({ type: 'note', ...entry.item }));
+
+      const matchedShipyard = [...shipyard]
+        .map((item) => ({ item, score: scoreThreadItem(item, theme.keywords) }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score || Number(b.item.impact || 0) - Number(a.item.impact || 0))
+        .slice(0, 2)
+        .map((entry) => ({ type: 'queue', ...entry.item }));
+
+      return [...matchedUpdates, ...matchedNotes, ...matchedShipyard].slice(0, 4);
+    };
+
+    const renderThreadLoom = (payload = {}) => {
+      if (!threadControls || !threadLeadPanel || !threadMeta || !threadSignals || !threadBrief) return;
+
+      const theme = threadThemes.find((entry) => entry.id === threadState.themeId) || threadThemes[0];
+      const updates = Array.isArray(payload.updates) ? payload.updates : [];
+      const notes = Array.isArray(payload.notes) ? payload.notes : [];
+      const shipyard = Array.isArray(payload.shipyard) ? payload.shipyard : [];
+      const signals = buildThreadSignals(theme, updates, notes, shipyard);
+      const lead = signals[0] || null;
+      const backup = signals.slice(1);
+      const countByType = signals.reduce((acc, signal) => {
+        acc[signal.type] = (acc[signal.type] || 0) + 1;
+        return acc;
+      }, {});
+
+      threadControls.innerHTML = threadThemes.map((entry) => `
+        <button class="thread-mode ${entry.id === theme.id ? 'is-active' : ''}" type="button" data-thread-theme="${entry.id}">${entry.label}</button>
+      `).join('');
+
+      if (!lead) {
+        threadLeadPanel.innerHTML = `
+          <h3>${theme.label}</h3>
+          <p class="thread-copy">No strong matches yet, so this lane is waiting on the next visible ship.</p>
+        `;
+        threadMeta.innerHTML = '';
+        threadSignals.innerHTML = '<li>Try reshuffling after a new release or note lands.</li>';
+        threadBrief.textContent = [
+          'roost thread loom / today',
+          '',
+          `theme: ${theme.label}`,
+          `cue: ${theme.note}`,
+          '',
+          `next page: ${theme.page}`,
+          'why it matters: the homepage can now braid the site into a narrative lane instead of just surfacing isolated pages.'
+        ].join('\n');
+        return;
+      }
+
+      const title = lead.title || lead.name || 'untitled signal';
+      const summary = lead.impact || lead.summary || lead.details || '';
+      const linkedPage = lead.page || lead.link || theme.page;
+      const linkedLabel = lead.pageLabel || 'Open related page';
+      const detailTags = (lead.tags || []).slice(0, 3);
+
+      threadLeadPanel.innerHTML = `
+        <h3>${title}</h3>
+        <p class="thread-copy">${summary}</p>
+        <div class="thread-meta">
+          <span class="tag">${lead.type || 'signal'}</span>
+          ${lead.date ? `<span class="tag">${lead.date}</span>` : ''}
+          ${detailTags.map((tag) => `<span class="tag">${tag}</span>`).join('')}
+        </div>
+        <div class="link-row">
+          ${linkedPage ? `<a class="btn" href="${linkedPage}">${linkedLabel}</a>` : ''}
+          <a class="btn" href="changelog.html">open changelog</a>
+        </div>
+      `;
+
+      threadMeta.innerHTML = [
+        `<span class="tag">${theme.label}</span>`,
+        `<span class="tag">${signals.length} matched signals</span>`,
+        `<span class="tag">${countByType.ship || 0} ships</span>`,
+        `<span class="tag">${countByType.note || 0} notes</span>`,
+        `<span class="tag">${countByType.queue || 0} queue items</span>`
+      ].join('');
+
+      threadSignals.innerHTML = [
+        `follow-up: ${backup[0]?.title || 'scan the next linked page.'}`,
+        `supporting note: ${backup[1]?.title || 'wait for the next note or recap.'}`,
+        `roadmap anchor: ${backup[2]?.title || 'use the queue to keep the lane honest.'}`,
+        `next page: ${linkedPage || theme.page}`
+      ].map((line) => `<li>${line}</li>`).join('');
+
+      threadBrief.textContent = [
+        'roost thread loom / today',
+        '',
+        `theme: ${theme.label}`,
+        `lead signal: ${title}`,
+        `lead summary: ${summary}`,
+        '',
+        `supporting signals: ${signals.slice(1).map((signal) => signal.title || signal.name || 'signal').join(' | ') || 'none'}`,
+        `next page: ${linkedPage || theme.page}`,
+        '',
+        `why it matters: the homepage can now braid ${theme.label} signals into one navigable story thread.`
+      ].join('\n');
+    };
+
+    const reshuffleThreadLoom = (payload = {}) => {
+      const theme = threadThemes.find((entry) => entry.id === threadState.themeId) || threadThemes[0];
+      const updates = Array.isArray(payload.updates) ? payload.updates : [];
+      const notes = Array.isArray(payload.notes) ? payload.notes : [];
+      const shipyard = Array.isArray(payload.shipyard) ? payload.shipyard : [];
+      const scoredThemes = threadThemes
+        .map((entry) => ({
+          entry,
+          score: [...updates, ...notes, ...shipyard].reduce((score, item) => score + scoreThreadItem(item, entry.keywords), 0)
+        }))
+        .sort((a, b) => b.score - a.score || a.entry.label.localeCompare(b.entry.label));
+      const next = scoredThemes.find((entry) => entry.entry.id !== theme.id && entry.score > 0)?.entry || scoredThemes[0]?.entry || theme;
+      threadState.themeId = next.id;
+      storage.set('roostThreadTheme', threadState.themeId);
+      renderThreadLoom(payload);
+    };
+
+    threadControls?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const themeId = target.dataset.threadTheme;
+      if (!themeId) return;
+      threadState.themeId = themeId;
+      storage.set('roostThreadTheme', themeId);
+      renderThreadLoom(threadFeedState);
+    });
+
+    threadShuffle?.addEventListener('click', () => {
+      reshuffleThreadLoom(threadFeedState);
+      setActionStatus('thread loom reshuffled ✓', 'ok');
+    });
+
+    threadCopy?.addEventListener('click', async () => {
+      const text = threadBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('thread brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for thread brief.', 'warn');
+      }
+    });
 
     let routeRelayState;
     try {
@@ -3828,6 +4189,7 @@
           fetch('assets/roost-yearwheel.json', { cache: 'no-store' }),
           fetch('assets/roost-weather.json', { cache: 'no-store' })
         ]);
+        const shipyardResponse = await fetch('assets/roost-shipyard.json', { cache: 'no-store' });
         const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
         const notes = Array.isArray(notesData?.notes) ? notesData.notes : [];
         const notesById = new Map(notes.map((note) => [note.id, note]));
@@ -3837,6 +4199,8 @@
         seasonalWheel = yearwheelResponse.ok ? await yearwheelResponse.json() : [];
         seasonalWheel = Array.isArray(seasonalWheel) ? seasonalWheel : [];
         weatherRegions = weatherResponse.ok ? (await weatherResponse.json())?.regions || [] : [];
+        const shipyard = shipyardResponse.ok ? await shipyardResponse.json() : [];
+        threadFeedState = { updates, notes, shipyard: Array.isArray(shipyard) ? shipyard : [] };
         pickRadioTracks();
 
         renderReleasePulse(updatesData);
@@ -3847,6 +4211,7 @@
         renderLatestNotes(notes);
         renderRadioConsole();
         renderSeasonalDesk();
+        renderThreadLoom(threadFeedState);
 
         const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const roadmap = updatesData?.roadmap || {};
@@ -3920,6 +4285,12 @@
         releasePulseLatest.innerHTML = '<h3>release pulse unavailable right now.</h3><p>try again once the feed comes back.</p>';
         releasePulseRoadmap.innerHTML = '<div class="empty-card">roadmap unavailable right now.</div>';
         radioNowTrack.innerHTML = '<strong>radio unavailable.</strong><p>try again once the playlist feed comes back.</p>';
+        if (threadLeadPanel) {
+          threadLeadPanel.innerHTML = '<h3>thread unavailable</h3><p class="thread-copy">try again once the shared feeds come back.</p>';
+        }
+        if (threadMeta) threadMeta.innerHTML = '';
+        if (threadSignals) threadSignals.innerHTML = '<li>thread feed unavailable right now.</li>';
+        if (threadBrief) threadBrief.textContent = 'thread unavailable right now.';
         radioNowMeta.innerHTML = '';
         radioQueue.innerHTML = '<div class="empty-card">queue unavailable right now.</div>';
         radioSetlist.textContent = 'radio unavailable right now.';

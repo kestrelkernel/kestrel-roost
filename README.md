@@ -59,6 +59,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Homepage thread loom:** added a new `index.html` storytelling layer that braids updates, notes, and roadmap queue items into selectable theme lanes with a copyable brief and reshuffle control so the homepage can recommend a coherent next story, not just a raw route
 - **Changelog mini case studies:** expanded `changelog.html` with a featured case-study rail, copyable briefs, and clearer “what changed / why it matters / next thread” summaries for the biggest releases
 - **Command Center TV Mode:** upgraded `command-center.html` into a hands-free dashboard with auto-rotating broadcast panels, pause/step controls, shareable TV links, and local persistence so the roost can run cleanly on a second screen
 - **Captain's Log publish deck:** upgraded `captains-log.html` with target-aware copy buttons for Discord and GitHub, plus a publish-target panel and stronger next-move output so shipped updates can move from draft to outbound post faster
