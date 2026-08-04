@@ -791,6 +791,146 @@
       font:inherit;
       line-height:1.45;
     }
+    .editorial-desk {
+      border:1px solid #4c66c4;
+      background:
+        radial-gradient(circle at top right, #93acff22 0, transparent 36%),
+        linear-gradient(155deg, #09122f, #111f49 62%, #0a1230);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .editorial-desk::before {
+      content:"";
+      position:absolute;
+      inset:auto auto -120px -100px;
+      width:300px;
+      height:300px;
+      border-radius:999px;
+      background:radial-gradient(circle, #98b2ff20 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .editorial-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+      position:relative;
+    }
+    .editorial-head h2 { margin:0; }
+    .editorial-note {
+      margin:0;
+      color:#a8b9ff;
+      font-size:.85rem;
+    }
+    .editorial-controls {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      z-index:1;
+      position:relative;
+    }
+    .editorial-mode {
+      border:1px solid #3e559f;
+      background:#0f1d4d;
+      color:#dbe4ff;
+      border-radius:999px;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+    }
+    .editorial-mode.is-active {
+      background:#1a2f6f;
+      border-color:#88a0ff;
+      color:#f6f8ff;
+    }
+    .editorial-grid {
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:12px;
+      z-index:1;
+      position:relative;
+    }
+    .editorial-card {
+      border:1px solid #4056a4;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .editorial-card.is-lead {
+      background:linear-gradient(155deg, #12295f, #081231 72%);
+      border-color:#7d97eb;
+    }
+    .editorial-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f1f4ff;
+    }
+    .editorial-copy {
+      margin:0;
+      color:#d5ddff;
+      line-height:1.55;
+    }
+    .editorial-meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      color:#a8b9ff;
+      font-size:.78rem;
+    }
+    .editorial-signals {
+      display:grid;
+      gap:10px;
+      align-content:start;
+    }
+    .editorial-signal {
+      border:1px solid #37509a;
+      border-radius:10px;
+      padding:12px;
+      background:#0a1334;
+      display:grid;
+      gap:8px;
+    }
+    .editorial-signal strong {
+      color:#f0f4ff;
+      font-size:.95rem;
+    }
+    .editorial-signal p {
+      margin:0;
+      color:#bdd0ff;
+      line-height:1.45;
+      font-size:.93rem;
+    }
+    .editorial-brief {
+      border:1px solid #4056a4;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+      position:relative;
+    }
+    .editorial-brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      color:#dfe6ff;
+    }
+    .editorial-empty {
+      color:#b9c8ff;
+      border:1px dashed #4c66c4;
+      border-radius:10px;
+      padding:12px;
+    }
+    @media (max-width: 900px) {
+      .editorial-grid { grid-template-columns:1fr; }
+    }
     .launch-deck {
       border:1px solid #4a64bf;
       background:linear-gradient(160deg, #0d173d, #0a1331 58%, #111b47);
@@ -1828,6 +1968,32 @@
       </div>
     </section>
 
+    <section class="card editorial-desk" id="editorialDesk" aria-live="polite">
+      <div class="editorial-head">
+        <h2>roost editorial desk</h2>
+        <p class="editorial-note">one level above the raw feeds: choose a lens and the homepage writes the day’s headline for you.</p>
+      </div>
+      <div class="editorial-controls" id="editorialModes" aria-label="editorial modes"></div>
+      <div class="editorial-grid">
+        <article class="editorial-card is-lead" id="editorialLeadCard">
+          <h3>loading editorial lead…</h3>
+          <p class="editorial-copy">choosing the most useful story lane for today.</p>
+          <div class="editorial-meta" id="editorialLeadMeta"></div>
+          <div class="link-row" id="editorialLeadLinks"></div>
+        </article>
+        <div class="editorial-signals" id="editorialSignalRail">
+          <div class="editorial-empty">loading supporting signals…</div>
+        </div>
+      </div>
+      <div class="editorial-brief">
+        <div class="link-row">
+          <button class="btn" id="editorialShuffle">reshuffle desk</button>
+          <button class="btn" id="editorialCopy">copy editorial brief</button>
+        </div>
+        <pre id="editorialBrief">loading editorial brief…</pre>
+      </div>
+    </section>
+
     <section class="card launch-deck" id="launchDeckBoard" aria-live="polite">
       <div class="launch-deck-head">
         <h2>launch deck</h2>
@@ -2284,6 +2450,14 @@
     const threadShuffle = document.getElementById('threadShuffle');
     const threadCopy = document.getElementById('threadCopy');
     const threadBrief = document.getElementById('threadBrief');
+    const editorialModes = document.getElementById('editorialModes');
+    const editorialLeadCard = document.getElementById('editorialLeadCard');
+    const editorialLeadMeta = document.getElementById('editorialLeadMeta');
+    const editorialLeadLinks = document.getElementById('editorialLeadLinks');
+    const editorialSignalRail = document.getElementById('editorialSignalRail');
+    const editorialShuffle = document.getElementById('editorialShuffle');
+    const editorialCopy = document.getElementById('editorialCopy');
+    const editorialBrief = document.getElementById('editorialBrief');
     const routeRelayBoard = document.getElementById('routeRelayBoard');
     const routeRelayStops = document.getElementById('routeRelayStops');
     const routeRelaySummary = document.getElementById('routeRelaySummary');
@@ -2691,6 +2865,24 @@
     let threadState = {
       themeId: storage.get('roostThreadTheme') || threadThemes[0].id
     };
+    const editorialModesList = [
+      { id: 'ship', label: 'ship', summary: 'push visible feature work', weight: 5 },
+      { id: 'story', label: 'story', summary: 'connect launches and notes', weight: 4 },
+      { id: 'signal', label: 'signal', summary: 'scan pressure and priorities', weight: 3 }
+    ];
+    const editorialModeMeta = {
+      ship: { label: 'ship-first', prompt: 'best when the goal is to ship something a visitor can click or use today.' },
+      story: { label: 'story-first', prompt: 'best when the next step is to explain why the site changed and what it connects to.' },
+      signal: { label: 'signal-first', prompt: 'best when the roadmap pressure matters more than the latest shiny thing.' }
+    };
+    let editorialState = {
+      modeId: storage.get('roostEditorialMode') || editorialModesList[0].id,
+      seed: Number.parseInt(storage.get('roostEditorialSeed') ?? '', 10)
+    };
+    if (!Number.isFinite(editorialState.seed)) {
+      editorialState.seed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostEditorialSeed', String(editorialState.seed));
+    }
     let threadFeedState = {
       updates: [],
       notes: [],
@@ -2814,6 +3006,104 @@
       ].join('\n');
     };
 
+    const getEditorialMode = () => editorialModesList.find((mode) => mode.id === editorialState.modeId) || editorialModesList[0];
+
+    const scoreEditorialUpdate = (update, modeId) => {
+      const typeWeight = { feature: 5, interaction: 4, content: 3, design: 3, tooling: 4 };
+      let score = typeWeight[update.type] || 2;
+      if (modeId === 'ship') score += update.type === 'feature' ? 3 : 0;
+      if (modeId === 'story') score += update.type === 'content' || update.type === 'design' ? 3 : 0;
+      if (modeId === 'signal') score += update.type === 'tooling' ? 2 : 0;
+      if ((update.relatedNotes || []).length) score += 1;
+      return score;
+    };
+
+    const renderEditorialModes = () => {
+      if (!editorialModes) return;
+      editorialModes.innerHTML = editorialModesList.map((mode) => `
+        <button class="editorial-mode ${mode.id === editorialState.modeId ? 'is-active' : ''}" type="button" data-editorial-mode="${mode.id}">${mode.label}</button>
+      `).join('');
+    };
+
+    const renderEditorialDesk = (updates, notesById, shipyard = []) => {
+      if (!editorialLeadCard || !editorialLeadMeta || !editorialLeadLinks || !editorialSignalRail || !editorialBrief) return;
+
+      const selectedMode = getEditorialMode();
+      const modeMeta = editorialModeMeta[selectedMode.id];
+      const sortedUpdates = [...updates].sort((a, b) => scoreEditorialUpdate(b, selectedMode.id) - scoreEditorialUpdate(a, selectedMode.id));
+      const lead = sortedUpdates[0];
+      const supportingUpdates = sortedUpdates.slice(1, 3);
+      const linkedNotes = (lead?.relatedNotes || [])
+        .map((id) => notesById.get(id))
+        .filter(Boolean)
+        .slice(0, 2);
+      const roadmapAnchor = shipyard[0] || null;
+
+      renderEditorialModes();
+
+      if (!lead) {
+        editorialLeadCard.innerHTML = '<h3>no editorial lead yet</h3><p class="editorial-copy">the update feed is empty.</p>';
+        editorialLeadMeta.innerHTML = '';
+        editorialLeadLinks.innerHTML = '';
+        editorialSignalRail.innerHTML = '<div class="editorial-empty">supporting signals will appear once releases or notes exist.</div>';
+        editorialBrief.textContent = 'editorial brief unavailable.';
+        return;
+      }
+
+      editorialLeadCard.innerHTML = `
+        <h3>${selectedMode.label} lead: ${lead.title}</h3>
+        <p class="editorial-copy">${lead.impact}</p>
+      `;
+      editorialLeadMeta.innerHTML = `
+        <span>${lead.date}</span>
+        <span>${lead.type}</span>
+        <span>${modeMeta.prompt}</span>
+      `;
+      editorialLeadLinks.innerHTML = `
+        <a class="mini-link" href="${lead.page}">${lead.pageLabel || 'open page'}</a>
+        ${linkedNotes[0] ? `<a class="mini-link" href="notes.html#${linkedNotes[0].id}">${linkedNotes[0].title}</a>` : ''}
+      `;
+
+      editorialSignalRail.innerHTML = '';
+      [
+        {
+          label: 'supporting ships',
+          value: supportingUpdates.length ? supportingUpdates.map((entry) => entry.title).join(' · ') : 'no secondary ship pressure'
+        },
+        {
+          label: 'linked notes',
+          value: linkedNotes.length ? linkedNotes.map((note) => note.title).join(' · ') : 'no linked note context'
+        },
+        {
+          label: 'roadmap anchor',
+          value: roadmapAnchor ? `${roadmapAnchor.title}${roadmapAnchor.status ? ` (${roadmapAnchor.status})` : ''}` : 'no queue pressure available'
+        }
+      ].forEach((row) => {
+        const el = document.createElement('div');
+        el.className = 'editorial-signal';
+        el.innerHTML = `<strong>${row.label}</strong><p>${row.value}</p>`;
+        editorialSignalRail.appendChild(el);
+      });
+
+      editorialBrief.textContent = [
+        `editorial mode: ${selectedMode.label} (${modeMeta.label})`,
+        `lead: ${lead.title}`,
+        `why: ${lead.impact}`,
+        `next: ${selectedMode.id === 'ship' ? (lead.pageLabel || lead.page) : selectedMode.id === 'story' ? 'read the linked note and revisit the update' : 'compare the lead against roadmap pressure in shipyard'}`,
+        `support: ${linkedNotes.map((note) => note.title).join(' | ') || 'none'}`
+      ].join('\n');
+    };
+
+    const reshuffleEditorialDesk = (updates, notesById, shipyard = []) => {
+      const modeOrder = ['ship', 'story', 'signal'];
+      editorialState.seed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostEditorialSeed', String(editorialState.seed));
+      const currentIndex = Math.max(0, modeOrder.indexOf(editorialState.modeId));
+      editorialState.modeId = modeOrder[(currentIndex + 1) % modeOrder.length];
+      storage.set('roostEditorialMode', editorialState.modeId);
+      renderEditorialDesk(updates, notesById, shipyard);
+    };
+
     const reshuffleThreadLoom = (payload = {}) => {
       const theme = threadThemes.find((entry) => entry.id === threadState.themeId) || threadThemes[0];
       const updates = Array.isArray(payload.updates) ? payload.updates : [];
@@ -2854,6 +3144,33 @@
         setActionStatus('thread brief copied ✓', 'ok');
       } catch {
         setActionStatus('clipboard blocked for thread brief.', 'warn');
+      }
+    });
+
+    editorialModes?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const modeId = target.dataset.editorialMode;
+      if (!modeId) return;
+      editorialState.modeId = modeId;
+      storage.set('roostEditorialMode', modeId);
+      renderEditorialDesk(threadFeedState.updates || [], new Map((threadFeedState.notes || []).map((note) => [note.id, note])), threadFeedState.shipyard || []);
+    });
+
+    editorialShuffle?.addEventListener('click', () => {
+      const notesById = new Map((threadFeedState.notes || []).map((note) => [note.id, note]));
+      reshuffleEditorialDesk(threadFeedState.updates || [], notesById, threadFeedState.shipyard || []);
+      setActionStatus('editorial desk reshuffled ✓', 'ok');
+    });
+
+    editorialCopy?.addEventListener('click', async () => {
+      const text = editorialBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('editorial brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for editorial brief.', 'warn');
       }
     });
 
@@ -4212,6 +4529,7 @@
         renderRadioConsole();
         renderSeasonalDesk();
         renderThreadLoom(threadFeedState);
+        renderEditorialDesk(updates, notesById, Array.isArray(shipyard) ? shipyard : []);
 
         const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const roadmap = updatesData?.roadmap || {};
@@ -4291,6 +4609,11 @@
         if (threadMeta) threadMeta.innerHTML = '';
         if (threadSignals) threadSignals.innerHTML = '<li>thread feed unavailable right now.</li>';
         if (threadBrief) threadBrief.textContent = 'thread unavailable right now.';
+        if (editorialLeadCard) editorialLeadCard.innerHTML = '<h3>editorial desk unavailable</h3><p class="editorial-copy">try again once the shared feeds come back.</p>';
+        if (editorialLeadMeta) editorialLeadMeta.innerHTML = '';
+        if (editorialLeadLinks) editorialLeadLinks.innerHTML = '';
+        if (editorialSignalRail) editorialSignalRail.innerHTML = '<div class="editorial-empty">editorial signals unavailable right now.</div>';
+        if (editorialBrief) editorialBrief.textContent = 'editorial desk unavailable right now.';
         radioNowMeta.innerHTML = '';
         radioQueue.innerHTML = '<div class="empty-card">queue unavailable right now.</div>';
         radioSetlist.textContent = 'radio unavailable right now.';
