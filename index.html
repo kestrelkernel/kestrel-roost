@@ -604,6 +604,101 @@
       font:inherit;
       line-height:1.45;
     }
+    .broadcast-board {
+      border:1px solid #4965be;
+      background:
+        radial-gradient(circle at 10% 0%, #89a8ff20 0%, transparent 30%),
+        linear-gradient(155deg, #0d173a, #091124 58%, #132966);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .broadcast-board::before {
+      content:"";
+      position:absolute;
+      inset:auto -90px -110px auto;
+      width:300px;
+      height:300px;
+      border-radius:999px;
+      background:radial-gradient(circle, #9eb8ff2e 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .broadcast-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .broadcast-head h2 { margin:0; }
+    .broadcast-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:46rem;
+    }
+    .broadcast-lanes {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .broadcast-lane {
+      border:1px solid #385097;
+      border-radius:14px;
+      background:#08112be8;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .broadcast-lane.is-lead {
+      background:linear-gradient(155deg, #15316e, #08112be8 72%);
+      border-color:#87a4f8;
+    }
+    .broadcast-lane h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .broadcast-copy {
+      margin:0;
+      color:#c1ceff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .broadcast-list {
+      margin:0;
+      padding-left:18px;
+      color:#c7d4ff;
+      line-height:1.45;
+    }
+    .broadcast-list li { margin:6px 0; }
+    .broadcast-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .broadcast-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .broadcast-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .routebook-grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1994,6 +2089,26 @@
       </div>
     </section>
 
+    <section class="card broadcast-board" id="broadcastBoard" aria-live="polite">
+      <div class="broadcast-head">
+        <h2>roost broadcast lanes</h2>
+        <p class="broadcast-note">three live story lanes for the homepage: one for shipping, one for the why behind it, and one for the path between pages.</p>
+      </div>
+      <div class="broadcast-lanes" id="broadcastLanes">
+        <article class="broadcast-lane is-lead">
+          <h3>loading broadcast…</h3>
+          <p class="broadcast-copy">waiting for the shared feeds to shape today’s signal mix.</p>
+        </article>
+      </div>
+      <div class="broadcast-summary">
+        <div class="link-row">
+          <button class="btn" id="broadcastShuffle">reshuffle broadcast</button>
+          <button class="btn" id="broadcastCopy">copy broadcast brief</button>
+        </div>
+        <pre id="broadcastBrief">loading broadcast brief…</pre>
+      </div>
+    </section>
+
     <section class="card launch-deck" id="launchDeckBoard" aria-live="polite">
       <div class="launch-deck-head">
         <h2>launch deck</h2>
@@ -2458,6 +2573,10 @@
     const editorialShuffle = document.getElementById('editorialShuffle');
     const editorialCopy = document.getElementById('editorialCopy');
     const editorialBrief = document.getElementById('editorialBrief');
+    const broadcastLanes = document.getElementById('broadcastLanes');
+    const broadcastBrief = document.getElementById('broadcastBrief');
+    const broadcastShuffle = document.getElementById('broadcastShuffle');
+    const broadcastCopy = document.getElementById('broadcastCopy');
     const routeRelayBoard = document.getElementById('routeRelayBoard');
     const routeRelayStops = document.getElementById('routeRelayStops');
     const routeRelaySummary = document.getElementById('routeRelaySummary');
@@ -2831,6 +2950,30 @@
       storage.set('roostRoutebookRecent', JSON.stringify(routebookRecentState));
     };
 
+    const broadcastLanesConfig = [
+      {
+        id: 'ship',
+        label: 'shipping lane',
+        keywords: ['feature', 'interaction', 'tooling', 'launch', 'release', 'ship'],
+        page: 'changelog.html',
+        note: 'the most visible work, sorted for people who want to click a real thing first.'
+      },
+      {
+        id: 'story',
+        label: 'story lane',
+        keywords: ['content', 'design', 'note', 'chronicle', 'case', 'story'],
+        page: 'roost-chronicle.html',
+        note: 'the connective tissue that explains why the launch exists.'
+      },
+      {
+        id: 'path',
+        label: 'path lane',
+        keywords: ['link', 'route', 'map', 'search', 'path', 'navigation', 'queue'],
+        page: 'roost-searchlight.html',
+        note: 'the route cues that help the next visit start on purpose.'
+      }
+    ];
+
     const threadThemes = [
       {
         id: 'ship-story',
@@ -2883,6 +3026,9 @@
       editorialState.seed = Math.floor(Math.random() * 9_999_999);
       storage.set('roostEditorialSeed', String(editorialState.seed));
     }
+    let broadcastState = {
+      laneId: storage.get('roostBroadcastLane') || broadcastLanesConfig[0].id
+    };
     let threadFeedState = {
       updates: [],
       notes: [],
@@ -2892,6 +3038,75 @@
     const scoreThreadItem = (item, keywords) => {
       const haystack = `${item.title || ''} ${item.summary || item.impact || item.details || ''} ${(item.tags || []).join(' ')}`.toLowerCase();
       return keywords.reduce((score, keyword) => score + (haystack.includes(keyword) ? 1 : 0), 0);
+    };
+
+    const buildBroadcastLane = (lane, updates, notes, shipyard) => {
+      const sources = [
+        ...updates.map((item) => ({ type: 'ship', item })),
+        ...notes.map((item) => ({ type: 'note', item })),
+        ...shipyard.map((item) => ({ type: 'queue', item }))
+      ];
+      const scored = sources
+        .map(({ type, item }) => ({ type, item, score: scoreThreadItem(item, lane.keywords) }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score || String(b.item.date || '').localeCompare(String(a.item.date || '')) || Number(b.item.impact || 0) - Number(a.item.impact || 0));
+      return {
+        lead: scored[0]?.item || null,
+        supporting: scored.slice(1, 3).map((entry) => entry.item),
+        count: scored.length
+      };
+    };
+
+    const renderBroadcastBoard = (payload = {}) => {
+      if (!broadcastLanes || !broadcastBrief) return;
+      const updates = Array.isArray(payload.updates) ? payload.updates : [];
+      const notes = Array.isArray(payload.notes) ? payload.notes : [];
+      const shipyard = Array.isArray(payload.shipyard) ? payload.shipyard : [];
+
+      const lanes = broadcastLanesConfig.map((lane) => ({ lane, ...buildBroadcastLane(lane, updates, notes, shipyard) }));
+      const activeLane = lanes.find((entry) => entry.lane.id === broadcastState.laneId && entry.lead) || lanes.find((entry) => entry.lead) || lanes[0];
+
+      broadcastLanes.innerHTML = lanes.map(({ lane, lead, supporting, count }, index) => {
+        const title = lead?.title || `waiting for ${lane.label}`;
+        const summary = lead?.impact || lead?.summary || lead?.details || lane.note;
+        const meta = [
+          `<span class="tag">${lane.label}</span>`,
+          `<span class="tag">${count} matches</span>`,
+          lead?.date ? `<span class="tag">${lead.date}</span>` : ''
+        ].filter(Boolean).join('');
+        const links = [
+          lead?.page ? `<a class="mini-link" href="${lead.page}">${lead.pageLabel || 'open page'}</a>` : '',
+          `<a class="mini-link" href="${lane.page}">${lane.page.replace('.html', '').replace(/-/g, ' ')}</a>`
+        ].filter(Boolean).join('');
+        return `
+          <article class="broadcast-lane ${index === 0 ? 'is-lead' : ''}">
+            <h3>${lane.label}</h3>
+            <p class="broadcast-copy">${summary}</p>
+            <div class="broadcast-meta">${meta}</div>
+            <ul class="broadcast-list">
+              <li>${lead ? `lead: ${title}` : 'lead: waiting for the next strong signal.'}</li>
+              <li>${supporting[0] ? `support: ${supporting[0].title || supporting[0].summary || 'related signal'}` : 'support: no secondary match yet.'}</li>
+              <li>${lane.note}</li>
+            </ul>
+            <div class="link-row">${links}</div>
+          </article>
+        `;
+      }).join('');
+
+      const lead = activeLane?.lead || null;
+      const support = activeLane?.supporting || [];
+      broadcastBrief.textContent = [
+        'roost broadcast / today',
+        '',
+        `${activeLane?.lane.label || 'broadcast lane'}: ${lead ? lead.title : 'no strong match yet'}`,
+        `signal count: ${activeLane?.count || 0}`,
+        `summary: ${lead?.impact || lead?.summary || activeLane?.lane.note || 'waiting for the feed to settle'}`,
+        '',
+        `supporting cues: ${support.map((item) => item.title || item.summary || 'signal').join(' | ') || 'none'}`,
+        `next page: ${lead?.page || activeLane?.lane.page}`,
+        '',
+        'why it matters: the homepage now separates shipping, story, and path so the next move is easier to read at a glance.'
+      ].join('\n');
     };
 
     const buildThreadSignals = (theme, updates, notes, shipyard) => {
@@ -3171,6 +3386,26 @@
         setActionStatus('editorial brief copied ✓', 'ok');
       } catch {
         setActionStatus('clipboard blocked for editorial brief.', 'warn');
+      }
+    });
+
+    broadcastShuffle?.addEventListener('click', () => {
+      const cycle = ['ship', 'story', 'path'];
+      const current = cycle.indexOf(broadcastState.laneId);
+      broadcastState.laneId = cycle[(current + 1) % cycle.length];
+      storage.set('roostBroadcastLane', broadcastState.laneId);
+      renderBroadcastBoard(threadFeedState);
+      setActionStatus('broadcast lanes reshuffled ✓', 'ok');
+    });
+
+    broadcastCopy?.addEventListener('click', async () => {
+      const text = broadcastBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('broadcast brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for broadcast brief.', 'warn');
       }
     });
 
@@ -4530,6 +4765,7 @@
         renderSeasonalDesk();
         renderThreadLoom(threadFeedState);
         renderEditorialDesk(updates, notesById, Array.isArray(shipyard) ? shipyard : []);
+        renderBroadcastBoard(threadFeedState);
 
         const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const roadmap = updatesData?.roadmap || {};
