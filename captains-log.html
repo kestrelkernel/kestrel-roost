@@ -101,6 +101,26 @@
       grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
       gap:10px;
     }
+    .target-picker {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .target-pill {
+      border:1px solid #4861be;
+      border-radius:999px;
+      padding:6px 10px;
+      background:#0f1d4d;
+      color:#dbe4ff;
+      cursor:pointer;
+      font:inherit;
+      font-size:.78rem;
+    }
+    .target-pill.is-active {
+      background:#2446a6;
+      border-color:#91a8ff;
+      box-shadow:0 0 0 1px #91a8ff55 inset;
+    }
     .publish-box {
       border:1px solid #31448b;
       border-radius:12px;
@@ -119,6 +139,41 @@
     }
     .publish-box .tiny {
       margin-top:0;
+    }
+    .draft-surface {
+      display:grid;
+      gap:10px;
+      border:1px solid #31448b;
+      border-radius:12px;
+      background:#09122f;
+      padding:12px;
+    }
+    .draft-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .draft-head strong {
+      color:#f0f4ff;
+      font-size:.92rem;
+    }
+    .draft-head span {
+      color:#9fb0ff;
+      font-size:.8rem;
+    }
+    .draft-text {
+      margin:0;
+      white-space:pre-wrap;
+      line-height:1.5;
+      color:#dce5ff;
+      font-size:.84rem;
+    }
+    .draft-actions {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
     }
     .summary-grid {
       display:grid;
@@ -236,6 +291,18 @@
             <h3>publish targets</h3>
             <span class="small" id="publishHint">ready to package</span>
           </div>
+          <div class="target-picker" id="targetPicker" role="tablist" aria-label="Choose publish target"></div>
+          <div class="draft-surface" aria-live="polite">
+            <div class="draft-head">
+              <strong id="draftTitle">target draft</strong>
+              <span id="draftMeta">choose a target to see the best wrapper</span>
+            </div>
+            <p class="draft-text" id="draftText"></p>
+            <div class="draft-actions">
+              <button id="copyTargetBtn" type="button">copy target draft</button>
+              <button id="copyBundleBtn" type="button">copy bundle</button>
+            </div>
+          </div>
           <div class="publish-grid" id="publishGrid"></div>
         </section>
         <h3 style="margin-top:14px;">included ships</h3>
@@ -259,11 +326,15 @@
     const summaryGridEl = document.getElementById('summaryGrid');
     const publishGridEl = document.getElementById('publishGrid');
     const publishHintEl = document.getElementById('publishHint');
+    const targetPickerEl = document.getElementById('targetPicker');
+    const draftTitleEl = document.getElementById('draftTitle');
+    const draftMetaEl = document.getElementById('draftMeta');
+    const draftTextEl = document.getElementById('draftText');
     const shipListEl = document.getElementById('shipList');
     const noteListEl = document.getElementById('noteList');
     const tagChipsEl = document.getElementById('tagChips');
 
-    const state = { updates: [], notes: [] };
+    const state = { updates: [], notes: [], target: 'discord' };
 
     function setStatus(text, cls = '') {
       statusEl.textContent = text;
@@ -391,6 +462,82 @@
       return lines.join('\n');
     }
 
+    function formatBundle(model) {
+      return [
+        '### Discord',
+        formatDiscordPost(model),
+        '',
+        '### GitHub',
+        formatGithubNote(model),
+        '',
+        '### Full markdown',
+        model.markdown
+      ].join('\n');
+    }
+
+    function makeTargetDraft(model, target) {
+      const topShip = model.visibleUpdates[0];
+      const shipTitle = topShip ? topShip.title : 'this digest';
+      const noteTitle = model.visibleNotes[0] ? model.visibleNotes[0].title : 'the current note set';
+      const targetMap = {
+        discord: {
+          title: 'Discord post',
+          meta: 'fast momentum update for the roost channel',
+          text: [
+            `Kestrel Roost ${model.headingWindow} digest`,
+            topShip ? `New lead: ${shipTitle} (${topShip.type})` : 'New lead: nothing matched this filter.',
+            topShip ? `Why it matters: ${topShip.impact}` : 'Why it matters: ship the next visible change before the next sync.',
+            `Note signal: ${noteTitle}`,
+            `Next move: ${model.nextMove}`
+          ].join('\n')
+        },
+        github: {
+          title: 'GitHub note',
+          meta: 'release-note style summary for issues or changelog entries',
+          text: [
+            `### Kestrel Roost ${model.headingWindow} digest`,
+            '',
+            `- Lead ship: ${topShip ? `${shipTitle} (${topShip.type})` : 'none in current filter'}`,
+            `- Supporting note: ${noteTitle}`,
+            `- Why it matters: ${topShip ? topShip.impact : 'keeps the release train visible'}`,
+            `- Next move: ${model.nextMove}`
+          ].join('\n')
+        },
+        docs: {
+          title: 'Docs paste',
+          meta: 'full markdown digest for weekly review or planning docs',
+          text: model.markdown
+        }
+      };
+      return targetMap[target] || targetMap.discord;
+    }
+
+    function renderTargetPicker(model) {
+      const targets = ['discord', 'github', 'docs'];
+      targetPickerEl.innerHTML = '';
+      targets.forEach((target) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `target-pill${state.target === target ? ' is-active' : ''}`;
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', String(state.target === target));
+        btn.textContent = target;
+        btn.addEventListener('click', () => {
+          state.target = target;
+          renderTargetPicker(model);
+          renderTargetDraft(model);
+        });
+        targetPickerEl.appendChild(btn);
+      });
+    }
+
+    function renderTargetDraft(model) {
+      const draft = makeTargetDraft(model, state.target);
+      draftTitleEl.textContent = draft.title;
+      draftMetaEl.textContent = draft.meta;
+      draftTextEl.textContent = draft.text;
+    }
+
     function renderSummary(model) {
       summaryGridEl.innerHTML = '';
       const summary = [
@@ -480,6 +627,8 @@
         publishGridEl.appendChild(box);
       });
       publishHintEl.textContent = `Ready for ${model.visibleUpdates.length ? model.visibleUpdates[0].type : 'general'} momentum packaging.`;
+      renderTargetPicker(model);
+      renderTargetDraft(model);
     }
 
     function regenerate() {
@@ -521,6 +670,40 @@
       }
     }
 
+    async function copyCurrentTarget() {
+      const windowValue = document.getElementById('windowSelect').value;
+      const focus = document.getElementById('focusSelect').value;
+      const model = makeDigest(state.updates, state.notes, windowValue, focus);
+      const draft = makeTargetDraft(model, state.target);
+      try {
+        await navigator.clipboard.writeText(draft.text);
+        setStatus(`Copied ${draft.title.toLowerCase()} to clipboard.`, 'ok');
+      } catch {
+        outputEl.value = draft.text;
+        outputEl.focus();
+        outputEl.select();
+        const ok = document.execCommand('copy');
+        setStatus(ok ? `Copied ${draft.title.toLowerCase()} to clipboard.` : `Copy failed, select the ${draft.title.toLowerCase()} text manually.`, ok ? 'ok' : 'warn');
+      }
+    }
+
+    async function copyBundle() {
+      const windowValue = document.getElementById('windowSelect').value;
+      const focus = document.getElementById('focusSelect').value;
+      const model = makeDigest(state.updates, state.notes, windowValue, focus);
+      const text = formatBundle(model);
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('Copied publish bundle to clipboard.', 'ok');
+      } catch {
+        outputEl.value = text;
+        outputEl.focus();
+        outputEl.select();
+        const ok = document.execCommand('copy');
+        setStatus(ok ? 'Copied publish bundle to clipboard.' : 'Copy failed, select the bundle manually.', ok ? 'ok' : 'warn');
+      }
+    }
+
     async function init() {
       setStatus('Loading ships and notes...');
       try {
@@ -540,6 +723,8 @@
         document.getElementById('copyBtn').addEventListener('click', copyMarkdown);
         document.getElementById('publishDiscordBtn').addEventListener('click', () => copyPublishText(formatDiscordPost, 'Discord post'));
         document.getElementById('publishGithubBtn').addEventListener('click', () => copyPublishText(formatGithubNote, 'GitHub note'));
+        document.getElementById('copyTargetBtn').addEventListener('click', copyCurrentTarget);
+        document.getElementById('copyBundleBtn').addEventListener('click', copyBundle);
         document.getElementById('windowSelect').addEventListener('change', regenerate);
         document.getElementById('focusSelect').addEventListener('change', regenerate);
 
