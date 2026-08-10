@@ -699,6 +699,100 @@
       font:inherit;
       line-height:1.45;
     }
+    .beacon-board {
+      border:1px solid #4e6ccf;
+      background:
+        radial-gradient(circle at 82% 8%, #8ba9ff21 0%, transparent 30%),
+        linear-gradient(155deg, #0c1738, #091126 58%, #122860);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .beacon-board::before {
+      content:"";
+      position:absolute;
+      inset:auto -80px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #95afff27 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .beacon-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .beacon-head h2 { margin:0; }
+    .beacon-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:46rem;
+    }
+    .beacon-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      z-index:1;
+    }
+    .beacon-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .beacon-card {
+      border:1px solid #395199;
+      border-radius:14px;
+      background:#08112be8;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .beacon-card.is-lead {
+      background:linear-gradient(155deg, #15326f, #08112be8 72%);
+      border-color:#88a5f7;
+    }
+    .beacon-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .beacon-copy {
+      margin:0;
+      color:#c1ceff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .beacon-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .beacon-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .beacon-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .routebook-grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -2109,6 +2203,29 @@
       </div>
     </section>
 
+    <section class="card beacon-board" id="beaconBoard" aria-live="polite">
+      <div class="beacon-head">
+        <div>
+          <h2>today's route beacon</h2>
+          <p class="beacon-note">one opinionated opener that turns the shared feeds into a start-now recommendation, a pressure check, and a supporting page route.</p>
+        </div>
+        <div class="beacon-controls">
+          <button class="btn" id="beaconShuffle">reshuffle route</button>
+          <button class="btn" id="beaconCopy">copy brief</button>
+        </div>
+      </div>
+      <div class="beacon-grid" id="beaconGrid">
+        <article class="beacon-card is-lead">
+          <h3>loading beacon…</h3>
+          <p class="beacon-copy">waiting for the shared feeds to shape today’s route.</p>
+        </article>
+      </div>
+      <div class="beacon-summary">
+        <h3>beacon brief</h3>
+        <pre id="beaconBrief">loading beacon brief…</pre>
+      </div>
+    </section>
+
     <section class="card launch-deck" id="launchDeckBoard" aria-live="polite">
       <div class="launch-deck-head">
         <h2>launch deck</h2>
@@ -2347,6 +2464,12 @@
       activeFocus: [],
       recentWins: []
     };
+    let beaconState = {
+      lead: null,
+      pressure: [],
+      route: [],
+      supporting: []
+    };
     let workbenchSignals = {
       focus: [],
       pressure: [],
@@ -2577,6 +2700,10 @@
     const broadcastBrief = document.getElementById('broadcastBrief');
     const broadcastShuffle = document.getElementById('broadcastShuffle');
     const broadcastCopy = document.getElementById('broadcastCopy');
+    const beaconGrid = document.getElementById('beaconGrid');
+    const beaconBrief = document.getElementById('beaconBrief');
+    const beaconShuffle = document.getElementById('beaconShuffle');
+    const beaconCopy = document.getElementById('beaconCopy');
     const routeRelayBoard = document.getElementById('routeRelayBoard');
     const routeRelayStops = document.getElementById('routeRelayStops');
     const routeRelaySummary = document.getElementById('routeRelaySummary');
@@ -3406,6 +3533,22 @@
         setActionStatus('broadcast brief copied ✓', 'ok');
       } catch {
         setActionStatus('clipboard blocked for broadcast brief.', 'warn');
+      }
+    });
+
+    beaconShuffle?.addEventListener('click', () => {
+      reshuffleBeacon();
+      setActionStatus('route beacon reshuffled ✓', 'ok');
+    });
+
+    beaconCopy?.addEventListener('click', async () => {
+      const text = beaconBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('route beacon copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for route beacon.', 'warn');
       }
     });
 
@@ -4304,6 +4447,111 @@
       renderRunwayBoard();
     };
 
+    const buildBeaconState = (updatesData, notesById, shipyard, expeditions, nowData) => {
+      const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
+      const roadmap = updatesData?.roadmap || { now: [], next: [], later: [] };
+      const notes = notesById instanceof Map ? [...notesById.values()] : Object.values(notesById || {});
+      const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      const latestUpdate = sortedUpdates[0] || null;
+      const activeExpeditions = Array.isArray(expeditions) ? expeditions.filter((item) => item.status === 'active').slice(0, 2) : [];
+      const pressureNotes = [...notes].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 2);
+      const shipyardPressure = Array.isArray(shipyard) ? shipyard.slice(0, 3) : [];
+      const nowFocus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus.slice(0, 2) : [];
+      const pressure = [
+        ...(Array.isArray(roadmap?.now) ? roadmap.now.slice(0, 2).map((item) => ({ title: 'roadmap now', detail: item })) : []),
+        ...(Array.isArray(roadmap?.next) ? roadmap.next.slice(0, 1).map((item) => ({ title: 'roadmap next', detail: item })) : []),
+        ...shipyardPressure.map((item) => ({ title: item.title, detail: item.summary })),
+        ...activeExpeditions.map((item) => ({ title: item.name, detail: item.summary })),
+        ...pressureNotes.map((item) => ({ title: item.title || item.id, detail: item.summary || item.note || '' }))
+      ].filter((item) => item.detail);
+      const route = buildDispatchRoute(roostPages, [
+        { intent: 'build', energy: 'high', time: 20 },
+        { intent: 'reflect', energy: 'low', time: 15 },
+        { intent: 'learn', energy: 'medium', time: 15 }
+      ]);
+      const supporting = [
+        latestUpdate?.page ? { href: latestUpdate.page, label: latestUpdate.pageLabel || 'Open latest ship' } : null,
+        route[0] ? { href: route[0].href, label: `Open ${route[0].title}` } : null,
+        nowFocus[0] ? { href: 'now.html', label: `Inspect ${nowFocus[0].title}` } : null
+      ].filter(Boolean);
+      const lead = latestUpdate || route[0] || null;
+      return {
+        lead,
+        pressure,
+        route,
+        supporting,
+        nowFocus,
+        summary: [
+          `today's route / ${lead?.title || 'roost opener'}`,
+          `start: ${lead?.pageLabel || lead?.title || 'use the latest ship'}`,
+          `pressure: ${pressure.slice(0, 3).map((item) => item.detail).join(' | ') || 'quiet'}`,
+          `supporting pages: ${route.map((item) => item.title).join(' → ') || 'none'}`,
+          'why it matters: the homepage now opens with one clear recommendation, rather than three competing summaries.'
+        ].join('\n')
+      };
+    };
+
+    const renderBeaconBoard = () => {
+      if (!beaconGrid || !beaconBrief) return;
+      const { lead, pressure, route, supporting, nowFocus, summary } = beaconState;
+      if (!lead || (!pressure.length && !route.length)) {
+        beaconGrid.innerHTML = '<div class="empty-card">beacon feed unavailable right now.</div>';
+        beaconBrief.textContent = 'beacon unavailable right now.';
+        return;
+      }
+      const cards = [
+        {
+          title: lead.title || 'latest ship',
+          copy: lead.impact || lead.summary || lead.details || 'the freshest visible change on the homepage.',
+          meta: [lead.type || 'update', lead.date || 'unknown date', lead.page ? 'has destination' : 'no linked page'],
+          links: [
+            lead.page ? `<a class="btn" href="${lead.page}">${lead.pageLabel || 'open page'}</a>` : '',
+            `<a class="btn" href="changelog.html#${lead.slug || ''}">open release</a>`
+          ].join('')
+        },
+        {
+          title: pressure[0]?.title || 'pressure lane',
+          copy: pressure[0]?.detail || 'roadmap and note pressure stay visible here.',
+          meta: [
+            `${pressure.length} signals`,
+            nowFocus[0] ? `focus: ${nowFocus[0].horizon || 'now'}` : 'focus: none',
+            route[0] ? `route: ${route[0].title}` : 'route: none'
+          ],
+          links: route[0] ? `<a class="btn" href="${route[0].href}">open ${route[0].title}</a>` : ''
+        },
+        {
+          title: route[1]?.title || route[0]?.title || 'supporting page',
+          copy: route[1]?.description || route[0]?.description || 'a second page that complements the lead move.',
+          meta: [
+            route[1]?.tags?.[0] || route[0]?.tags?.[0] || 'supporting',
+            route[2]?.title ? `plus ${route[2].title}` : 'single route',
+            supporting.length ? `${supporting.length} quick opens` : 'no quick opens'
+          ],
+          links: supporting.map((item) => `<a class="mini-link" href="${item.href}">${item.label}</a>`).join('')
+        }
+      ];
+      beaconGrid.innerHTML = cards.map((card, index) => `
+        <article class="beacon-card ${index === 0 ? 'is-lead' : ''}">
+          <div class="beacon-meta">${card.meta.map((item) => `<span class="tag">${item}</span>`).join('')}</div>
+          <h3>${card.title}</h3>
+          <p class="beacon-copy">${card.copy}</p>
+          <div class="link-row">${card.links}</div>
+        </article>
+      `).join('');
+      beaconBrief.textContent = summary;
+    };
+
+    const reshuffleBeacon = () => {
+      const rng = seededRandom(dispatchSeed + 91);
+      beaconState = {
+        ...beaconState,
+        pressure: [...beaconState.pressure].sort(() => rng() - 0.5),
+        route: [...beaconState.route].sort(() => rng() - 0.5),
+        supporting: [...beaconState.supporting].sort(() => rng() - 0.5)
+      };
+      renderBeaconBoard();
+    };
+
     const renderStorySpotlight = (updates, notesById) => {
       const latest = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
       if (!latest) {
@@ -4742,6 +4990,7 @@
           fetch('assets/roost-weather.json', { cache: 'no-store' })
         ]);
         const shipyardResponse = await fetch('assets/roost-shipyard.json', { cache: 'no-store' });
+        const expeditionsResponse = await fetch('assets/roost-expeditions.json', { cache: 'no-store' });
         const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
         const notes = Array.isArray(notesData?.notes) ? notesData.notes : [];
         const notesById = new Map(notes.map((note) => [note.id, note]));
@@ -4752,6 +5001,7 @@
         seasonalWheel = Array.isArray(seasonalWheel) ? seasonalWheel : [];
         weatherRegions = weatherResponse.ok ? (await weatherResponse.json())?.regions || [] : [];
         const shipyard = shipyardResponse.ok ? await shipyardResponse.json() : [];
+        const expeditions = expeditionsResponse.ok ? await expeditionsResponse.json() : [];
         threadFeedState = { updates, notes, shipyard: Array.isArray(shipyard) ? shipyard : [] };
         pickRadioTracks();
 
@@ -4766,6 +5016,8 @@
         renderThreadLoom(threadFeedState);
         renderEditorialDesk(updates, notesById, Array.isArray(shipyard) ? shipyard : []);
         renderBroadcastBoard(threadFeedState);
+        beaconState = buildBeaconState(updatesData, notesById, Array.isArray(shipyard) ? shipyard : [], Array.isArray(expeditions) ? expeditions : [], nowData);
+        renderBeaconBoard();
 
         const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const roadmap = updatesData?.roadmap || {};
@@ -4835,6 +5087,8 @@
           if (routeCopy) routeCopy.textContent = 'dispatch unavailable right now.';
         }
         if (dispatchBrief) dispatchBrief.textContent = 'dispatch unavailable right now.';
+        if (beaconGrid) beaconGrid.innerHTML = '<div class="empty-card">route beacon unavailable right now.</div>';
+        if (beaconBrief) beaconBrief.textContent = 'beacon unavailable right now.';
         releasePulseStats.innerHTML = '<div class="empty-card">release pulse unavailable right now.</div>';
         releasePulseLatest.innerHTML = '<h3>release pulse unavailable right now.</h3><p>try again once the feed comes back.</p>';
         releasePulseRoadmap.innerHTML = '<div class="empty-card">roadmap unavailable right now.</div>';
