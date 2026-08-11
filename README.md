@@ -59,6 +59,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Homepage route mixer:** added a new `index.html` route mixer that ranks build/story/play/quiet visits into a copyable three-stop handoff with pinned favorites and reshuffle controls so the homepage can recommend a clearer next tour
 - **Homepage route beacon:** added a new `index.html` route beacon that distills the latest ship, pressure signals, and supporting pages into one copyable daily opener with a reshuffle control so the homepage can lead with a concrete next move
 - **Homepage broadcast lanes:** added a new `index.html` broadcast surface that splits the shared feeds into shipping/story/path lanes with a copyable brief, reshuffle control, and direct page links so the homepage can point visitors at a clearer next move
 - **Homepage thread loom:** added a new `index.html` storytelling layer that braids updates, notes, and roadmap queue items into selectable theme lanes with a copyable brief and reshuffle control so the homepage can recommend a coherent next story, not just a raw route

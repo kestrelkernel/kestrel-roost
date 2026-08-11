@@ -501,6 +501,120 @@
       display:grid;
       gap:12px;
     }
+    .route-mixer {
+      border:1px solid #4f6fcc;
+      background:
+        radial-gradient(circle at top left, #9fb7ff22 0%, transparent 32%),
+        linear-gradient(155deg, #0d1738, #081124 58%, #142c69);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .route-mixer::before {
+      content:"";
+      position:absolute;
+      inset:auto -120px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #93afff24 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .route-mixer-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .route-mixer-head h2 { margin:0; }
+    .route-mixer-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:44rem;
+    }
+    .route-mixer-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      z-index:1;
+    }
+    .route-mixer-mode {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:999px;
+      color:#dfe7ff;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .route-mixer-mode.is-active {
+      background:#183170;
+      border-color:#8da7ff;
+      color:#f5f8ff;
+    }
+    .route-mixer-mode:hover,
+    .route-mixer-mode:focus-visible {
+      transform: translateY(-1px);
+      border-color:#6f8dff;
+      outline:none;
+    }
+    .route-mixer-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .route-mixer-card {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .route-mixer-card.is-lead {
+      background:linear-gradient(155deg, #122962, #081231 72%);
+      border-color:#7d97eb;
+    }
+    .route-mixer-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .route-mixer-copy {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .route-mixer-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .route-mixer-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .route-mixer-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .seasonal-desk::before {
       content:"";
       position:absolute;
@@ -2316,6 +2430,29 @@
       </div>
     </section>
 
+    <section class="card route-mixer" id="routeMixerBoard" aria-live="polite">
+      <div class="route-mixer-head">
+        <h2>roost route mixer</h2>
+        <p class="route-mixer-note">the homepage now blends build, story, play, and quiet modes into a ranked three-stop route, so the next visit starts with an actual plan.</p>
+      </div>
+      <div class="route-mixer-controls" id="routeMixerModes">
+        <button class="route-mixer-mode is-active" type="button" data-route-mixer-mode="build">build</button>
+        <button class="route-mixer-mode" type="button" data-route-mixer-mode="story">story</button>
+        <button class="route-mixer-mode" type="button" data-route-mixer-mode="play">play</button>
+        <button class="route-mixer-mode" type="button" data-route-mixer-mode="quiet">quiet</button>
+      </div>
+      <div class="links" style="margin-bottom:10px;">
+        <button class="btn" id="rerollRouteMixer">reshuffle mixer</button>
+        <button class="btn" id="copyRouteMixer">copy handoff</button>
+        <button class="btn" id="pinRouteMixer">pin route</button>
+      </div>
+      <div class="route-mixer-grid" id="routeMixerStops"></div>
+      <div class="route-mixer-summary">
+        <h3 style="margin:0; font-size:.98rem; color:#f0f4ff;">route handoff</h3>
+        <pre id="routeMixerSummary">loading route mixer…</pre>
+      </div>
+    </section>
+
     <section class="card seasonal-desk" id="seasonalDesk" aria-live="polite">
       <div class="seasonal-head">
         <h2>seasonal weather desk</h2>
@@ -2707,6 +2844,10 @@
     const routeRelayBoard = document.getElementById('routeRelayBoard');
     const routeRelayStops = document.getElementById('routeRelayStops');
     const routeRelaySummary = document.getElementById('routeRelaySummary');
+    const routeMixerBoard = document.getElementById('routeMixerBoard');
+    const routeMixerModesEl = document.getElementById('routeMixerModes');
+    const routeMixerStops = document.getElementById('routeMixerStops');
+    const routeMixerSummary = document.getElementById('routeMixerSummary');
     const seasonalDesk = document.getElementById('seasonalDesk');
     const seasonalGrid = document.getElementById('seasonalGrid');
     const seasonalBrief = document.getElementById('seasonalBrief');
@@ -3563,6 +3704,159 @@
 
     const saveRouteRelay = () => {
       storage.set('roostRouteRelay', JSON.stringify(routeRelayState));
+    };
+
+    const routeMixerModes = [
+      {
+        id: 'build',
+        label: 'build lane',
+        intent: 'build',
+        energy: 'high',
+        time: 30,
+        note: 'prioritize pages that feel like shipping surfaces or useful tools.'
+      },
+      {
+        id: 'story',
+        label: 'story lane',
+        intent: 'reflect',
+        energy: 'low',
+        time: 15,
+        note: 'favor pages that explain, connect, or archive the roost story.'
+      },
+      {
+        id: 'play',
+        label: 'play lane',
+        intent: 'play',
+        energy: 'medium',
+        time: 15,
+        note: 'bias toward pages with delight, color, sound, or other interactive charm.'
+      },
+      {
+        id: 'quiet',
+        label: 'quiet lane',
+        intent: 'learn',
+        energy: 'low',
+        time: 15,
+        note: 'steer toward calm pages that are easy to browse without much cognitive load.'
+      }
+    ];
+    const routeMixerModeMap = Object.fromEntries(routeMixerModes.map((mode) => [mode.id, mode]));
+    let routeMixerMode = storage.get('roostRouteMixerMode') || 'build';
+    let routeMixerSeed = Number.parseInt(storage.get('roostRouteMixerSeed') ?? '', 10);
+    if (!Number.isFinite(routeMixerSeed)) {
+      routeMixerSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+      storage.set('roostRouteMixerSeed', String(routeMixerSeed));
+    }
+    let routeMixerPinsState;
+    try {
+      routeMixerPinsState = JSON.parse(storage.get('roostRouteMixerPins') ?? '[]');
+    } catch {
+      routeMixerPinsState = [];
+    }
+    if (!Array.isArray(routeMixerPinsState)) routeMixerPinsState = [];
+    routeMixerPinsState = routeMixerPinsState.filter((href) => roostPages.some((page) => page.href === href)).slice(0, 6);
+
+    const saveRouteMixerPins = () => {
+      storage.set('roostRouteMixerPins', JSON.stringify(routeMixerPinsState));
+    };
+
+    const scoreRouteMixerCandidate = (page, mode) => {
+      const pref = routeMixerModeMap[mode] || routeMixerModeMap.build;
+      let score = scorePathfinderCandidate(page, pref);
+      if (mode === 'story' && ['chronicle', 'case-study', 'history', 'journal', 'story'].some((tag) => page.tags.includes(tag))) score += 4;
+      if (mode === 'play' && ['interactive', 'art', 'audio', 'arcade'].some((tag) => page.tags.includes(tag))) score += 4;
+      if (mode === 'quiet' && Number(page.minTime || 0) <= 15) score += 4;
+      if (mode === 'build' && ['tooling', 'planning', 'roadmap'].some((tag) => page.tags.includes(tag))) score += 4;
+      if (routeMixerPinsState.includes(page.href)) score += 3;
+      return score;
+    };
+
+    const buildRouteMixer = () => {
+      const seedRng = seededRandom(routeMixerSeed + 211);
+      const picked = [];
+      const preferences = [
+        routeMixerModeMap[routeMixerMode] || routeMixerModeMap.build,
+        routeMixerModeMap.story,
+        routeMixerModeMap.play
+      ];
+      const pool = [...roostPages];
+
+      for (const pref of preferences) {
+        const ranked = pool
+          .map((page) => ({
+            page,
+            score: scoreRouteMixerCandidate(page, pref.id) + Math.floor(seedRng() * 2)
+          }))
+          .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title));
+        const next = ranked.find(({ page }) => !picked.some((entry) => entry.href === page.href)) || ranked[0];
+        if (!next) continue;
+        picked.push(next.page);
+        const idx = pool.findIndex((page) => page.href === next.page.href);
+        if (idx >= 0) pool.splice(idx, 1);
+      }
+
+      while (picked.length < 3 && pool.length) {
+        picked.push(pool.shift());
+      }
+
+      return picked.slice(0, 3);
+    };
+
+    const renderRouteMixerModes = () => {
+      if (!routeMixerModesEl) return;
+      routeMixerModesEl.innerHTML = routeMixerModes.map((mode) => `
+        <button class="route-mixer-mode ${mode.id === routeMixerMode ? 'is-active' : ''}" type="button" data-route-mixer-mode="${mode.id}">${mode.label}</button>
+      `).join('');
+    };
+
+    const renderRouteMixer = () => {
+      if (!routeMixerStops || !routeMixerSummary) return;
+
+      const mode = routeMixerModeMap[routeMixerMode] || routeMixerModeMap.build;
+      const stops = buildRouteMixer();
+      renderRouteMixerModes();
+
+      if (!stops.length) {
+        routeMixerStops.innerHTML = '<div class="empty-card">route mixer unavailable.</div>';
+        routeMixerSummary.textContent = 'route mixer unavailable right now.';
+        return;
+      }
+
+      routeMixerStops.innerHTML = stops.map((page, idx) => {
+        const score = scoreRouteMixerCandidate(page, idx === 0 ? routeMixerMode : idx === 1 ? 'story' : 'play');
+        return `
+          <article class="route-mixer-card ${idx === 0 ? 'is-lead' : ''}">
+            <div class="route-mixer-meta"><span>stop ${idx + 1}</span><span>fit ${score}</span><span>${page.energy || 'medium'} energy</span></div>
+            <h3>${page.title}</h3>
+            <p class="route-mixer-copy">${page.description}</p>
+            <div class="tag-row">${(page.tags || []).slice(0, 3).map((tag) => `<span class="tag">${tag}</span>`).join('')}</div>
+            <div class="link-row">
+              <a class="btn" href="${page.href}">open stop</a>
+              <button class="mini-link" data-route-mixer-pin="${page.href}">${routeMixerPinsState.includes(page.href) ? 'unpin' : 'pin'}</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      const lead = stops[0];
+      routeMixerSummary.textContent = [
+        `route mixer / ${mode.label}`,
+        '',
+        `lead: ${lead.title}`,
+        `why now: ${lead.description}`,
+        '',
+        `second stop: ${stops[1]?.title || 'none'}`,
+        `third stop: ${stops[2]?.title || 'none'}`,
+        `pinned cues: ${routeMixerPinsState.length ? routeMixerPinsState.map((href) => roostPages.find((page) => page.href === href)?.title).filter(Boolean).join(' | ') : 'none'}`,
+        '',
+        `why it matters: the homepage can now turn one intent into a ranked route instead of a flat page directory.`
+      ].join('\n');
+    };
+
+    const reshuffleRouteMixer = () => {
+      routeMixerSeed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostRouteMixerSeed', String(routeMixerSeed));
+      renderRouteMixer();
     };
 
     const seasonalCopyByMode = {
@@ -5439,6 +5733,56 @@
       setActionStatus(`seasonal desk shifted to ${seasonalMode} mode ✓`, 'ok');
     });
 
+    routeMixerModesEl?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const nextMode = target.dataset.routeMixerMode;
+      if (!nextMode || !routeMixerModeMap[nextMode]) return;
+      routeMixerMode = nextMode;
+      storage.set('roostRouteMixerMode', routeMixerMode);
+      renderRouteMixer();
+      setActionStatus(`route mixer shifted to ${routeMixerMode} mode ✓`, 'ok');
+    });
+
+    routeMixerBoard?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const href = target.dataset.routeMixerPin;
+      if (!href) return;
+      if (routeMixerPinsState.includes(href)) {
+        routeMixerPinsState = routeMixerPinsState.filter((entry) => entry !== href);
+      } else {
+        routeMixerPinsState = [href, ...routeMixerPinsState].slice(0, 6);
+      }
+      saveRouteMixerPins();
+      renderRouteMixer();
+      setActionStatus('route mixer pins updated ✓', 'ok');
+    });
+
+    rerollRouteMixer?.addEventListener('click', () => {
+      reshuffleRouteMixer();
+      setActionStatus('route mixer reshuffled ✓', 'ok');
+    });
+
+    copyRouteMixer?.addEventListener('click', async () => {
+      const text = routeMixerSummary?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('route mixer handoff copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for route mixer handoff.', 'warn');
+      }
+    });
+
+    pinRouteMixer?.addEventListener('click', () => {
+      const current = buildRouteMixer().map((page) => page.href);
+      routeMixerPinsState = [...new Set([...current, ...routeMixerPinsState])].slice(0, 6);
+      saveRouteMixerPins();
+      renderRouteMixer();
+      setActionStatus('route mixer pinned into memory ✓', 'ok');
+    });
+
     copySeasonalBriefBtn?.addEventListener('click', async () => {
       const text = seasonalBrief?.textContent || '';
       if (!text.trim()) return;
@@ -5465,6 +5809,7 @@
     loadWorkbenchSignals();
     renderRoutebook();
     renderRouteRelay();
+    renderRouteMixer();
     loadNowTimeline();
     loadMissionBoard();
     renderSeasonalDesk();

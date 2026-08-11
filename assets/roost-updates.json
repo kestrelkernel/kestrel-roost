@@ -21,6 +21,20 @@
   },
   "updates": [
     {
+      "slug": "homepage-route-mixer",
+      "date": "2026-08-11",
+      "title": "Added a route mixer to the homepage",
+      "type": "feature",
+      "impact": "Visitors can now switch between build, story, play, and quiet modes to get a ranked three-stop route with pinned favorites and a copyable handoff instead of a flat page list.",
+      "details": "Upgraded index.html with a new route mixer surface, mode chips, route pinning, reshuffle controls, and a copyable route brief so the homepage can recommend a clearer next visit.",
+      "page": "index.html",
+      "pageLabel": "Open the homepage",
+      "relatedNotes": [
+        "roost-linking-system",
+        "ship-log-strategy"
+      ]
+    },
+    {
       "slug": "command-center-tv-mode",
       "date": "2026-07-30",
       "title": "Shipped Command Center TV Mode for hands-free dashboard rotation",
