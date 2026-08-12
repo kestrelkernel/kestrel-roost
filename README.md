@@ -23,6 +23,7 @@ python3 -m http.server 8080
 - `changelog.html` — release history + filterable flight log
 - `roost-chronicle.html` — story-arc explorer that ties launches, notes, and roadmap cues into a copyable brief
 - `roost-casebook.html` — narrative release dossiers that bundle major launches, linked rationale, and copyable briefs
+- `roost-afterglow.html` — retrospective surface that turns recent launches into lessons, saved takeaways, and a concrete next experiment
 - `quest-forge.html` — customize the quest generator pool (defaults + custom + JSON import/export)
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
 - `roost-lens.html` — daily build brief generator that turns updates, notes, and roadmap pressure into a concrete next move
@@ -89,6 +90,7 @@ python3 -m http.server 8080
 - **Roost Weather Deck overhaul:** rebuilt `roost-weather.html` into an interactive planning studio with sortable region scoring, favorite pinning, hourly comparison, and a copyable forecast handoff for quicker session-to-session planning
 - **Roost Almanac launch:** added `roost-almanac.html`, a seasonal planning compass that ranks energy windows, compares weather regions, and generates a copyable daily build recipe from the shared almanac feeds
 - **Roost Handoff launch:** added `roost-handoff.html`, a copyable brief generator that turns the live now/updates/milestones feeds into a next-session plan, with mode switching and launch-page filtering
+- **Roost Afterglow launch:** added `roost-afterglow.html`, a retrospective surface that turns recent launches into lessons, saved takeaways, and a concrete next experiment so the site can learn from its own releases
 
 - **Roost Route Relay launch:** added a new homepage guided-tour panel that assembles a 3-stop next-step route, supports reshuffling and pinning, and produces a copyable handoff note for easier session-to-session continuity
 

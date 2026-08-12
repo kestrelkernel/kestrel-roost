@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Afterglow: a retrospective surface that turns shipped work into lessons and the next experiment." />
+  <title>roost afterglow</title>
+  <style>
+    :root {
+      --bg:#08101d;
+      --bg2:#17284a;
+      --panel:#0d1730dc;
+      --line:#39558f;
+      --fg:#eef3ff;
+      --muted:#a7b8e3;
+      --accent:#95c6ff;
+      --accent2:#8ff0cf;
+      --good:#8af0bf;
+      --warn:#ffd37d;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% 0%, #26497d 0%, transparent 30%),
+        radial-gradient(circle at 88% 10%, #174d7135 0%, transparent 24%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    main {
+      width:min(1180px, 92vw);
+      margin:0 auto;
+      padding:30px 0 44px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+      box-shadow:0 16px 40px #00000036;
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:22px;
+      display:grid;
+      gap:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -100px -120px auto;
+      width:340px;
+      height:340px;
+      border-radius:999px;
+      background:radial-gradient(circle, #9cc9ff24 0%, transparent 70%);
+      pointer-events:none;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.4rem); line-height:1; }
+    .lede { color:var(--muted); line-height:1.6; max-width:78ch; }
+    .topline, .toolbar, .stats, .pill-row, .link-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .pill, .mode, .btn, .mini-link {
+      border:1px solid #4b6db8;
+      border-radius:999px;
+      padding:7px 12px;
+      background:#102350;
+      color:#dbe6ff;
+      text-decoration:none;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn, .mini-link { border-radius:10px; }
+    .pill.is-accent, .mode.is-active {
+      background:#dbe7ff;
+      border-color:#dbe7ff;
+      color:#0f2148;
+    }
+    .pill:hover, .btn:hover, .mini-link:hover, .mode:hover,
+    .pill:focus-visible, .btn:focus-visible, .mini-link:focus-visible, .mode:focus-visible {
+      transform:translateY(-1px);
+      border-color:#7d9dff;
+      outline:none;
+      background:#14306f;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns:minmax(320px, .95fr) minmax(0, 1.05fr);
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns:1fr; }
+    }
+    .stack { display:grid; gap:12px; }
+    .card {
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .panel-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .panel {
+      border:1px solid #3958a0;
+      border-radius:14px;
+      background:#081227;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .panel.is-lead {
+      background:linear-gradient(155deg, #132a66, #081227 72%);
+      border-color:#84a2f4;
+    }
+    .panel h3 { color:#f6f8ff; font-size:1rem; }
+    .panel p, .meta, .copy { color:var(--muted); line-height:1.5; }
+    .meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+    }
+    .tag {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid #4f6ab7;
+      border-radius:999px;
+      padding:4px 8px;
+      background:#0f1f46;
+      color:#d8e5ff;
+      font-size:.78rem;
+    }
+    .copy {
+      white-space:pre-wrap;
+      font:inherit;
+      margin:0;
+    }
+    .sidebar {
+      display:grid;
+      gap:12px;
+    }
+    .selector {
+      width:100%;
+      background:#10233f;
+      color:var(--fg);
+      border:1px solid #3f6294;
+      border-radius:10px;
+      padding:10px 11px;
+      font:inherit;
+    }
+    .selector:focus-visible {
+      outline:none;
+      border-color:#84a5ff;
+      box-shadow:0 0 0 2px #87abff29;
+    }
+    .summary-box {
+      border:1px solid #3958a0;
+      border-radius:14px;
+      background:#08102b;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .summary-box pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.48;
+    }
+    .list {
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+      line-height:1.5;
+      display:grid;
+      gap:6px;
+    }
+    .status { min-height:1.2em; color:#c8d6ff; font-size:.84rem; }
+    .empty {
+      border:1px dashed #446196;
+      border-radius:14px;
+      padding:14px;
+      color:var(--muted);
+      background:#08111f;
+    }
+    .stats .tag { font-size:.76rem; }
+    .good { color:var(--good); }
+    .warn { color:var(--warn); }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div class="topline">
+      <span class="pill is-accent">roost afterglow</span>
+      <span class="pill">retrospective</span>
+      <span class="pill">next experiment</span>
+    </div>
+    <h1>turn shipped work into a better next guess.</h1>
+    <p class="lede">Afterglow is the roost’s memory lens. It looks at recent launches, extracts the useful pattern, and turns that into a concrete experiment you can actually start tomorrow instead of just admiring the changelog.</p>
+    <nav class="topline" aria-label="Site sections">
+      <a class="btn" href="index.html">home</a>
+      <a class="btn" href="flight-deck.html">flight deck</a>
+      <a class="btn" href="changelog.html">changelog</a>
+      <a class="btn" href="roost-chronicle.html">chronicle</a>
+      <a class="btn" href="roost-workbench.html">workbench</a>
+      <a class="btn" href="roost-afterglow.html">afterglow</a>
+    </nav>
+  </section>
+
+  <section class="layout">
+    <div class="stack">
+      <article class="card">
+        <h2>retrospective lens</h2>
+        <p>Pick a release and the page will surface the story behind it, the pattern it suggests, and the next experiment that would best extend that line of work.</p>
+        <div class="toolbar">
+          <select id="updateSelect" class="selector" aria-label="Select a recent update"></select>
+          <button class="btn" id="refreshPick">reshuffle lens</button>
+          <button class="btn" id="copyBrief">copy brief</button>
+        </div>
+        <div class="stats" id="retrospectiveStats"></div>
+        <div class="summary-box">
+          <h3 id="retrospectiveTitle">loading release…</h3>
+          <p class="copy" id="retrospectiveCopy">loading afterglow brief…</p>
+          <div class="meta" id="retrospectiveMeta"></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>saved lessons</h2>
+        <p>Keep the best takeaways local so the page becomes a reusable memory aid instead of a one-time read.</p>
+        <div class="toolbar">
+          <button class="btn" id="saveLesson">save lesson</button>
+          <button class="btn" id="clearLessons">clear lessons</button>
+        </div>
+        <div id="lessonList" class="stack"></div>
+      </article>
+    </div>
+
+    <div class="stack">
+      <article class="card">
+        <h2>what shipped, what it unlocked</h2>
+        <div class="panel-grid" id="insightGrid">
+          <div class="empty">loading release insights…</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>next experiment</h2>
+        <p>One concrete follow-up should always be visible. If the page can’t suggest a next move, the retrospective is too fuzzy.</p>
+        <div class="summary-box">
+          <h3 id="experimentTitle">loading experiment…</h3>
+          <p class="copy" id="experimentCopy">loading next experiment…</p>
+          <div class="meta" id="experimentMeta"></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>release history</h2>
+        <div class="panel-grid" id="historyGrid">
+          <div class="empty">loading recent launches…</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <article class="card">
+    <h2>brief</h2>
+    <div class="toolbar">
+      <button class="btn" id="copyReflection">copy reflection</button>
+      <a class="btn" href="roost-casebook.html">open casebook</a>
+      <a class="btn" href="roost-signal-map.html">open signal map</a>
+    </div>
+    <pre id="reflectionBrief">loading brief…</pre>
+    <p class="status" id="afterglowStatus"></p>
+  </article>
+</main>
+
+<script>
+  const storage = {
+    get(key) {
+      try { return localStorage.getItem(key); } catch { return null; }
+    },
+    set(key, value) {
+      try { localStorage.setItem(key, value); return true; } catch { return false; }
+    },
+    remove(key) {
+      try { localStorage.removeItem(key); return true; } catch { return false; }
+    }
+  };
+
+  const els = {
+    select: document.getElementById('updateSelect'),
+    refreshPick: document.getElementById('refreshPick'),
+    copyBrief: document.getElementById('copyBrief'),
+    retrospectiveTitle: document.getElementById('retrospectiveTitle'),
+    retrospectiveCopy: document.getElementById('retrospectiveCopy'),
+    retrospectiveMeta: document.getElementById('retrospectiveMeta'),
+    retrospectiveStats: document.getElementById('retrospectiveStats'),
+    insightGrid: document.getElementById('insightGrid'),
+    historyGrid: document.getElementById('historyGrid'),
+    experimentTitle: document.getElementById('experimentTitle'),
+    experimentCopy: document.getElementById('experimentCopy'),
+    experimentMeta: document.getElementById('experimentMeta'),
+    lessonList: document.getElementById('lessonList'),
+    saveLesson: document.getElementById('saveLesson'),
+    clearLessons: document.getElementById('clearLessons'),
+    copyReflection: document.getElementById('copyReflection'),
+    reflectionBrief: document.getElementById('reflectionBrief'),
+    afterglowStatus: document.getElementById('afterglowStatus')
+  };
+
+  const moodByType = {
+    feature: 'expansion',
+    interaction: 'interaction',
+    content: 'content',
+    design: 'design',
+    tool: 'tooling',
+    tooling: 'tooling',
+    meta: 'meta'
+  };
+
+  let updates = [];
+  let notes = [];
+  let selectedId = storage.get('roostAfterglowSelected') || '';
+  let savedLessons = JSON.parse(storage.get('roostAfterglowLessons') || '[]');
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+  }
+
+  function seededIndex(seed, length) {
+    if (!length) return 0;
+    let hash = 0;
+    for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    return hash % length;
+  }
+
+  function pickNextExperiment(update) {
+    const source = (update.relatedNotes || []).map((id) => notes.find((note) => note.id === id)).filter(Boolean);
+    const note = source[0] || notes.find((item) => (item.tags || []).includes('workflow')) || notes[0];
+    const relatedPage = update.pageLabel || update.page || 'the originating page';
+    const type = moodByType[update.type] || 'follow-up';
+    return {
+      title: `next experiment: extend ${update.title.replace(/^Added |^Launched |^Upgraded /, '')}`,
+      copy: note
+        ? `Use the pattern from "${note.title}" to prototype one ${type} follow-up around ${relatedPage}. Keep the first pass small enough to ship in a single session, but specific enough that it changes how the page behaves.`
+        : `Extend ${relatedPage} with one ${type} follow-up that makes the change more discoverable, more reusable, or more opinionated.`
+    };
+  }
+
+  function buildReflection(update) {
+    const note = (update.relatedNotes || []).map((id) => notes.find((item) => item.id === id)).filter(Boolean)[0];
+    const next = pickNextExperiment(update);
+    const lessons = [
+      `${update.title} shipped on ${update.date}.`,
+      update.impact,
+      note ? `Relevant note: ${note.title} - ${note.summary}` : 'No linked note, so the release stands on its own.',
+      next.copy
+    ];
+    return {
+      note,
+      next,
+      brief: [
+        'roost afterglow / reflection',
+        `release: ${update.title}`,
+        `date: ${update.date}`,
+        `type: ${update.type}`,
+        '',
+        `what changed: ${update.impact}`,
+        `why it matters: ${update.details}`,
+        note ? `connected note: ${note.title} - ${note.summary}` : 'connected note: none linked',
+        `next experiment: ${next.copy}`,
+      ].join('\n'),
+      lessons
+    };
+  }
+
+  function updateSelected(update) {
+    if (!update) return;
+    selectedId = update.slug;
+    storage.set('roostAfterglowSelected', selectedId);
+    const reflection = buildReflection(update);
+
+    els.retrospectiveTitle.textContent = update.title;
+    els.retrospectiveCopy.textContent = update.impact;
+    els.retrospectiveMeta.innerHTML = [
+      `<span class="tag">${escapeHtml(update.type)}</span>`,
+      `<span class="tag">${escapeHtml(update.date)}</span>`,
+      `<span class="tag">${escapeHtml(update.pageLabel || update.page || 'no destination')}</span>`
+    ].join('');
+
+    els.experimentTitle.textContent = reflection.next.title;
+    els.experimentCopy.textContent = reflection.next.copy;
+    els.experimentMeta.innerHTML = [
+      `<span class="tag">${escapeHtml(update.slug)}</span>`,
+      `<span class="tag">${escapeHtml((update.relatedNotes || []).length)} linked note(s)</span>`
+    ].join('');
+
+    els.reflectionBrief.textContent = reflection.brief;
+    els.retrospectiveStats.innerHTML = [
+      `<span class="tag">${escapeHtml(update.details)}</span>`,
+      `<span class="tag">${escapeHtml((update.relatedNotes || []).length)} related note(s)</span>`,
+      `<span class="tag">${escapeHtml(moodByType[update.type] || 'follow-up')}</span>`
+    ].join('');
+
+    renderInsights(update, reflection.note, reflection.next);
+    renderHistory();
+  }
+
+  function renderInsights(update, note, next) {
+    const signalItems = [
+      {
+        title: 'what shipped',
+        body: update.details,
+        meta: update.pageLabel || update.page || 'home-grown release'
+      },
+      {
+        title: 'why it matters',
+        body: update.impact,
+        meta: update.type
+      },
+      {
+        title: 'what it unlocked',
+        body: note ? note.summary : 'No linked note, but the release still establishes a useful pattern to repeat.',
+        meta: note ? note.title : 'pattern on its own'
+      },
+      {
+        title: 'what to try next',
+        body: next.copy,
+        meta: 'single-session experiment'
+      }
+    ];
+
+    els.insightGrid.innerHTML = signalItems.map((item, idx) => `
+      <article class="panel ${idx === 0 ? 'is-lead' : ''}">
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.body)}</p>
+        <div class="meta"><span class="tag">${escapeHtml(item.meta)}</span></div>
+      </article>
+    `).join('');
+  }
+
+  function renderHistory() {
+    els.historyGrid.innerHTML = updates.slice(0, 6).map((update) => `
+      <button class="panel" data-select="${escapeHtml(update.slug)}" type="button">
+        <h3>${escapeHtml(update.title)}</h3>
+        <p>${escapeHtml(update.impact)}</p>
+        <div class="meta">
+          <span class="tag">${escapeHtml(update.date)}</span>
+          <span class="tag">${escapeHtml(update.type)}</span>
+        </div>
+      </button>
+    `).join('');
+
+    els.historyGrid.querySelectorAll('[data-select]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const update = updates.find((item) => item.slug === button.dataset.select);
+        if (update) updateSelected(update);
+      });
+    });
+  }
+
+  function renderLessons() {
+    if (!savedLessons.length) {
+      els.lessonList.innerHTML = '<div class="empty">No saved lessons yet. Pick a release, save the take, and the page will keep it locally.</div>';
+      return;
+    }
+    els.lessonList.innerHTML = savedLessons.map((lesson, index) => `
+      <article class="panel">
+        <h3>${escapeHtml(lesson.title)}</h3>
+        <p>${escapeHtml(lesson.note)}</p>
+        <div class="meta">
+          <span class="tag">${escapeHtml(lesson.date)}</span>
+          <span class="tag">${escapeHtml(lesson.type)}</span>
+          <button class="btn" data-remove="${index}" type="button">remove</button>
+        </div>
+      </article>
+    `).join('');
+    els.lessonList.querySelectorAll('[data-remove]').forEach((button) => {
+      button.addEventListener('click', () => {
+        savedLessons.splice(Number(button.dataset.remove), 1);
+        storage.set('roostAfterglowLessons', JSON.stringify(savedLessons));
+        renderLessons();
+        setStatus('lesson removed.');
+      });
+    });
+  }
+
+  function setStatus(message, tone = '') {
+    els.afterglowStatus.innerHTML = tone === 'good' ? `<span class="good">${escapeHtml(message)}</span>` : tone === 'warn' ? `<span class="warn">${escapeHtml(message)}</span>` : escapeHtml(message);
+  }
+
+  async function copyText(text, okMessage) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus(okMessage, 'good');
+    } catch {
+      setStatus('clipboard blocked in this browser.', 'warn');
+    }
+  }
+
+  async function loadData() {
+    try {
+      const [updatesRes, notesRes] = await Promise.all([
+        fetch('assets/roost-updates.json'),
+        fetch('assets/roost-notes.json')
+      ]);
+      const updatesData = await updatesRes.json();
+      const notesData = await notesRes.json();
+      updates = (updatesData.updates || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      notes = notesData.notes || [];
+
+      const options = updates.map((update) => `<option value="${escapeHtml(update.slug)}">${escapeHtml(update.date)} - ${escapeHtml(update.title)}</option>`).join('');
+      els.select.innerHTML = options;
+
+      const fallback = updates[seededIndex(String(new Date().getUTCDate()), updates.length)] || updates[0];
+      const selected = updates.find((item) => item.slug === selectedId) || fallback || updates[0];
+      if (selected) {
+        els.select.value = selected.slug;
+        updateSelected(selected);
+        setStatus('afterglow loaded.');
+      } else {
+        els.retrospectiveTitle.textContent = 'no updates yet';
+        els.retrospectiveCopy.textContent = 'The retrospective surface needs at least one release to work.';
+        setStatus('release feed unavailable.', 'warn');
+      }
+      renderLessons();
+    } catch (error) {
+      els.retrospectiveTitle.textContent = 'feed unavailable';
+      els.retrospectiveCopy.textContent = 'Could not load roost updates or notes right now.';
+      els.insightGrid.innerHTML = '<div class="empty">afterglow needs the shared data files to work.</div>';
+      els.historyGrid.innerHTML = '<div class="empty">afterglow needs the shared data files to work.</div>';
+      setStatus('failed to load data.', 'warn');
+      console.error(error);
+    }
+  }
+
+  els.select.addEventListener('change', () => {
+    const update = updates.find((item) => item.slug === els.select.value);
+    if (update) updateSelected(update);
+  });
+
+  els.refreshPick.addEventListener('click', () => {
+    if (!updates.length) return;
+    const currentIndex = updates.findIndex((item) => item.slug === selectedId);
+    const nextIndex = (currentIndex + 1 + Math.floor(Math.random() * Math.max(updates.length - 1, 1))) % updates.length;
+    const update = updates[nextIndex] || updates[0];
+    els.select.value = update.slug;
+    updateSelected(update);
+    setStatus('lens reshuffled.');
+  });
+
+  els.copyBrief.addEventListener('click', () => copyText(els.reflectionBrief.textContent || '', 'retrospective brief copied.'));
+  els.copyReflection.addEventListener('click', () => copyText(els.reflectionBrief.textContent || '', 'reflection copied.'));
+  els.saveLesson.addEventListener('click', () => {
+    const update = updates.find((item) => item.slug === selectedId);
+    if (!update) return;
+    const lesson = {
+      title: update.title,
+      note: update.impact,
+      date: update.date,
+      type: update.type
+    };
+    savedLessons = [lesson, ...savedLessons.filter((item) => item.title !== lesson.title)].slice(0, 8);
+    storage.set('roostAfterglowLessons', JSON.stringify(savedLessons));
+    renderLessons();
+    setStatus('lesson saved locally.', 'good');
+  });
+  els.clearLessons.addEventListener('click', () => {
+    savedLessons = [];
+    storage.remove('roostAfterglowLessons');
+    renderLessons();
+    setStatus('saved lessons cleared.');
+  });
+
+  loadData();
+</script>
+</body>
+</html>
