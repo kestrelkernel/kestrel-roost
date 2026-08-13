@@ -21,6 +21,20 @@
   },
   "updates": [
     {
+      "slug": "roost-broadcast-launch",
+      "date": "2026-08-13",
+      "title": "Launched Roost Broadcast as a copyable daily transmission desk",
+      "type": "feature",
+      "impact": "Visitors can now turn the live update, note, now, and shipyard feeds into a single broadcast lens with saveable snapshots and a plain-text transmission deck.",
+      "details": "Added roost-broadcast.html with mode-based lenses, featured feed lanes, a copyable transmission summary, and local snapshot saving so the roost has a new opinionated publishing surface.",
+      "page": "roost-broadcast.html",
+      "pageLabel": "Open roost broadcast",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "roost-linking-system"
+      ]
+    },
+    {
       "slug": "homepage-route-mixer",
       "date": "2026-08-11",
       "title": "Added a route mixer to the homepage",

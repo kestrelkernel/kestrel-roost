@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A broadcast theater for Kestrel's Roost" />
+  <title>Roost Broadcast · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --bg2:#101b3d;
+      --fg:#e6ecff;
+      --muted:#9fb0ff;
+      --card:#0d1530d6;
+      --line:#2c3f86;
+      --accent:#8fb0ff;
+      --good:#94ffcf;
+      --warn:#ffd479;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:transparent;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background:
+        radial-gradient(circle at 14% 0%, #254090 0%, transparent 34%),
+        radial-gradient(circle at 88% 108%, #19275a 0%, transparent 42%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1120px, 92vw);
+      margin:34px auto;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 10px 30px #00000033;
+      backdrop-filter: blur(4px);
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.3rem); }
+    h2 { font-size:1rem; color:#c4d1ff; }
+    p { color:var(--muted); line-height:1.6; }
+    .topline,
+    .site-nav,
+    .mode-row,
+    .action-row,
+    .meta-row,
+    .tag-row {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .topline { justify-content:space-between; gap:12px; align-items:flex-end; }
+    .badge {
+      border:1px solid #3f57a9;
+      border-radius:999px;
+      padding:6px 10px;
+      color:#dce4ff;
+      background:#101f51;
+      font-size:.8rem;
+    }
+    .site-nav { margin-top:10px; }
+    .nav-link,
+    .mode-btn,
+    .btn,
+    .mini-btn,
+    .tag {
+      text-decoration:none;
+      color:#e0e8ff;
+      border:1px solid #4460bd;
+      border-radius:999px;
+      padding:8px 12px;
+      background:#112057;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .nav-link:hover,
+    .nav-link:focus-visible,
+    .mode-btn:hover,
+    .mode-btn:focus-visible,
+    .btn:hover,
+    .btn:focus-visible,
+    .mini-btn:hover,
+    .mini-btn:focus-visible {
+      transform:translateY(-1px);
+      border-color:#7a97ff;
+      background:#152a6f;
+      outline:none;
+    }
+    .mode-btn.is-active {
+      background:#1c3172;
+      border-color:#a6bcff;
+      color:#f8fbff;
+    }
+    .tag {
+      border-style:dashed;
+      background:#0f1d4d;
+      cursor:default;
+      font-size:.8rem;
+      padding:5px 10px;
+    }
+    .hero-grid {
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:14px;
+      align-items:start;
+    }
+    .hero-panel,
+    .copy-panel,
+    .history-panel,
+    .feed-panel {
+      border:1px solid #3850a0;
+      border-radius:14px;
+      background:#09112be6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .hero-panel {
+      background:linear-gradient(155deg, #142a64, #09112be6 72%);
+    }
+    .hero-kicker {
+      color:#f1d9a3;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      font-size:.72rem;
+    }
+    .metric-row,
+    .card-grid {
+      display:grid;
+      gap:12px;
+    }
+    .metric-row { grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); }
+    .metric {
+      border:1px solid #3a53a6;
+      border-radius:12px;
+      background:#0c1738;
+      padding:12px;
+    }
+    .metric strong {
+      display:block;
+      color:#f6f8ff;
+      font-size:1.35rem;
+      margin-bottom:4px;
+    }
+    .metric span {
+      color:#a9bbff;
+      font-size:.77rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .card-grid {
+      grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+    }
+    .feed-card {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#0a1333;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .feed-card.is-lead {
+      border-color:#92a9ff;
+      background:linear-gradient(155deg, #17306f, #0a1333 72%);
+    }
+    .feed-card h3 { font-size:1rem; }
+    .feed-copy { color:#c1ceff; line-height:1.55; }
+    .feed-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#afc1ff;
+      font-size:.78rem;
+    }
+    .summary-box {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+    }
+    .summary-box pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dfe6ff;
+      font:inherit;
+      line-height:1.5;
+    }
+    .broadcast-rail {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .history-list {
+      margin:0;
+      padding-left:18px;
+      color:#c7d4ff;
+      display:grid;
+      gap:8px;
+    }
+    .history-list li { margin:0; }
+    .history-btn {
+      width:100%;
+      text-align:left;
+      font:inherit;
+      color:inherit;
+      background:transparent;
+      border:1px solid transparent;
+      border-radius:8px;
+      padding:5px 8px;
+      cursor:pointer;
+    }
+    .history-btn:hover {
+      background:#0f1d4d;
+      border-color:#3a4f9d;
+    }
+    .status { font-size:.82rem; color:#a9bbff; min-height:1.1em; }
+    .status.ok { color:var(--good); }
+    .status.warn { color:var(--warn); }
+    textarea {
+      width:100%;
+      min-height:150px;
+      border:1px solid #4158b0;
+      border-radius:12px;
+      background:#08102a;
+      color:#e5ecff;
+      padding:12px;
+      font:inherit;
+      line-height:1.5;
+      resize:vertical;
+    }
+    .footer-note { color:#99abef; font-size:.82rem; }
+    @media (max-width: 860px) {
+      .hero-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card">
+      <div class="topline">
+        <div>
+          <div class="hero-kicker">broadcast theater</div>
+          <h1>Roost Broadcast</h1>
+        </div>
+        <span class="badge" id="broadcastStatus">loading feeds…</span>
+      </div>
+      <p style="max-width:62rem; margin-top:10px;">This page turns the live roost data into a copyable transmission. Switch lenses to emphasize launches, planning pressure, or quieter context, then save the version that best fits today.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="command-center.html">command center</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="roost-casebook.html">casebook</a>
+      </nav>
+    </section>
+
+    <section class="hero-grid">
+      <article class="hero-panel card">
+        <div class="hero-kicker">daily transmission</div>
+        <h2 id="transmissionTitle">waiting on the broadcast feed…</h2>
+        <p id="transmissionCopy">The signal will condense into a launch, a reason, and a next move once the shared feeds arrive.</p>
+        <div class="mode-row" id="modeRow" aria-label="broadcast modes"></div>
+        <div class="action-row">
+          <button class="btn" id="reshuffleBtn" type="button">reshuffle lens</button>
+          <button class="btn" id="copyBriefBtn" type="button">copy transmission</button>
+          <button class="btn" id="saveSnapshotBtn" type="button">save snapshot</button>
+        </div>
+        <div class="metric-row" id="metricRow"></div>
+      </article>
+      <aside class="copy-panel card">
+        <h2>copy deck</h2>
+        <div class="summary-box">
+          <pre id="copyDeck">waiting for data…</pre>
+        </div>
+        <p class="status" id="copyStatus" aria-live="polite"></p>
+        <p class="footer-note">The deck is intentionally plain text so it can be pasted into chat, docs, or a quick planning note without cleanup.</p>
+      </aside>
+    </section>
+
+    <section class="card">
+      <div class="topline">
+        <div>
+          <h2>featured lanes</h2>
+          <p>Each lane points at a different kind of movement, so the broadcast can be more than a changelog with better lighting.</p>
+        </div>
+        <span class="badge" id="laneMeta">loading…</span>
+      </div>
+      <div class="broadcast-rail" id="laneRail" style="margin-top:12px;"></div>
+    </section>
+
+    <section class="card">
+      <div class="topline">
+        <div>
+          <h2>broadcast source pool</h2>
+          <p>These are the feeds the theater blends together when shaping the transmission.</p>
+        </div>
+        <div class="tag-row" id="sourceTags"></div>
+      </div>
+      <div class="card-grid" id="sourceGrid" style="margin-top:12px;"></div>
+    </section>
+
+    <section class="card">
+      <div class="topline">
+        <div>
+          <h2>saved snapshots</h2>
+          <p>Keep a few favorite transmissions around if one version captures the day better than the others.</p>
+        </div>
+        <span class="badge" id="snapshotMeta">0 saved</span>
+      </div>
+      <div class="history-panel" style="margin-top:12px;">
+        <ul class="history-list" id="snapshotList"></ul>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const modes = [
+      {
+        id: 'launch',
+        label: 'launch',
+        summary: 'Lead with the newest visible ship and the page it opens next.',
+        focus: ['updates', 'shipyard', 'now']
+      },
+      {
+        id: 'plan',
+        label: 'plan',
+        summary: 'Favor roadmap pressure, next-up work, and concrete build direction.',
+        focus: ['roadmap', 'shipyard', 'now']
+      },
+      {
+        id: 'story',
+        label: 'story',
+        summary: 'Lean on the why behind the work, not just the fresh release.',
+        focus: ['notes', 'updates', 'now']
+      },
+      {
+        id: 'quiet',
+        label: 'quiet',
+        summary: 'Dial the volume down and surface calmer context with one clear nudge.',
+        focus: ['now', 'notes', 'roadmap']
+      }
+    ];
+
+    const storeKey = 'roostBroadcastState';
+    const snapshotKey = 'roostBroadcastSnapshots';
+    const $ = (id) => document.getElementById(id);
+    const state = loadState();
+
+    const els = {
+      status: $('broadcastStatus'),
+      title: $('transmissionTitle'),
+      copy: $('transmissionCopy'),
+      modeRow: $('modeRow'),
+      metricRow: $('metricRow'),
+      copyDeck: $('copyDeck'),
+      copyStatus: $('copyStatus'),
+      laneRail: $('laneRail'),
+      laneMeta: $('laneMeta'),
+      sourceGrid: $('sourceGrid'),
+      sourceTags: $('sourceTags'),
+      snapshotList: $('snapshotList'),
+      snapshotMeta: $('snapshotMeta'),
+      reshuffleBtn: $('reshuffleBtn'),
+      copyBriefBtn: $('copyBriefBtn'),
+      saveSnapshotBtn: $('saveSnapshotBtn')
+    };
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(storeKey) || '{}');
+        return {
+          mode: modes.some((mode) => mode.id === parsed.mode) ? parsed.mode : 'launch',
+          lensIndex: Number.isInteger(parsed.lensIndex) ? parsed.lensIndex : 0
+        };
+      } catch {
+        return { mode: 'launch', lensIndex: 0 };
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(storeKey, JSON.stringify(state));
+      } catch {}
+    }
+
+    function loadSnapshots() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(snapshotKey) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveSnapshots(items) {
+      try {
+        localStorage.setItem(snapshotKey, JSON.stringify(items.slice(0, 6)));
+      } catch {}
+    }
+
+    function pickMode() {
+      const idx = modes.findIndex((mode) => mode.id === state.mode);
+      return modes[idx >= 0 ? idx : 0];
+    }
+
+    function rotateMode() {
+      state.lensIndex = (state.lensIndex + 1) % modes.length;
+      state.mode = modes[state.lensIndex].id;
+      saveState();
+      render();
+    }
+
+    function modeButtons() {
+      els.modeRow.innerHTML = '';
+      for (const mode of modes) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `mode-btn ${mode.id === state.mode ? 'is-active' : ''}`;
+        btn.textContent = mode.label;
+        btn.addEventListener('click', () => {
+          state.mode = mode.id;
+          state.lensIndex = modes.findIndex((item) => item.id === mode.id);
+          saveState();
+          render();
+        });
+        els.modeRow.appendChild(btn);
+      }
+    }
+
+    function summarizeItem(item) {
+      return item?.impact || item?.summary || item?.details || item?.headline || 'quiet signal';
+    }
+
+    function formatLane(lane) {
+      return lane.items.length
+        ? `${lane.label}: ${lane.items[0].title || lane.items[0].headline || lane.items[0].name || 'signal'}`
+        : `${lane.label}: no signal`;
+    }
+
+    function buildTransmission(data) {
+      const mode = pickMode();
+      const latestUpdate = data.updates[0] || null;
+      const latestNote = data.notes[0] || null;
+      const activeFocus = data.now.activeFocus[0] || null;
+      const roadmapLead = data.shipyard[0] || null;
+      const support = {
+        updates: latestUpdate,
+        notes: latestNote,
+        now: activeFocus,
+        roadmap: roadmapLead
+      };
+      const lanes = [
+        {
+          label: 'launch lane',
+          item: latestUpdate,
+          note: latestUpdate ? `${latestUpdate.title} points at ${latestUpdate.pageLabel || 'a supporting page'}.` : 'No launch found yet.'
+        },
+        {
+          label: 'planning lane',
+          item: roadmapLead,
+          note: roadmapLead ? `${roadmapLead.title} is the clearest near-term build thread.` : 'No roadmap thread found yet.'
+        },
+        {
+          label: 'context lane',
+          item: latestNote || activeFocus,
+          note: latestNote ? latestNote.summary : activeFocus ? activeFocus.summary : 'No context note found yet.'
+        }
+      ];
+
+      const selected = lanes.filter((lane) => mode.focus.some((key) => {
+        if (key === 'roadmap') return lane.label === 'planning lane';
+        if (key === 'notes') return lane.label === 'context lane' && Boolean(latestNote);
+        if (key === 'updates') return lane.label === 'launch lane';
+        if (key === 'now') return lane.label === 'context lane' && Boolean(activeFocus);
+        if (key === 'shipyard') return lane.label === 'planning lane';
+        return false;
+      }));
+
+      return {
+        mode,
+        latestUpdate,
+        latestNote,
+        activeFocus,
+        roadmapLead,
+        lanes,
+        selected,
+        support
+      };
+    }
+
+    function transmissionText(view) {
+      const lead = view.latestUpdate || view.roadmapLead || view.activeFocus;
+      const why = summarizeItem(lead);
+      const next = view.latestUpdate?.pageLabel || view.roadmapLead?.link || view.activeFocus?.title || 'open the next relevant surface';
+      return [
+        `${view.mode.label.toUpperCase()} TRANSMISSION`,
+        `lead: ${lead?.title || lead?.headline || lead?.name || 'the roost is still finding its lead'}`,
+        `why: ${why}`,
+        `next: ${next}`,
+        `support: ${view.latestNote?.title || view.activeFocus?.title || 'roadmap pressure and recent momentum'}`
+      ].join('\n');
+    }
+
+    function renderMetrics(view) {
+      const items = [
+        {
+          value: view.lanes.length,
+          label: 'source lanes'
+        },
+        {
+          value: view.selected.length || 1,
+          label: 'active lens matches'
+        },
+        {
+          value: dataFreshnessLabel(),
+          label: 'feed freshness'
+        }
+      ];
+      els.metricRow.innerHTML = '';
+      for (const item of items) {
+        const box = document.createElement('div');
+        box.className = 'metric';
+        box.innerHTML = `<strong>${item.value}</strong><span>${item.label}</span>`;
+        els.metricRow.appendChild(box);
+      }
+    }
+
+    function dataFreshnessLabel() {
+      const updatedAt = new Date(data.now.updatedAt + 'T00:00:00Z');
+      const diffDays = Math.max(0, Math.round((Date.now() - updatedAt.getTime()) / 86400000));
+      return diffDays === 0 ? 'today' : `${diffDays}d old`;
+    }
+
+    function renderSourceTags(view) {
+      const tags = [
+        `mode ${view.mode.label}`,
+        `${data.updates.length} updates`,
+        `${data.notes.length} notes`,
+        `${data.shipyard.length} roadmap items`
+      ];
+      els.sourceTags.innerHTML = '';
+      for (const tag of tags) {
+        const el = document.createElement('span');
+        el.className = 'tag';
+        el.textContent = tag;
+        els.sourceTags.appendChild(el);
+      }
+    }
+
+    function renderLanes(view) {
+      const laneCards = view.lanes.map((lane, index) => {
+        const item = lane.item;
+        const title = item?.title || item?.headline || item?.name || lane.label;
+        const body = lane.note || summarizeItem(item);
+        const metaBits = [
+          item?.date || data.now.updatedAt,
+          item?.status || item?.type || item?.horizon || 'signal'
+        ].filter(Boolean);
+        return `
+          <article class="feed-card ${index === 0 ? 'is-lead' : ''}">
+            <h3>${title}</h3>
+            <p class="feed-copy">${body}</p>
+            <div class="feed-meta">${metaBits.map((bit) => `<span>${bit}</span>`).join('')}</div>
+            ${item?.link ? `<a class="mini-btn" href="${item.link}">open source page</a>` : ''}
+          </article>`;
+      }).join('');
+      els.laneRail.innerHTML = laneCards || '<div class="feed-card">no lanes yet.</div>';
+      els.laneMeta.textContent = `${view.mode.label} lens`;
+    }
+
+    function renderSourceGrid(view) {
+      const pool = [
+        {
+          title: view.latestUpdate?.title || 'latest ship',
+          body: view.latestUpdate?.impact || 'the freshest release pressure on the board.',
+          meta: [view.latestUpdate?.type || 'feature', view.latestUpdate?.date || 'unknown'],
+          link: view.latestUpdate?.page
+        },
+        {
+          title: view.latestNote?.title || 'latest note',
+          body: view.latestNote?.summary || 'the why behind the current work.',
+          meta: view.latestNote?.tags || [],
+          link: view.latestNote?.relatedPage
+        },
+        {
+          title: view.activeFocus?.title || 'active focus',
+          body: view.activeFocus?.summary || 'current near-term priority.',
+          meta: [view.activeFocus?.horizon || 'now', `${view.activeFocus?.progress ?? 0}%`],
+          link: 'now.html'
+        },
+        {
+          title: view.roadmapLead?.title || 'roadmap item',
+          body: view.roadmapLead?.summary || 'next visible build thread.',
+          meta: [view.roadmapLead?.status || 'planned', view.roadmapLead?.horizon || 'next'],
+          link: view.roadmapLead?.link
+        }
+      ];
+      els.sourceGrid.innerHTML = pool.map((item, index) => `
+        <article class="feed-card ${index === 0 ? 'is-lead' : ''}">
+          <h3>${item.title}</h3>
+          <p class="feed-copy">${item.body}</p>
+          <div class="feed-meta">${item.meta.filter(Boolean).map((bit) => `<span>${bit}</span>`).join('')}</div>
+          ${item.link ? `<a class="mini-btn" href="${item.link}">open</a>` : ''}
+        </article>
+      `).join('');
+    }
+
+    function renderCopyDeck(view) {
+      els.copyDeck.textContent = transmissionText(view);
+      els.title.textContent = view.latestUpdate?.title || 'the broadcast is still assembling';
+      els.copy.textContent = view.mode.summary;
+      els.status.textContent = view.latestUpdate
+        ? `lead signal: ${view.latestUpdate.title}`
+        : 'No release feed yet, so the theater is leaning on planning context.';
+    }
+
+    function renderSnapshotList(view) {
+      const snapshots = loadSnapshots();
+      els.snapshotMeta.textContent = `${snapshots.length} saved`;
+      if (snapshots.length === 0) {
+        els.snapshotList.innerHTML = '<li>no saved transmissions yet.</li>';
+        return;
+      }
+      els.snapshotList.innerHTML = '';
+      snapshots.forEach((snap, index) => {
+        const item = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'history-btn';
+        btn.innerHTML = `<strong>${snap.mode}</strong> · ${snap.title}<div class="footer-note">${snap.copy}</div>`;
+        btn.addEventListener('click', async () => {
+          state.mode = snap.mode;
+          state.lensIndex = modes.findIndex((mode) => mode.id === snap.mode);
+          saveState();
+          if (snap.text) {
+            els.copyDeck.textContent = snap.text;
+          }
+          await copyText(snap.text || transmissionText(view));
+          els.copyStatus.textContent = 'restored snapshot and copied it.';
+        });
+        item.appendChild(btn);
+        els.snapshotList.appendChild(item);
+      });
+    }
+
+    async function copyText(text) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          els.copyStatus.textContent = 'transmission copied ✓';
+          els.copyStatus.className = 'status ok';
+          return true;
+        }
+      } catch {}
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      els.copyStatus.textContent = 'transmission copied via fallback ✓';
+      els.copyStatus.className = 'status ok';
+      return true;
+    }
+
+    async function loadData() {
+      const [updatesRes, notesRes, nowRes, shipyardRes] = await Promise.all([
+        fetch('assets/roost-updates.json'),
+        fetch('assets/roost-notes.json'),
+        fetch('assets/roost-now.json'),
+        fetch('assets/roost-shipyard.json')
+      ]);
+      const updatesData = await updatesRes.json();
+      const notesData = await notesRes.json();
+      const nowData = await nowRes.json();
+      const shipyardData = await shipyardRes.json();
+      return {
+        updates: [...(updatesData.updates || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
+        notes: [...(notesData.notes || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))),
+        now: nowData,
+        shipyard: [...shipyardData].sort((a, b) => (b.impact - b.effort) - (a.impact - a.effort))
+      };
+    }
+
+    let data = null;
+
+    async function render() {
+      if (!data) return;
+      const view = buildTransmission(data);
+      modeButtons();
+      renderMetrics(view);
+      renderSourceTags(view);
+      renderLanes(view);
+      renderSourceGrid(view);
+      renderCopyDeck(view);
+      renderSnapshotList(view);
+      saveState();
+      els.status.textContent = `broadcasting in ${view.mode.label} mode`;
+      els.status.className = 'badge';
+    }
+
+    els.reshuffleBtn.addEventListener('click', () => rotateMode());
+    els.copyBriefBtn.addEventListener('click', () => copyText(els.copyDeck.textContent || ''));
+    els.saveSnapshotBtn.addEventListener('click', () => {
+      const snapshots = loadSnapshots();
+      const view = buildTransmission(data);
+      snapshots.unshift({
+        mode: view.mode.label,
+        title: view.latestUpdate?.title || view.roadmapLead?.title || view.activeFocus?.title || 'broadcast snapshot',
+        copy: view.mode.summary,
+        text: transmissionText(view)
+      });
+      saveSnapshots(snapshots);
+      renderSnapshotList(view);
+      els.copyStatus.textContent = 'snapshot saved.';
+      els.copyStatus.className = 'status ok';
+    });
+
+    loadData()
+      .then((loaded) => {
+        data = loaded;
+        els.status.textContent = `feeds loaded · ${loaded.updates.length} updates`;
+        render();
+      })
+      .catch(() => {
+        els.status.textContent = 'broadcast feeds unavailable';
+        els.status.className = 'badge';
+        els.title.textContent = 'feed unavailable';
+        els.copy.textContent = 'The theater could not load the shared JSON sources.';
+        els.copyDeck.textContent = 'Broadcast unavailable right now.';
+        els.laneRail.innerHTML = '<div class="feed-card">feed unavailable.</div>';
+        els.sourceGrid.innerHTML = '<div class="feed-card">feed unavailable.</div>';
+        els.snapshotList.innerHTML = '<li>snapshots will appear here once the feed loads.</li>';
+      });
+  </script>
+</body>
+</html>
