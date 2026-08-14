@@ -615,6 +615,100 @@
       font:inherit;
       line-height:1.45;
     }
+    .launch-window {
+      border:1px solid #4e6fcf;
+      background:
+        radial-gradient(circle at top right, #a8beff20 0%, transparent 30%),
+        linear-gradient(155deg, #0e183a, #081122 56%, #132964);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .launch-window::before {
+      content:"";
+      position:absolute;
+      inset:auto auto -120px -100px;
+      width:300px;
+      height:300px;
+      border-radius:999px;
+      background:radial-gradient(circle, #8eaaff22 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .launch-window-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .launch-window-head h2 { margin:0; }
+    .launch-window-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:44rem;
+    }
+    .launch-window-grid {
+      display:grid;
+      grid-template-columns: 1.15fr .95fr;
+      gap:12px;
+      z-index:1;
+    }
+    .launch-window-panel {
+      border:1px solid #3950a0;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .launch-window-panel.is-primary {
+      background:linear-gradient(155deg, #132b66, #08112de6 68%);
+      border-color:#7b95e7;
+    }
+    .launch-window-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .launch-window-copy {
+      margin:0;
+      color:#c0ceff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .launch-window-list {
+      margin:0;
+      padding-left:18px;
+      color:#c5d2ff;
+    }
+    .launch-window-list li { margin:6px 0; }
+    .launch-window-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#b9caff;
+      font-size:.8rem;
+    }
+    .launch-window-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .launch-window-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .seasonal-desk::before {
       content:"";
       position:absolute;
@@ -2455,6 +2549,33 @@
       </div>
     </section>
 
+    <section class="card launch-window" id="launchWindowBoard" aria-live="polite">
+      <div class="launch-window-head">
+        <h2>launch window desk</h2>
+        <p class="launch-window-note">the homepage now reads the UTC clock and turns the day into a practical session shape, so the next visit starts with a better-sized job.</p>
+      </div>
+      <div class="launch-window-grid">
+        <article class="launch-window-panel is-primary">
+          <div class="launch-window-meta" id="launchWindowMeta"></div>
+          <h3 id="launchWindowTitle">loading launch window…</h3>
+          <p class="launch-window-copy" id="launchWindowCopyText">waiting for the current hour to resolve into a recommendation.</p>
+          <div class="tag-row" id="launchWindowTags"></div>
+          <div class="link-row" id="launchWindowLinks"></div>
+        </article>
+        <article class="launch-window-panel">
+          <h3>today’s shape</h3>
+          <ul class="launch-window-list" id="launchWindowList"></ul>
+        </article>
+      </div>
+      <div class="launch-window-summary">
+        <div class="links">
+          <button class="btn" id="launchWindowShuffle">reshuffle window</button>
+          <button class="btn" id="launchWindowCopyBtn">copy launch brief</button>
+        </div>
+        <pre id="launchWindowBrief">loading launch window brief…</pre>
+      </div>
+    </section>
+
     <section class="card seasonal-desk" id="seasonalDesk" aria-live="polite">
       <div class="seasonal-head">
         <h2>seasonal weather desk</h2>
@@ -2851,6 +2972,16 @@
     const routeMixerStops = document.getElementById('routeMixerStops');
     const routeMixerSummary = document.getElementById('routeMixerSummary');
     const seasonalDesk = document.getElementById('seasonalDesk');
+    const launchWindowBoard = document.getElementById('launchWindowBoard');
+    const launchWindowMeta = document.getElementById('launchWindowMeta');
+    const launchWindowTitle = document.getElementById('launchWindowTitle');
+    const launchWindowCopyText = document.getElementById('launchWindowCopyText');
+    const launchWindowTags = document.getElementById('launchWindowTags');
+    const launchWindowLinks = document.getElementById('launchWindowLinks');
+    const launchWindowList = document.getElementById('launchWindowList');
+    const launchWindowBrief = document.getElementById('launchWindowBrief');
+    const launchWindowShuffleBtn = document.getElementById('launchWindowShuffle');
+    const launchWindowCopyBtn = document.getElementById('launchWindowCopyBtn');
     const seasonalGrid = document.getElementById('seasonalGrid');
     const seasonalBrief = document.getElementById('seasonalBrief');
     const seasonalModes = document.getElementById('seasonalModes');
@@ -3780,6 +3911,134 @@
       if (mode === 'build' && ['tooling', 'planning', 'roadmap'].some((tag) => page.tags.includes(tag))) score += 4;
       if (routeMixerPinsState.includes(page.href)) score += 3;
       return score;
+    };
+
+    const launchWindows = [
+      {
+        id: 'dawn',
+        label: 'dawn launch',
+        start: 5,
+        end: 10,
+        tone: 'quiet',
+        title: 'Clear the runway with a small, visible ship.',
+        copy: 'The early window is best for low-friction wins: polish a page, tighten a route, or land a concise content update before the day gets noisy.',
+        focus: 'small visible change',
+        pages: ['roost-workbench.html', 'roost-lens.html', 'roost-handoff.html'],
+        tags: ['polish', 'shipping', 'focus']
+      },
+      {
+        id: 'midday',
+        label: 'midday lift',
+        start: 10,
+        end: 17,
+        tone: 'build',
+        title: 'Use the bright hours for a proper build move.',
+        copy: 'This window favors the heaviest lift of the day: a new section, a stronger interaction, or a structural improvement that changes how the roost feels to use.',
+        focus: 'feature work',
+        pages: ['flight-deck.html', 'mission-plotter.html', 'roost-signal-map.html'],
+        tags: ['build', 'tools', 'momentum']
+      },
+      {
+        id: 'evening',
+        label: 'evening drift',
+        start: 17,
+        end: 22,
+        tone: 'reflect',
+        title: 'Close with narrative, tidying, or a gentle replay.',
+        copy: 'The later window is best for story work, notes, and cleanup that sharpens the next day instead of asking for full creative firepower.',
+        focus: 'reflection',
+        pages: ['changelog.html', 'roost-afterglow.html', 'captains-log.html'],
+        tags: ['review', 'notes', 'archive']
+      },
+      {
+        id: 'night',
+        label: 'night watch',
+        start: 22,
+        end: 5,
+        tone: 'quiet',
+        title: 'Keep it light and set up tomorrow’s first move.',
+        copy: 'The overnight window should stay calm: sketch the next route, pin a useful page, or leave a brief that makes the next session easier to start.',
+        focus: 'prep',
+        pages: ['index.html', 'roost-route-mixer.html', 'roost-briefing.html'],
+        tags: ['setup', 'calm', 'handoff']
+      }
+    ];
+
+    const getLaunchWindow = (date = new Date()) => {
+      const hour = date.getUTCHours();
+      return launchWindows.find((window) => {
+        if (window.start < window.end) return hour >= window.start && hour < window.end;
+        return hour >= window.start || hour < window.end;
+      }) || launchWindows[0];
+    };
+
+    let launchWindowSeed = Number.parseInt(storage.get('roostLaunchWindowSeed') ?? '', 10);
+    if (!Number.isFinite(launchWindowSeed)) {
+      launchWindowSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+      storage.set('roostLaunchWindowSeed', String(launchWindowSeed));
+    }
+
+    const buildLaunchWindowRoute = (window) => {
+      const pool = roostPages.filter((page) => window.pages.includes(page.href));
+      const seedRng = seededRandom(launchWindowSeed + window.start);
+      return pool
+        .map((page) => ({
+          page,
+          score: scorePathfinderCandidate(page, {
+            intent: window.tone === 'reflect' ? 'reflect' : window.tone === 'build' ? 'build' : 'learn',
+            energy: window.tone === 'quiet' ? 'low' : window.tone === 'build' ? 'high' : 'medium',
+            time: 20,
+            note: window.copy
+          }) + Math.floor(seedRng() * 3)
+        }))
+        .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title))
+        .slice(0, 3)
+        .map((entry) => entry.page);
+    };
+
+    const renderLaunchWindow = () => {
+      if (!launchWindowBoard || !launchWindowBrief) return;
+      const window = getLaunchWindow();
+      const route = buildLaunchWindowRoute(window);
+      const hour = new Date().getUTCHours();
+
+      if (launchWindowMeta) {
+        launchWindowMeta.innerHTML = `<span class="tag">${window.label}</span><span>UTC ${String(hour).padStart(2, '0')}:00</span><span>${window.focus}</span>`;
+      }
+      if (launchWindowTitle) launchWindowTitle.textContent = window.title;
+      if (launchWindowCopyText) launchWindowCopyText.textContent = window.copy;
+      if (launchWindowTags) {
+        launchWindowTags.innerHTML = window.tags.map((tag) => `<span class="tag">${tag}</span>`).join('');
+      }
+      if (launchWindowLinks) {
+        launchWindowLinks.innerHTML = route.map((page) => `<a class="btn" href="${page.href}">open ${page.title}</a>`).join('');
+      }
+      if (launchWindowList) {
+        launchWindowList.innerHTML = [
+          `best for: ${window.focus}`,
+          `tone: ${window.tone}`,
+          `first stop: ${route[0]?.title || 'none'}`,
+          `supporting stop: ${route[1]?.title || 'none'}`,
+          `handoff stop: ${route[2]?.title || 'none'}`
+        ].map((line) => `<li>${line}</li>`).join('');
+      }
+
+      launchWindowBrief.textContent = [
+        `launch window / ${window.label}`,
+        '',
+        `hour: UTC ${String(hour).padStart(2, '0')}:00`,
+        `recommended shape: ${window.title}`,
+        `why now: ${window.copy}`,
+        '',
+        `route: ${route.map((page) => page.title).join(' -> ') || 'none'}`,
+        'why it matters: the homepage can now adapt the next move to the hour of day instead of always offering the same opening.'
+      ].join('\n');
+    };
+
+    const reshuffleLaunchWindow = () => {
+      launchWindowSeed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostLaunchWindowSeed', String(launchWindowSeed));
+      renderLaunchWindow();
     };
 
     const buildRouteMixer = () => {
@@ -5770,6 +6029,22 @@
       setActionStatus('route mixer pins updated ✓', 'ok');
     });
 
+    launchWindowShuffleBtn?.addEventListener('click', () => {
+      reshuffleLaunchWindow();
+      setActionStatus('launch window reshuffled ✓', 'ok');
+    });
+
+    launchWindowCopyBtn?.addEventListener('click', async () => {
+      const text = launchWindowBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('launch brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for launch brief.', 'warn');
+      }
+    });
+
     rerollRouteMixer?.addEventListener('click', () => {
       reshuffleRouteMixer();
       setActionStatus('route mixer reshuffled ✓', 'ok');
@@ -5821,6 +6096,7 @@
     renderRoutebook();
     renderRouteRelay();
     renderRouteMixer();
+    renderLaunchWindow();
     loadNowTimeline();
     loadMissionBoard();
     renderSeasonalDesk();

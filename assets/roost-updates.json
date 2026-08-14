@@ -21,6 +21,20 @@
   },
   "updates": [
     {
+      "slug": "launch-window-desk",
+      "date": "2026-08-14",
+      "title": "Added a UTC-aware launch window desk to the homepage",
+      "type": "feature",
+      "impact": "Visitors can now see whether the current hour favors a small ship, a real build, or a lighter wrap-up, with a copyable brief and a three-stop supporting route.",
+      "details": "Added a launch-window section to index.html that reads the UTC clock, recommends a session shape, highlights matching pages, and exposes reshuffle and copy controls so the homepage can open with a more human-sized plan.",
+      "page": "index.html",
+      "pageLabel": "Open the homepage",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "now-board-principles"
+      ]
+    },
+    {
       "slug": "roost-broadcast-launch",
       "date": "2026-08-13",
       "title": "Launched Roost Broadcast as a copyable daily transmission desk",
