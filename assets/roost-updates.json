@@ -21,6 +21,20 @@
   },
   "updates": [
     {
+      "slug": "now-board-share-cards",
+      "date": "2026-08-15",
+      "title": "Added share cards to the Now board",
+      "type": "feature",
+      "impact": "Visitors can now copy the live now board as a social-safe blurb, a markdown brief, or a compact launch note without rebuilding the summary by hand.",
+      "details": "Upgraded now.html with a dedicated share-card panel, clipboard actions, and a focus-first refresh control so the now board can double as a quick publishing surface.",
+      "page": "now.html",
+      "pageLabel": "Open the now board",
+      "relatedNotes": [
+        "now-board-principles",
+        "captains-log-workflow"
+      ]
+    },
+    {
       "slug": "launch-window-desk",
       "date": "2026-08-14",
       "title": "Added a UTC-aware launch window desk to the homepage",

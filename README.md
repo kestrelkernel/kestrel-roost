@@ -61,6 +61,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Now board share cards:** added a new `now.html` share-card panel with social-safe, markdown, and launch-note copies plus clipboard actions so the live status page can double as a quick publishing surface
 - **Homepage route mixer:** added a new `index.html` route mixer that ranks build/story/play/quiet visits into a copyable three-stop handoff with pinned favorites and reshuffle controls so the homepage can recommend a clearer next tour
 - **Roost Broadcast launch:** added `roost-broadcast.html`, a broadcast theater that turns the shared update, note, now, and shipyard feeds into a copyable transmission with saveable snapshots and opinionated lenses
 - **Homepage route beacon:** added a new `index.html` route beacon that distills the latest ship, pressure signals, and supporting pages into one copyable daily opener with a reshuffle control so the homepage can lead with a concrete next move

@@ -113,6 +113,61 @@
     ul { margin:0; padding-left:18px; color:var(--muted); }
     li { margin:6px 0; }
     .tiny { font-size:.8rem; color:#9fb0ff; }
+    .share-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+    }
+    .share-card {
+      border:1px solid #304285;
+      border-radius:12px;
+      background:linear-gradient(180deg, #0a1333, #09102a);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .share-card h3 {
+      margin:0;
+      font-size:.98rem;
+    }
+    .share-copy {
+      border:1px solid #2a3f86;
+      border-radius:10px;
+      background:#08102a;
+      color:#dce5ff;
+      padding:12px;
+      font:inherit;
+      line-height:1.5;
+      min-height:132px;
+      white-space:pre-wrap;
+    }
+    .share-actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .share-actions button {
+      border:1px solid #4660be;
+      background:#112057;
+      color:#dbe4ff;
+      border-radius:999px;
+      padding:7px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .share-actions button:hover,
+    .share-actions button:focus-visible {
+      transform:translateY(-1px);
+      border-color:#6f8dff;
+      background:#132668;
+      outline:none;
+    }
+    .share-status {
+      min-height:1.1em;
+      color:#b9c8ff;
+      font-size:.8rem;
+    }
   </style>
 </head>
 <body>
@@ -149,6 +204,14 @@
         <a class="mini-link" href="signal-board.html">open signal board</a>
       </div>
     </section>
+
+    <section class="card">
+      <h2>share cards</h2>
+      <p class="tiny">Turn the now board into a social-safe blurb, a markdown brief, or a compact launch note without rebuilding the summary by hand.</p>
+      <div class="share-grid" id="shareGrid" aria-live="polite">
+        <div class="share-card">loading share cards…</div>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -157,6 +220,7 @@
     const winsList = document.getElementById('winsList');
     const nextList = document.getElementById('nextList');
     const updatedAt = document.getElementById('updatedAt');
+    const shareGrid = document.getElementById('shareGrid');
 
     const setList = (el, items) => {
       el.innerHTML = '';
@@ -169,6 +233,46 @@
         li.textContent = text;
         el.appendChild(li);
       }
+    };
+
+    const safeJoin = (items, fallback) => {
+      const list = Array.isArray(items) ? items.filter(Boolean) : [];
+      return list.length ? list.join(' • ') : fallback;
+    };
+
+    const copyText = async (text, statusEl) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        statusEl.textContent = 'copied to clipboard.';
+      } catch {
+        statusEl.textContent = 'copy failed in this browser.';
+      }
+    };
+
+    const buildShareCards = (data) => {
+      const focus = Array.isArray(data.activeFocus) ? data.activeFocus.slice(0, 3) : [];
+      const recentWins = safeJoin(data.recentWins, 'No recent wins listed yet.');
+      const nextUp = safeJoin(data.nextUp, 'No next steps listed yet.');
+      const headlineText = data.headline || 'Ship meaningful things regularly.';
+      const updatedText = data.updatedAt || 'unknown';
+
+      return [
+        {
+          title: 'social-safe card',
+          label: 'short, readable, and safe to paste anywhere',
+          body: `Kestrel's Roost now board\n${headlineText}\n\nActive focus: ${focus.map((item) => item.title || 'untitled focus').join(' | ') || 'none'}\nRecent wins: ${recentWins}\nNext up: ${nextUp}\nUpdated: ${updatedText}`
+        },
+        {
+          title: 'markdown brief',
+          label: 'copy into notes, Discord, or release drafts',
+          body: `# Now Board\n\n**Headline:** ${headlineText}\n\n**Active focus**\n${focus.map((item) => `- ${item.title || 'untitled focus'} (${item.progress ?? 0}%)`).join('\n') || '- none'}\n\n**Recent wins**\n${Array.isArray(data.recentWins) && data.recentWins.length ? data.recentWins.map((item) => `- ${item}`).join('\n') : '- none'}\n\n**Next up**\n${Array.isArray(data.nextUp) && data.nextUp.length ? data.nextUp.map((item) => `- ${item}`).join('\n') : '- none'}`
+        },
+        {
+          title: 'launch note',
+          label: 'compact planning brief for the next session',
+          body: `Focus on ${focus.map((item) => item.title || 'an untitled focus').join(', ') || 'the current now board'}.\nKeep momentum visible, pull one ship forward, and use ${nextUp.split(' • ')[0] || 'the next step'} as the next move.\nRecent wins: ${recentWins}.`
+        }
+      ];
     };
 
     const render = async () => {
@@ -229,11 +333,57 @@
 
         setList(winsList, data.recentWins);
         setList(nextList, data.nextUp);
+
+        const cards = buildShareCards(data);
+        shareGrid.innerHTML = '';
+        cards.forEach((cardData, index) => {
+          const card = document.createElement('article');
+          card.className = 'share-card';
+
+          const title = document.createElement('h3');
+          title.textContent = cardData.title;
+
+          const label = document.createElement('p');
+          label.className = 'tiny';
+          label.textContent = cardData.label;
+
+          const body = document.createElement('div');
+          body.className = 'share-copy';
+          body.textContent = cardData.body;
+
+          const actions = document.createElement('div');
+          actions.className = 'share-actions';
+
+          const status = document.createElement('div');
+          status.className = 'share-status';
+          status.textContent = index === 0 ? 'ready to copy.' : '';
+
+          const copyButton = document.createElement('button');
+          copyButton.type = 'button';
+          copyButton.textContent = 'copy card';
+          copyButton.addEventListener('click', () => copyText(cardData.body, status));
+
+          const focusButton = document.createElement('button');
+          focusButton.type = 'button';
+          focusButton.textContent = 'focus first';
+          focusButton.addEventListener('click', () => {
+            const firstFocus = Array.isArray(data.activeFocus) && data.activeFocus[0]
+              ? data.activeFocus[0].title || 'untitled focus'
+              : 'the current now board';
+            body.textContent = `${cardData.body}\n\nPriority: ${firstFocus}`;
+            status.textContent = 'refreshed with the first focus item.';
+          });
+
+          actions.append(copyButton, focusButton);
+          card.append(title, label, body, actions, status);
+          shareGrid.appendChild(card);
+        });
       } catch {
         headline.textContent = 'now board unavailable right now.';
         focusBoard.innerHTML = '<div class="focus-card">could not load focus data.</div>';
         winsList.innerHTML = '<li>could not load wins.</li>';
         nextList.innerHTML = '<li>could not load next steps.</li>';
+        shareGrid.innerHTML = '<div class="share-card">could not load share cards.</div>';
       }
     };
 
