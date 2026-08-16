@@ -34,6 +34,7 @@ python3 -m http.server 8080
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
+- `roost-field-guide.html` — curated tour builder that groups the site into page families and copyable three-stop sessions
 - `roost-lab.html` — interactive style prototyping studio with live token controls, contrast checks, and CSS export
 - `roost-constellations.html` — ritual selector with URL-synced filters, bookmarkable state, and a focused detail panel
 - `roost-radio.html` — ambient playlist surface with mood-based listening and copyable setlists
@@ -60,6 +61,8 @@ python3 -m http.server 8080
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
+
+- **Roost Field Guide launch:** added `roost-field-guide.html`, a curated discovery surface that groups the site into page families and generates copyable three-stop tours so the roost has a calmer, more opinionated way to choose the next visit
 
 - **Now board share cards:** added a new `now.html` share-card panel with social-safe, markdown, and launch-note copies plus clipboard actions so the live status page can double as a quick publishing surface
 - **Homepage route mixer:** added a new `index.html` route mixer that ranks build/story/play/quiet visits into a copyable three-stop handoff with pinned favorites and reshuffle controls so the homepage can recommend a clearer next tour

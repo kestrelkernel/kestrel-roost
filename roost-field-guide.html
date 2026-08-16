@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Field Guide: curated tours and page families for Kestrel's Roost." />
+  <title>Roost Field Guide - Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#0a0f19;
+      --bg2:#12213a;
+      --panel:#0c1629de;
+      --line:#355382;
+      --line2:#7ea5ff;
+      --fg:#edf2ff;
+      --muted:#9eb0da;
+      --accent:#98c2ff;
+      --accent2:#87f0c9;
+      --warm:#ffd88a;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 18% 6%, #284879 0%, transparent 27%),
+        radial-gradient(circle at 82% 0%, #274f5f 0%, transparent 24%),
+        radial-gradient(circle at 72% 94%, #1f3262 0%, transparent 23%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    main {
+      width:min(1180px, 94vw);
+      margin:28px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .panel, .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+      box-shadow:0 16px 40px #00000035;
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:22px;
+      display:grid;
+      gap:14px;
+      overflow:hidden;
+      position:relative;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -80px -100px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #98c2ff1f 0%, transparent 68%);
+      pointer-events:none;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.35rem); line-height:1; }
+    h2 { font-size:1.03rem; color:#dfe8ff; }
+    h3 { font-size:.98rem; color:#f8faff; }
+    p { color:var(--muted); line-height:1.55; }
+    .lede { max-width:78ch; }
+    .site-nav, .toolbar, .meta-row, .tag-row, .link-row { display:flex; flex-wrap:wrap; gap:8px; }
+    .nav-link, .btn, .chip, .mode {
+      font:inherit;
+      color:#e5edff;
+      border:1px solid #4766b0;
+      border-radius:999px;
+      padding:7px 12px;
+      background:#10234f;
+      text-decoration:none;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn { border-radius:10px; }
+    .nav-link:hover, .btn:hover, .chip:hover, .mode:hover,
+    .nav-link:focus-visible, .btn:focus-visible, .chip:focus-visible, .mode:focus-visible {
+      outline:none;
+      transform:translateY(-1px);
+      border-color:#8aaaff;
+      background:#14306a;
+    }
+    .mode.is-active {
+      background:linear-gradient(180deg, #234d9e, #15346a);
+      border-color:#a3bfff;
+      color:#f8fbff;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns:minmax(320px, .94fr) minmax(0, 1.06fr);
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 960px) {
+      .layout { grid-template-columns:1fr; }
+    }
+    .panel, .card { padding:16px; display:grid; gap:12px; }
+    .panel {
+      background:linear-gradient(180deg, #0d1831, #09111f);
+    }
+    .summary {
+      display:grid;
+      gap:8px;
+      padding:14px;
+      border-radius:14px;
+      border:1px solid #3d5c96;
+      background:#08101f;
+    }
+    .summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      font:inherit;
+      color:#f2f6ff;
+      line-height:1.5;
+    }
+    .brief-metrics {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+      gap:10px;
+    }
+    .metric {
+      border:1px solid #36527f;
+      border-radius:14px;
+      background:#0a1326;
+      padding:12px;
+      display:grid;
+      gap:4px;
+    }
+    .metric strong { font-size:1.25rem; color:#f8faff; }
+    .metric span { color:var(--muted); line-height:1.45; }
+    .controls {
+      display:grid;
+      gap:10px;
+    }
+    .control-grid {
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:10px;
+    }
+    .control-grid select, .control-grid input, textarea {
+      width:100%;
+      font:inherit;
+      background:#0b152a;
+      color:var(--fg);
+      border:1px solid #406095;
+      border-radius:10px;
+      padding:10px 12px;
+    }
+    textarea {
+      min-height:96px;
+      resize:vertical;
+    }
+    .control-grid select:focus-visible, .control-grid input:focus-visible, textarea:focus-visible {
+      outline:2px solid #8aaeff;
+      outline-offset:2px;
+      border-color:#8aaeff;
+    }
+    .tour-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+      gap:12px;
+    }
+    .tour {
+      border:1px solid #395688;
+      border-radius:16px;
+      background:#091121;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .tour.is-lead {
+      background:linear-gradient(160deg, #173462, #091121 72%);
+      border-color:#95b4ff;
+    }
+    .tour-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .tour-copy {
+      color:#dbe5ff;
+      line-height:1.5;
+      margin:0;
+    }
+    .tour-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#bfd0ff;
+      font-size:.8rem;
+    }
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid #4b69ad;
+      border-radius:999px;
+      padding:4px 9px;
+      background:#13224a;
+      color:#dbe7ff;
+      font-size:.75rem;
+    }
+    .pill.good { border-color:#4a8e79; background:#123731; color:#d8fff0; }
+    .pill.warm { border-color:#8b7337; background:#3f3110; color:#fff0c7; }
+    .family-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .family {
+      border:1px solid #37527d;
+      border-radius:14px;
+      background:#08111f;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .family ul { margin:0; padding-left:18px; color:var(--muted); }
+    .family li { margin:4px 0; }
+    .pin-area {
+      display:grid;
+      gap:10px;
+    }
+    .note {
+      color:#9eb0da;
+      font-size:.82rem;
+    }
+    .empty {
+      border:1px dashed #3d5b8a;
+      border-radius:14px;
+      padding:14px;
+      background:#08111f;
+      color:var(--muted);
+    }
+    .gallery {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+      gap:10px;
+    }
+    .gallery-card {
+      border:1px solid #325082;
+      border-radius:14px;
+      background:#0a1322;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .gallery-card strong { color:#f8fbff; }
+    .gallery-card p { font-size:.92rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div>
+        <h1>roost field guide</h1>
+        <p class="lede">A curated tour builder for the roost. Search finds things fast, but this page tells you where to start, which pages belong together, and how to turn one visit into a clean three-stop session.</p>
+        <nav class="site-nav" aria-label="Site sections" style="margin-top:10px;">
+          <a class="nav-link" href="index.html">home</a>
+          <a class="nav-link" href="roost-launchpad.html">launchpad</a>
+          <a class="nav-link" href="roost-searchlight.html">searchlight</a>
+          <a class="nav-link" href="roost-workbench.html">workbench</a>
+          <a class="nav-link" href="roost-atlas.html">atlas</a>
+          <a class="nav-link" href="roost-field-guide.html">field guide</a>
+        </nav>
+      </div>
+      <div class="brief-metrics">
+        <div class="metric">
+          <strong id="tourCount">0</strong>
+          <span>curated tours ready to launch</span>
+        </div>
+        <div class="metric">
+          <strong id="familyCount">0</strong>
+          <span>page families mapped for repeat visits</span>
+        </div>
+        <div class="metric">
+          <strong id="guideModeLabel">build</strong>
+          <span>current guide mode</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel" aria-live="polite">
+        <div class="controls">
+          <div class="toolbar" id="modeButtons">
+            <button class="mode is-active" type="button" data-mode="build">build</button>
+            <button class="mode" type="button" data-mode="learn">learn</button>
+            <button class="mode" type="button" data-mode="play">play</button>
+            <button class="mode" type="button" data-mode="reflect">reflect</button>
+          </div>
+          <div class="control-grid">
+            <select id="energySelect" aria-label="Energy">
+              <option value="low">low energy</option>
+              <option value="medium" selected>medium energy</option>
+              <option value="high">high energy</option>
+            </select>
+            <select id="timeSelect" aria-label="Time">
+              <option value="10">10 min</option>
+              <option value="20" selected>20 min</option>
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+            </select>
+            <select id="goalSelect" aria-label="Goal">
+              <option value="tour">guided tour</option>
+              <option value="jump">jump in fast</option>
+              <option value="deep">deep session</option>
+            </select>
+          </div>
+          <input id="guideSeed" type="text" placeholder="session note or theme seed" aria-label="Session note or theme seed" />
+        </div>
+
+        <div class="summary">
+          <div class="meta-row" id="guideTags"></div>
+          <pre id="guideBrief">loading guide...</pre>
+          <div class="link-row">
+            <button class="btn" id="reshuffleGuide">reshuffle guide</button>
+            <button class="btn" id="copyGuide">copy brief</button>
+            <button class="btn" id="saveTour">save tour note</button>
+          </div>
+        </div>
+
+        <div>
+          <h2>guided tours</h2>
+          <p class="note">The lead card is the strongest next stop. The others are adjacent pages that keep the visit coherent.</p>
+        </div>
+        <div class="tour-grid" id="tourGrid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="pin-area">
+          <div class="meta-row">
+            <span class="pill good">local memory</span>
+            <span class="pill">session pinned</span>
+          </div>
+          <h2>saved tour notes</h2>
+          <p class="note">The field guide keeps a tiny local notebook so recurring routes can be reopened instead of rediscovered from scratch.</p>
+          <div id="savedNotes" class="gallery"></div>
+        </div>
+
+        <div>
+          <h2>page families</h2>
+          <p class="note">These clusters are the site’s actual neighborhoods. If the route feels noisy, pick a family and stay inside it for one clean loop.</p>
+        </div>
+        <div class="family-grid" id="familyGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const pages = [
+      { title: 'home', href: 'index.html', family: 'home', mode: 'build', energy: 'medium', minTime: 10, why: 'the launch point for every other surface', tags: ['launch', 'hub', 'daily'] },
+      { title: 'launchpad', href: 'roost-launchpad.html', family: 'build', mode: 'build', energy: 'medium', minTime: 20, why: 'tracks roadmap momentum and shipped state', tags: ['roadmap', 'planning', 'shipping'] },
+      { title: 'workbench', href: 'roost-workbench.html', family: 'build', mode: 'build', energy: 'medium', minTime: 20, why: 'turns live signals into one recommended move', tags: ['decision', 'recommendation', 'daily'] },
+      { title: 'launch corridor', href: 'roost-launch-corridor.html', family: 'build', mode: 'build', energy: 'high', minTime: 20, why: 'ranks the next best build through a sharper lens', tags: ['prioritization', 'strategy'] },
+      { title: 'storyboard', href: 'roost-storyboard.html', family: 'build', mode: 'build', energy: 'medium', minTime: 15, why: 'queues product ideas and tests impact vs effort', tags: ['ideas', 'queue', 'product'] },
+      { title: 'searchlight', href: 'roost-searchlight.html', family: 'navigation', mode: 'learn', energy: 'low', minTime: 10, why: 'fast command palette for the entire roost', tags: ['search', 'navigation', 'commands'] },
+      { title: 'atlas', href: 'roost-atlas.html', family: 'navigation', mode: 'learn', energy: 'low', minTime: 15, why: 'maps relationships between pages, ships, and notes', tags: ['map', 'structure', 'links'] },
+      { title: 'pinboard', href: 'roost-pinboard.html', family: 'navigation', mode: 'reflect', energy: 'low', minTime: 10, why: 'keeps the pages you always come back to', tags: ['favorites', 'launcher'] },
+      { title: 'pathfinder', href: 'index.html#pathfinderBoard', family: 'navigation', mode: 'build', energy: 'low', minTime: 10, why: 'homepage route selector for picking the next visit', tags: ['planner', 'routing'] },
+      { title: 'now board', href: 'now.html', family: 'signals', mode: 'reflect', energy: 'low', minTime: 10, why: 'shows current focus, progress, and next up items', tags: ['status', 'focus', 'time'] },
+      { title: 'command center', href: 'command-center.html', family: 'signals', mode: 'build', energy: 'medium', minTime: 15, why: 'single dashboard for momentum and live activity', tags: ['dashboard', 'overview'] },
+      { title: 'broadcast', href: 'roost-broadcast.html', family: 'signals', mode: 'reflect', energy: 'low', minTime: 15, why: 'turns feeds into a shareable transmission', tags: ['feeds', 'transmission', 'share'] },
+      { title: 'flight deck', href: 'flight-deck.html', family: 'signals', mode: 'reflect', energy: 'low', minTime: 15, why: 'release log and flight history for shipped work', tags: ['releases', 'history'] },
+      { title: 'captain log', href: 'captains-log.html', family: 'signals', mode: 'reflect', energy: 'low', minTime: 15, why: 'digest studio for summarizing what changed', tags: ['digest', 'summary'] },
+      { title: 'notes', href: 'notes.html', family: 'stories', mode: 'learn', energy: 'low', minTime: 15, why: 'searchable field notes for ideas and postmortems', tags: ['writing', 'journal', 'archive'] },
+      { title: 'changelog', href: 'changelog.html', family: 'stories', mode: 'reflect', energy: 'low', minTime: 15, why: 'full revision history with shipped deltas', tags: ['history', 'versions'] },
+      { title: 'casebook', href: 'roost-casebook.html', family: 'stories', mode: 'reflect', energy: 'low', minTime: 15, why: 'narrative release dossiers with rationale', tags: ['case-study', 'story', 'release'] },
+      { title: 'chronicle', href: 'roost-chronicle.html', family: 'stories', mode: 'learn', energy: 'low', minTime: 20, why: 'archive of launches, experiments, and seasonal missions', tags: ['timeline', 'milestones'] },
+      { title: 'afterglow', href: 'roost-afterglow.html', family: 'stories', mode: 'reflect', energy: 'low', minTime: 15, why: 'retrospective surface for lessons and next experiments', tags: ['retrospective', 'learning'] },
+      { title: 'lab', href: 'roost-lab.html', family: 'experiments', mode: 'build', energy: 'high', minTime: 30, why: 'prototype sandbox for styles and interactions', tags: ['prototype', 'design', 'sandbox'] },
+      { title: 'gallery', href: 'gallery.html', family: 'experiments', mode: 'play', energy: 'low', minTime: 10, why: 'visual showcase wall and featured drops', tags: ['art', 'showcase', 'gallery'] },
+      { title: 'wallpapers', href: 'wallpapers.html', family: 'experiments', mode: 'play', energy: 'low', minTime: 15, why: 'downloadable wallpaper packs with filters', tags: ['art', 'downloads', 'play'] },
+      { title: 'game', href: 'game.html', family: 'experiments', mode: 'play', energy: 'medium', minTime: 15, why: 'Sky Sprint mini-game with daily challenge mode', tags: ['game', 'interactive', 'play'] },
+      { title: 'weather deck', href: 'roost-weather.html', family: 'planning', mode: 'build', energy: 'medium', minTime: 20, why: 'planning studio for choosing the best work window', tags: ['weather', 'planner', 'focus'] },
+      { title: 'almanac', href: 'roost-almanac.html', family: 'planning', mode: 'build', energy: 'low', minTime: 15, why: 'seasonal planning compass for build windows', tags: ['energy', 'calendar', 'plan'] },
+      { title: 'routines', href: 'roost-routines.html', family: 'planning', mode: 'reflect', energy: 'low', minTime: 15, why: 'cadence-aware checklist and streak cockpit', tags: ['habits', 'streaks'] },
+      { title: 'flight sessions', href: 'roost-flight-sessions.html', family: 'planning', mode: 'build', energy: 'medium', minTime: 30, why: 'focus sprint timer with notes and exports', tags: ['focus', 'timer', 'sessions'] },
+      { title: 'trail intelligence', href: 'roost-trails.html', family: 'planning', mode: 'reflect', energy: 'low', minTime: 15, why: 'scans shipped work for patterns and reusable signals', tags: ['insights', 'momentum'] }
+    ];
+
+    const families = [
+      {
+        name: 'build',
+        summary: 'If you want to ship, stay here. These pages turn signals into a next step.',
+        pages: ['launchpad', 'workbench', 'launch corridor', 'storyboard']
+      },
+      {
+        name: 'navigation',
+        summary: 'If you are orienting yourself, these surfaces help you find and link the rest of the site.',
+        pages: ['searchlight', 'atlas', 'pinboard', 'pathfinder']
+      },
+      {
+        name: 'signals',
+        summary: 'If you want the current state of the roost, start here and decide what matters now.',
+        pages: ['now board', 'command center', 'broadcast', 'flight deck', 'captain log']
+      },
+      {
+        name: 'stories',
+        summary: 'If you want context, history, or a better memory of what shipped, this is the shelf.',
+        pages: ['notes', 'changelog', 'casebook', 'chronicle', 'afterglow']
+      },
+      {
+        name: 'experiments',
+        summary: 'If you want to play, test, or look at the site as a toy box, use these pages.',
+        pages: ['lab', 'gallery', 'wallpapers', 'game']
+      },
+      {
+        name: 'planning',
+        summary: 'If you want a better session shape, these pages help size the work and keep it moving.',
+        pages: ['weather deck', 'almanac', 'routines', 'flight sessions', 'trail intelligence']
+      }
+    ];
+
+    const storage = (() => {
+      try {
+        const key = 'roostFieldGuide';
+        window.localStorage.setItem(key, window.localStorage.getItem(key) ?? '');
+        return {
+          get: (name) => window.localStorage.getItem(name),
+          set: (name, value) => window.localStorage.setItem(name, value)
+        };
+      } catch {
+        const state = new Map();
+        return {
+          get: (name) => state.get(name) ?? null,
+          set: (name, value) => state.set(name, String(value))
+        };
+      }
+    })();
+
+    const modeLabels = {
+      build: 'build',
+      learn: 'learn',
+      play: 'play',
+      reflect: 'reflect'
+    };
+
+    const state = {
+      mode: storage.get('roostFieldGuideMode') || 'build',
+      energy: storage.get('roostFieldGuideEnergy') || 'medium',
+      time: Number.parseInt(storage.get('roostFieldGuideTime') || '20', 10) || 20,
+      goal: storage.get('roostFieldGuideGoal') || 'tour',
+      seed: storage.get('roostFieldGuideSeed') || ''
+    };
+
+    const tourCount = document.getElementById('tourCount');
+    const familyCount = document.getElementById('familyCount');
+    const guideModeLabel = document.getElementById('guideModeLabel');
+    const guideTags = document.getElementById('guideTags');
+    const guideBrief = document.getElementById('guideBrief');
+    const guideSeed = document.getElementById('guideSeed');
+    const tourGrid = document.getElementById('tourGrid');
+    const familyGrid = document.getElementById('familyGrid');
+    const savedNotes = document.getElementById('savedNotes');
+
+    const scorePage = (page) => {
+      let score = 1;
+      if (page.mode === state.mode) score += 6;
+      if (page.energy === state.energy) score += 3;
+      if (Number.isFinite(page.minTime)) score += state.time >= page.minTime ? 2 : -1;
+      if (state.goal === 'jump' && page.minTime <= 15) score += 2;
+      if (state.goal === 'deep' && page.minTime >= 20) score += 2;
+      if (state.seed) {
+        const needle = state.seed.toLowerCase().trim();
+        if (needle && (page.title.includes(needle) || page.why.includes(needle) || page.tags.some((tag) => tag.includes(needle)))) {
+          score += 3;
+        }
+      }
+      return score;
+    };
+
+    const currentTours = () => [...pages]
+      .sort((a, b) => scorePage(b) - scorePage(a))
+      .slice(0, 4);
+
+    const buildBrief = (picked) => {
+      const lead = picked[0];
+      return [
+        `guide mode: ${modeLabels[state.mode]}.`,
+        `session shape: ${state.energy} energy, ${state.time} minute window, ${state.goal} goal.`,
+        state.seed ? `seed theme: ${state.seed}.` : 'seed theme: none yet; the strongest route wins on signals alone.',
+        `lead stop: ${lead.title} -> ${lead.href}.`,
+        `why now: ${lead.why}.`,
+        '',
+        `follow-up loop: ${picked.slice(1).map((page) => page.title).join(' -> ')}.`
+      ].join('\n');
+    };
+
+    const renderTags = (picked) => {
+      guideTags.innerHTML = '';
+      const chips = [
+        `mode ${state.mode}`,
+        `${state.energy} energy`,
+        `${state.time} min`,
+        state.goal
+      ];
+      chips.forEach((chip) => {
+        const span = document.createElement('span');
+        span.className = 'pill';
+        span.textContent = chip;
+        guideTags.appendChild(span);
+      });
+      picked[0].tags.slice(0, 3).forEach((tag) => {
+        const span = document.createElement('span');
+        span.className = 'pill good';
+        span.textContent = tag;
+        guideTags.appendChild(span);
+      });
+    };
+
+    const renderTours = () => {
+      const picked = currentTours();
+      tourCount.textContent = String(picked.length);
+      familyCount.textContent = String(families.length);
+      guideModeLabel.textContent = state.mode;
+      guideBrief.textContent = buildBrief(picked);
+      renderTags(picked);
+
+      tourGrid.innerHTML = '';
+      picked.forEach((page, index) => {
+        const article = document.createElement('article');
+        article.className = `tour${index === 0 ? ' is-lead' : ''}`;
+        article.innerHTML = `
+          <div class="tour-head">
+            <div>
+              <h3>${index === 0 ? 'lead stop' : `stop ${index + 1}`} · ${page.title}</h3>
+              <p class="tour-copy">${page.why}</p>
+            </div>
+            <span class="pill ${index === 0 ? 'good' : 'warm'}">${page.mode}</span>
+          </div>
+          <div class="tour-meta">
+            <span>${page.energy} energy</span>
+            <span>${page.minTime}+ min</span>
+            <a href="${page.href}" class="nav-link">open page</a>
+          </div>
+        `;
+        tourGrid.appendChild(article);
+      });
+
+      familyGrid.innerHTML = '';
+      families.forEach((family) => {
+        const article = document.createElement('article');
+        article.className = 'family';
+        article.innerHTML = `
+          <h3>${family.name}</h3>
+          <p>${family.summary}</p>
+          <ul>${family.pages.map((name) => `<li>${name}</li>`).join('')}</ul>
+        `;
+        familyGrid.appendChild(article);
+      });
+    };
+
+    const noteKey = 'roostFieldGuideNotes';
+    const renderNotes = () => {
+      let notes = [];
+      try { notes = JSON.parse(storage.get(noteKey) || '[]'); } catch { notes = []; }
+      if (!Array.isArray(notes)) notes = [];
+      savedNotes.innerHTML = '';
+      if (!notes.length) {
+        savedNotes.innerHTML = '<div class="empty">No saved notes yet. Store a tour note and the guide will keep it here.</div>';
+        return;
+      }
+      notes.slice(0, 4).forEach((note) => {
+        const card = document.createElement('article');
+        card.className = 'gallery-card';
+        card.innerHTML = `
+          <strong>${note.title}</strong>
+          <p>${note.body}</p>
+          <div class="meta-row">
+            <span class="pill">${note.mode}</span>
+            <span class="pill">${note.time} min</span>
+          </div>
+        `;
+        savedNotes.appendChild(card);
+      });
+    };
+
+    const persist = () => {
+      storage.set('roostFieldGuideMode', state.mode);
+      storage.set('roostFieldGuideEnergy', state.energy);
+      storage.set('roostFieldGuideTime', String(state.time));
+      storage.set('roostFieldGuideGoal', state.goal);
+      storage.set('roostFieldGuideSeed', state.seed);
+    };
+
+    guideSeed.value = state.seed;
+    document.getElementById('energySelect').value = state.energy;
+    document.getElementById('timeSelect').value = String(state.time);
+    document.getElementById('goalSelect').value = state.goal;
+
+    document.getElementById('modeButtons').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-mode]');
+      if (!button) return;
+      state.mode = button.dataset.mode;
+      document.querySelectorAll('.mode').forEach((node) => node.classList.toggle('is-active', node === button));
+      persist();
+      renderTours();
+    });
+
+    document.getElementById('energySelect').addEventListener('change', (event) => {
+      state.energy = event.target.value;
+      persist();
+      renderTours();
+    });
+    document.getElementById('timeSelect').addEventListener('change', (event) => {
+      state.time = Number.parseInt(event.target.value, 10) || 20;
+      persist();
+      renderTours();
+    });
+    document.getElementById('goalSelect').addEventListener('change', (event) => {
+      state.goal = event.target.value;
+      persist();
+      renderTours();
+    });
+    guideSeed.addEventListener('input', (event) => {
+      state.seed = event.target.value.trim();
+      persist();
+      renderTours();
+    });
+
+    document.getElementById('reshuffleGuide').addEventListener('click', () => {
+      const options = ['build', 'learn', 'play', 'reflect'];
+      state.mode = options[(options.indexOf(state.mode) + 1) % options.length];
+      document.querySelectorAll('.mode').forEach((node) => node.classList.toggle('is-active', node.dataset.mode === state.mode));
+      persist();
+      renderTours();
+    });
+
+    document.getElementById('copyGuide').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(guideBrief.textContent);
+      } catch {
+        const fallback = document.createElement('textarea');
+        fallback.value = guideBrief.textContent;
+        document.body.appendChild(fallback);
+        fallback.select();
+        document.execCommand('copy');
+        fallback.remove();
+      }
+    });
+
+    document.getElementById('saveTour').addEventListener('click', () => {
+      const picked = currentTours();
+      const note = {
+        title: `${picked[0].title} route`,
+        body: `${picked[0].why} Session shape: ${state.energy} energy, ${state.time} min, ${state.goal}.`,
+        mode: state.mode,
+        time: state.time
+      };
+      let notes = [];
+      try { notes = JSON.parse(storage.get(noteKey) || '[]'); } catch { notes = []; }
+      if (!Array.isArray(notes)) notes = [];
+      notes = [note, ...notes].slice(0, 6);
+      storage.set(noteKey, JSON.stringify(notes));
+      renderNotes();
+    });
+
+    renderTours();
+    renderNotes();
+  </script>
+</body>
+</html>
