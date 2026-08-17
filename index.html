@@ -709,6 +709,128 @@
       font:inherit;
       line-height:1.45;
     }
+    .launch-radar {
+      border:1px solid #5272d4;
+      background:
+        radial-gradient(circle at 14% 8%, #96b4ff24 0%, transparent 28%),
+        radial-gradient(circle at 86% 0%, #7cb4ff20 0%, transparent 26%),
+        linear-gradient(155deg, #0d183a, #081120 58%, #12265a);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .launch-radar::before {
+      content:"";
+      position:absolute;
+      inset:auto -110px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #95b2ff28 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .launch-radar-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .launch-radar-head h2 { margin:0; }
+    .launch-radar-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:48rem;
+    }
+    .launch-radar-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      z-index:1;
+    }
+    .launch-radar-mode {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:999px;
+      color:#dfe7ff;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .launch-radar-mode.is-active {
+      background:#183170;
+      border-color:#8da7ff;
+      color:#f5f8ff;
+    }
+    .launch-radar-mode:hover,
+    .launch-radar-mode:focus-visible {
+      transform: translateY(-1px);
+      border-color:#6f8dff;
+      outline:none;
+    }
+    .launch-radar-grid {
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:12px;
+      z-index:1;
+    }
+    .launch-radar-panel {
+      border:1px solid #3950a0;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .launch-radar-panel.is-primary {
+      background:linear-gradient(155deg, #132d69, #08112de6 68%);
+      border-color:#7a95ea;
+    }
+    .launch-radar-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .launch-radar-copy {
+      margin:0;
+      color:#c0ceff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .launch-radar-list {
+      margin:0;
+      padding-left:18px;
+      color:#c5d2ff;
+    }
+    .launch-radar-list li { margin:6px 0; }
+    .launch-radar-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#b9caff;
+      font-size:.8rem;
+    }
+    .launch-radar-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .launch-radar-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .seasonal-desk::before {
       content:"";
       position:absolute;
@@ -2577,6 +2699,39 @@
       </div>
     </section>
 
+    <section class="card launch-radar" id="launchRadarBoard" aria-live="polite">
+      <div class="launch-radar-head">
+        <div>
+          <h2>launch radar</h2>
+          <p class="launch-radar-note">a sharper homepage read that weighs the live feeds, then points at the next visible move in build, story, or play terms.</p>
+        </div>
+        <div class="launch-radar-controls" id="launchRadarModes">
+          <button class="launch-radar-mode is-active" type="button" data-launch-radar-mode="build">build</button>
+          <button class="launch-radar-mode" type="button" data-launch-radar-mode="story">story</button>
+          <button class="launch-radar-mode" type="button" data-launch-radar-mode="play">play</button>
+        </div>
+      </div>
+      <div class="launch-radar-grid">
+        <article class="launch-radar-panel is-primary">
+          <h3 id="launchRadarTitle">loading radar…</h3>
+          <p class="launch-radar-copy" id="launchRadarLead">waiting for the shared feeds to resolve into a recommendation.</p>
+          <div class="launch-radar-meta" id="launchRadarMeta"></div>
+          <div class="tag-row" id="launchRadarTags"></div>
+        </article>
+        <article class="launch-radar-panel">
+          <h3>signal stack</h3>
+          <ul class="launch-radar-list" id="launchRadarList"></ul>
+        </article>
+      </div>
+      <div class="launch-radar-summary">
+        <div class="link-row">
+          <button class="btn" id="launchRadarShuffle">reshuffle radar</button>
+          <button class="btn" id="launchRadarCopy">copy radar brief</button>
+        </div>
+        <pre id="launchRadarBrief">loading launch radar…</pre>
+      </div>
+    </section>
+
     <section class="card seasonal-desk" id="seasonalDesk" aria-live="polite">
       <div class="seasonal-head">
         <h2>seasonal weather desk</h2>
@@ -2718,6 +2873,41 @@
       skylineSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
       storage.set('roostSkylineSeed', String(skylineSeed));
     }
+    const launchRadarModesConfig = {
+      build: {
+        label: 'build',
+        title: 'Build-first radar',
+        prompt: 'ship the page that removes friction or makes the site feel more alive.',
+        intent: 'build',
+        energy: 'high',
+        time: 30,
+        focus: 'visible feature work'
+      },
+      story: {
+        label: 'story',
+        title: 'Story-first radar',
+        prompt: 'connect a launch, note, and route into a clearer narrative thread.',
+        intent: 'reflect',
+        energy: 'low',
+        time: 15,
+        focus: 'narrative and recap work'
+      },
+      play: {
+        label: 'play',
+        title: 'Play-first radar',
+        prompt: 'choose the path with the most delight, motion, or tactile interaction.',
+        intent: 'play',
+        energy: 'medium',
+        time: 15,
+        focus: 'delight and interaction'
+      }
+    };
+    let launchRadarMode = storage.get('roostLaunchRadarMode') || 'build';
+    let launchRadarSeed = Number.parseInt(storage.get('roostLaunchRadarSeed') ?? '', 10);
+    if (!Number.isFinite(launchRadarSeed)) {
+      launchRadarSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+      storage.set('roostLaunchRadarSeed', String(launchRadarSeed));
+    }
     let runwayData = {
       roadmap: { now: [], next: [], later: [] },
       updates: [],
@@ -2738,6 +2928,12 @@
       build: '',
       care: '',
       spark: ''
+    };
+    let launchRadarPayload = {
+      updates: [],
+      notes: [],
+      shipyard: [],
+      nowData: {}
     };
 
     const revealTimelineItems = () => {
@@ -2983,6 +3179,15 @@
     const launchWindowBrief = document.getElementById('launchWindowBrief');
     const launchWindowShuffleBtn = document.getElementById('launchWindowShuffle');
     const launchWindowCopyBtn = document.getElementById('launchWindowCopyBtn');
+    const launchRadarModes = document.getElementById('launchRadarModes');
+    const launchRadarTitle = document.getElementById('launchRadarTitle');
+    const launchRadarLead = document.getElementById('launchRadarLead');
+    const launchRadarMeta = document.getElementById('launchRadarMeta');
+    const launchRadarTags = document.getElementById('launchRadarTags');
+    const launchRadarList = document.getElementById('launchRadarList');
+    const launchRadarBrief = document.getElementById('launchRadarBrief');
+    const launchRadarShuffle = document.getElementById('launchRadarShuffle');
+    const launchRadarCopy = document.getElementById('launchRadarCopy');
     const seasonalGrid = document.getElementById('seasonalGrid');
     const seasonalBrief = document.getElementById('seasonalBrief');
     const seasonalModes = document.getElementById('seasonalModes');
@@ -4049,6 +4254,118 @@
       launchWindowSeed = Math.floor(Math.random() * 9_999_999);
       storage.set('roostLaunchWindowSeed', String(launchWindowSeed));
       renderLaunchWindow();
+    };
+
+    const getLaunchRadarMode = () => launchRadarModesConfig[launchRadarMode] || launchRadarModesConfig.build;
+
+    const scoreLaunchRadarCandidate = (page, mode) => {
+      const pref = { intent: mode.intent, energy: mode.energy, time: mode.time };
+      let score = scorePathfinderCandidate(page, pref);
+      if (mode.intent === 'reflect' && (page.tags || []).includes('history')) score += 2;
+      if (mode.intent === 'play' && (page.tags || []).includes('interactive')) score += 2;
+      if (mode.intent === 'build' && (page.tags || []).includes('tooling')) score += 2;
+      if (mode.intent === 'build' && (page.tags || []).includes('planning')) score += 1;
+      return score;
+    };
+
+    const buildLaunchRadar = (mode, payload = {}) => {
+      const updates = Array.isArray(payload.updates) ? payload.updates : [];
+      const notes = Array.isArray(payload.notes) ? payload.notes : [];
+      const shipyard = Array.isArray(payload.shipyard) ? payload.shipyard : [];
+      const nowData = payload.nowData || {};
+      const activeFocus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [];
+      const recentWins = Array.isArray(nowData?.recentWins) ? nowData.recentWins : [];
+      const signalPool = [
+        ...updates.slice(0, 4).map((item) => ({ kind: 'ship', title: item.title, detail: item.impact || item.summary || '', page: item.page, label: item.pageLabel })),
+        ...notes.slice(0, 3).map((item) => ({ kind: 'note', title: item.title || item.slug, detail: item.summary || item.note || '', page: item.relatedPage, label: item.relatedPageLabel })),
+        ...shipyard.slice(0, 3).map((item) => ({ kind: 'queue', title: item.title, detail: item.summary || item.impact || '', page: item.page })),
+        ...activeFocus.slice(0, 2).map((item) => ({ kind: 'focus', title: item.title, detail: item.summary || '', page: 'now.html', label: 'open now board' })),
+        ...recentWins.slice(0, 2).map((item) => ({ kind: 'win', title: item, detail: 'recent win from the now board', page: 'now.html', label: 'open now board' }))
+      ].filter((item) => item.title && item.detail);
+
+      const rankedPages = roostPages
+        .map((page) => ({ page, score: scoreLaunchRadarCandidate(page, mode) + Math.floor(seededRandom(launchRadarSeed + page.title.length)() * 3) }))
+        .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title));
+
+      const leadPage = rankedPages[0]?.page || roostPages[0];
+      const secondaryPages = rankedPages.slice(1, 4).map((entry) => entry.page);
+      const leadSignal = signalPool[0] || null;
+      const supportSignals = signalPool.slice(1, 4);
+      const leadText = leadSignal
+        ? `${leadSignal.title} is the strongest live signal, so the homepage should ${mode.prompt.toLowerCase()}`
+        : `The feeds are thin, so the homepage should ${mode.prompt.toLowerCase()}`;
+
+      return {
+        title: mode.title,
+        leadText,
+        leadSignal,
+        supportSignals,
+        leadPage,
+        secondaryPages,
+        mode,
+        signalCount: signalPool.length,
+        summaryLines: [
+          `${mode.label} radar / today`,
+          '',
+          `lead move: ${leadPage.title}`,
+          `why: ${leadText}`,
+          '',
+          `signal stack: ${signalPool.map((item) => `${item.kind}:${item.title}`).join(' | ') || 'none'}`,
+          `support pages: ${secondaryPages.map((page) => page.title).join(' | ') || 'none'}`,
+          '',
+          `why it matters: the homepage can now switch between build, story, and play lenses and still point at one concrete next move.`
+        ]
+      };
+    };
+
+    let launchRadarState = null;
+
+    const renderLaunchRadar = () => {
+      if (!launchRadarBrief) return;
+      const mode = getLaunchRadarMode();
+      const state = launchRadarState || buildLaunchRadar(mode, {});
+      const lead = state.leadSignal;
+      const secondaryPages = state.secondaryPages || [];
+
+      if (launchRadarModes) {
+        launchRadarModes.innerHTML = Object.entries(launchRadarModesConfig).map(([id, entry]) => `
+          <button class="launch-radar-mode ${id === launchRadarMode ? 'is-active' : ''}" type="button" data-launch-radar-mode="${id}">${entry.label}</button>
+        `).join('');
+      }
+      if (launchRadarTitle) launchRadarTitle.textContent = state.title;
+      if (launchRadarLead) launchRadarLead.textContent = state.leadText;
+      if (launchRadarMeta) {
+        launchRadarMeta.innerHTML = [
+          `<span class="tag">${mode.focus}</span>`,
+          `<span class="tag">${state.signalCount} signals</span>`,
+          lead?.kind ? `<span class="tag">${lead.kind}</span>` : ''
+        ].filter(Boolean).join('');
+      }
+      if (launchRadarTags) {
+        launchRadarTags.innerHTML = [
+          `<span class="tag">${mode.label}</span>`,
+          `<span class="tag">${state.leadPage.title}</span>`,
+          `<span class="tag">${state.leadPage.energy || 'medium'} energy</span>`
+        ].join('');
+      }
+      if (launchRadarList) {
+        launchRadarList.innerHTML = [
+          lead ? `lead signal: ${lead.title}` : 'lead signal: no dominant match yet.',
+          lead ? `support cue: ${lead.detail}` : 'support cue: wait for a stronger release, note, or roadmap item.',
+          `next page: ${state.leadPage.title}`,
+          `backup pages: ${secondaryPages.map((page) => page.title).join(' | ') || 'none'}`
+        ].map((line) => `<li>${line}</li>`).join('');
+      }
+      launchRadarBrief.textContent = state.summaryLines.join('\n');
+      launchRadarState = state;
+    };
+
+    const reshuffleLaunchRadar = (payload = {}) => {
+      launchRadarSeed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostLaunchRadarSeed', String(launchRadarSeed));
+      const mode = getLaunchRadarMode();
+      launchRadarState = buildLaunchRadar(mode, payload);
+      renderLaunchRadar();
     };
 
     const buildRouteMixer = () => {
@@ -5577,6 +5894,7 @@
         const shipyard = shipyardResponse.ok ? await shipyardResponse.json() : [];
         const expeditions = expeditionsResponse.ok ? await expeditionsResponse.json() : [];
         threadFeedState = { updates, notes, shipyard: Array.isArray(shipyard) ? shipyard : [] };
+        launchRadarPayload = { updates, notes, shipyard: Array.isArray(shipyard) ? shipyard : [], nowData };
         pickRadioTracks();
 
         renderReleasePulse(updatesData);
@@ -5592,6 +5910,8 @@
         renderBroadcastBoard(threadFeedState);
         beaconState = buildBeaconState(updatesData, notesById, Array.isArray(shipyard) ? shipyard : [], Array.isArray(expeditions) ? expeditions : [], nowData);
         renderBeaconBoard();
+        launchRadarState = buildLaunchRadar(getLaunchRadarMode(), launchRadarPayload);
+        renderLaunchRadar();
 
         const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const roadmap = updatesData?.roadmap || {};
@@ -5663,6 +5983,12 @@
         if (dispatchBrief) dispatchBrief.textContent = 'dispatch unavailable right now.';
         if (beaconGrid) beaconGrid.innerHTML = '<div class="empty-card">route beacon unavailable right now.</div>';
         if (beaconBrief) beaconBrief.textContent = 'beacon unavailable right now.';
+        if (launchRadarTitle) launchRadarTitle.textContent = 'launch radar unavailable';
+        if (launchRadarLead) launchRadarLead.textContent = 'try again once the shared feeds come back.';
+        if (launchRadarMeta) launchRadarMeta.innerHTML = '';
+        if (launchRadarTags) launchRadarTags.innerHTML = '';
+        if (launchRadarList) launchRadarList.innerHTML = '<li>launch radar unavailable right now.</li>';
+        if (launchRadarBrief) launchRadarBrief.textContent = 'launch radar unavailable right now.';
         releasePulseStats.innerHTML = '<div class="empty-card">release pulse unavailable right now.</div>';
         releasePulseLatest.innerHTML = '<h3>release pulse unavailable right now.</h3><p>try again once the feed comes back.</p>';
         releasePulseRoadmap.innerHTML = '<div class="empty-card">roadmap unavailable right now.</div>';
@@ -6052,6 +6378,33 @@
         setActionStatus('launch brief copied ✓', 'ok');
       } catch {
         setActionStatus('clipboard blocked for launch brief.', 'warn');
+      }
+    });
+    launchRadarModes?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const nextMode = target.dataset.launchRadarMode;
+      if (!nextMode || !launchRadarModesConfig[nextMode]) return;
+      launchRadarMode = nextMode;
+      storage.set('roostLaunchRadarMode', launchRadarMode);
+      launchRadarState = buildLaunchRadar(getLaunchRadarMode(), launchRadarPayload);
+      renderLaunchRadar();
+      setActionStatus(`launch radar shifted to ${launchRadarMode} mode ✓`, 'ok');
+    });
+
+    launchRadarShuffle?.addEventListener('click', () => {
+      reshuffleLaunchRadar(launchRadarPayload);
+      setActionStatus('launch radar reshuffled ✓', 'ok');
+    });
+
+    launchRadarCopy?.addEventListener('click', async () => {
+      const text = launchRadarBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('launch radar brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for launch radar brief.', 'warn');
       }
     });
 
