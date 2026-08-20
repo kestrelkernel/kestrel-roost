@@ -831,6 +831,100 @@
       font:inherit;
       line-height:1.45;
     }
+    .build-queue {
+      border:1px solid #4e6fcf;
+      background:
+        radial-gradient(circle at 88% 6%, #9ab4ff20 0%, transparent 28%),
+        linear-gradient(155deg, #0c1738, #081124 58%, #132a67);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .build-queue::before {
+      content:"";
+      position:absolute;
+      inset:auto -100px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #8eaaff24 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .build-queue-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .build-queue-head h2 { margin:0; }
+    .build-queue-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:48rem;
+    }
+    .build-queue-rail {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .build-queue-card {
+      border:1px solid #3950a0;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .build-queue-card.is-primary {
+      background:linear-gradient(155deg, #132c68, #08112de6 68%);
+      border-color:#7b95e7;
+    }
+    .build-queue-card h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .build-queue-copy {
+      margin:0;
+      color:#c0ceff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .build-queue-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#b9caff;
+      font-size:.8rem;
+    }
+    .build-queue-list {
+      margin:0;
+      padding-left:18px;
+      color:#c5d2ff;
+    }
+    .build-queue-list li { margin:6px 0; }
+    .build-queue-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .build-queue-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .seasonal-desk::before {
       content:"";
       position:absolute;
@@ -2732,6 +2826,24 @@
       </div>
     </section>
 
+    <section class="card build-queue" id="buildQueueBoard" aria-live="polite">
+      <div class="build-queue-head">
+        <h2>build queue</h2>
+        <p class="build-queue-note">a sharper homepage queue that turns live now signals, roadmap pressure, and recent wins into today, next, and stretch work.</p>
+      </div>
+      <div class="build-queue-rail" id="buildQueueRail"></div>
+      <div class="build-queue-summary">
+        <div class="link-row" style="justify-content:space-between;">
+          <h3 style="margin:0; font-size:.98rem; color:#f0f4ff;">queue handoff</h3>
+          <div class="link-row">
+            <button class="btn" id="buildQueueShuffle" type="button">reshuffle queue</button>
+            <button class="btn" id="buildQueueCopy" type="button">copy queue brief</button>
+          </div>
+        </div>
+        <pre id="buildQueueBrief">loading build queue…</pre>
+      </div>
+    </section>
+
     <section class="card seasonal-desk" id="seasonalDesk" aria-live="polite">
       <div class="seasonal-head">
         <h2>seasonal weather desk</h2>
@@ -3188,6 +3300,11 @@
     const launchRadarBrief = document.getElementById('launchRadarBrief');
     const launchRadarShuffle = document.getElementById('launchRadarShuffle');
     const launchRadarCopy = document.getElementById('launchRadarCopy');
+    const buildQueueBoard = document.getElementById('buildQueueBoard');
+    const buildQueueRail = document.getElementById('buildQueueRail');
+    const buildQueueBrief = document.getElementById('buildQueueBrief');
+    const buildQueueShuffle = document.getElementById('buildQueueShuffle');
+    const buildQueueCopy = document.getElementById('buildQueueCopy');
     const seasonalGrid = document.getElementById('seasonalGrid');
     const seasonalBrief = document.getElementById('seasonalBrief');
     const seasonalModes = document.getElementById('seasonalModes');
@@ -4185,6 +4302,154 @@
         if (window.start < window.end) return hour >= window.start && hour < window.end;
         return hour >= window.start || hour < window.end;
       }) || launchWindows[0];
+    };
+
+    let buildQueueSeed = Number.parseInt(storage.get('roostBuildQueueSeed') ?? '', 10);
+    if (!Number.isFinite(buildQueueSeed)) {
+      buildQueueSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+      storage.set('roostBuildQueueSeed', String(buildQueueSeed));
+    }
+
+    const buildQueueModes = [
+      {
+        id: 'today',
+        label: 'today',
+        goal: 'ship one visible thing',
+        intent: 'build',
+        energy: 'high',
+        time: 20,
+        tags: ['now', 'ship', 'finish']
+      },
+      {
+        id: 'next',
+        label: 'next',
+        goal: 'clear the next best path',
+        intent: 'learn',
+        energy: 'medium',
+        time: 15,
+        tags: ['roadmap', 'pressure', 'route']
+      },
+      {
+        id: 'stretch',
+        label: 'stretch',
+        goal: 'add one broader follow-on',
+        intent: 'reflect',
+        energy: 'low',
+        time: 12,
+        tags: ['story', 'archive', 'signal']
+      }
+    ];
+
+    let buildQueueState = [];
+
+    const buildBuildQueue = (payload = {}) => {
+      const nowItems = Array.isArray(payload.nowItems) ? payload.nowItems : [];
+      const recentUpdates = Array.isArray(payload.recentUpdates) ? payload.recentUpdates : [];
+      const activeFocus = Array.isArray(payload.activeFocus) ? payload.activeFocus : [];
+      const shipyard = Array.isArray(payload.shipyard) ? payload.shipyard : [];
+      const expeditions = Array.isArray(payload.expeditions) ? payload.expeditions : [];
+
+      const pressurePages = [
+        ...nowItems.map((item) => ({ title: item, description: item, tags: ['now', 'pressure'], href: 'now.html', minTime: 15, energy: 'high' })),
+        ...recentUpdates.slice(0, 3).map((item) => ({
+          title: item.title,
+          description: item.impact || item.details || item.title,
+          tags: [item.type || 'update', 'ship', 'release'],
+          href: item.page || 'changelog.html',
+          minTime: item.page ? 10 : 15,
+          energy: 'medium'
+        })),
+        ...activeFocus.slice(0, 2).map((item) => ({
+          title: item.title,
+          description: item.summary,
+          tags: [item.horizon || 'focus', 'roadmap'],
+          href: 'now.html',
+          minTime: 15,
+          energy: item.horizon === 'now' ? 'high' : 'medium'
+        })),
+        ...shipyard.slice(0, 4).map((item) => ({
+          title: item.title,
+          description: item.summary,
+          tags: Array.isArray(item.tags) ? item.tags : ['shipyard'],
+          href: item.link || 'shipyard.html',
+          minTime: 15,
+          energy: 'medium'
+        })),
+        ...expeditions.slice(0, 2).map((item) => ({
+          title: item.name || item.title,
+          description: item.summary,
+          tags: Array.isArray(item.tags) ? item.tags : ['expedition'],
+          href: item.link || 'expeditions.html',
+          minTime: 15,
+          energy: 'medium'
+        }))
+      ];
+
+      const rng = seededRandom(buildQueueSeed + pressurePages.length);
+      return buildQueueModes.map((mode, index) => {
+        const ranked = pressurePages
+          .map((page) => ({
+            page,
+            score: scorePathfinderCandidate(page, mode) + Math.floor(rng() * 3) + (index === 0 ? 1 : 0)
+          }))
+          .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title));
+        const chosen = ranked[0]?.page || pressurePages[index % pressurePages.length] || null;
+        return {
+          ...mode,
+          page: chosen,
+          topSignals: ranked.slice(0, 3).map((item) => item.page),
+          score: ranked[0]?.score || 0
+        };
+      });
+    };
+
+    const renderBuildQueue = () => {
+      if (!buildQueueRail || !buildQueueBrief) return;
+      if (!buildQueueState.length) {
+        buildQueueRail.innerHTML = '<div class="empty-card">build queue unavailable right now.</div>';
+        buildQueueBrief.textContent = 'build queue unavailable right now.';
+        return;
+      }
+
+      buildQueueRail.innerHTML = buildQueueState.map((entry, index) => {
+        const page = entry.page;
+        const links = page?.href ? `<a class="btn" href="${page.href}">open ${page.title}</a>` : '';
+        return `
+          <article class="build-queue-card ${index === 0 ? 'is-primary' : ''}">
+            <div class="build-queue-meta">
+              <span class="tag">${entry.label}</span>
+              <span class="tag">${entry.goal}</span>
+              <span class="tag">${entry.topSignals.length} signals</span>
+            </div>
+            <h3>${page?.title || 'no page picked'}</h3>
+            <p class="build-queue-copy">${page?.description || 'the queue needs live signals before it can rank a next move.'}</p>
+            <div class="link-row">${links}</div>
+            <ul class="build-queue-list">
+              ${entry.topSignals.map((signal) => `<li>${signal.title}</li>`).join('')}
+            </ul>
+          </article>
+        `;
+      }).join('');
+
+      const lead = buildQueueState[0];
+      const next = buildQueueState[1];
+      const stretch = buildQueueState[2];
+      buildQueueBrief.textContent = [
+        'roost build queue / today',
+        '',
+        `today: ${lead?.page?.title || 'none'} — ${lead?.page?.description || lead?.goal || 'ship something visible.'}`,
+        `next: ${next?.page?.title || 'none'} — ${next?.page?.description || next?.goal || 'clear the next path.'}`,
+        `stretch: ${stretch?.page?.title || 'none'} — ${stretch?.page?.description || stretch?.goal || 'add one broader follow-on.'}`,
+        '',
+        `why it matters: the homepage now names one concrete ship, one follow-on, and one stretch move before the rest of the page asks for attention.`
+      ].join('\n');
+    };
+
+    const reshuffleBuildQueue = (payload = {}) => {
+      buildQueueSeed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostBuildQueueSeed', String(buildQueueSeed));
+      buildQueueState = buildBuildQueue(payload);
+      renderBuildQueue();
     };
 
     let launchWindowSeed = Number.parseInt(storage.get('roostLaunchWindowSeed') ?? '', 10);
@@ -5721,6 +5986,41 @@
       renderWorkbench();
     };
 
+    const loadBuildQueue = async () => {
+      const [updatesRes, shipyardRes, expeditionsRes, nowRes] = await Promise.allSettled([
+        fetch('assets/roost-updates.json', { cache: 'no-store' }),
+        fetch('assets/roost-shipyard.json', { cache: 'no-store' }),
+        fetch('assets/roost-expeditions.json', { cache: 'no-store' }),
+        fetch('assets/roost-now.json', { cache: 'no-store' })
+      ]);
+
+      let updates = null;
+      let shipyard = [];
+      let expeditions = [];
+      let nowData = null;
+
+      try {
+        if (updatesRes.status === 'fulfilled' && updatesRes.value.ok) updates = await updatesRes.value.json();
+      } catch { updates = null; }
+      try {
+        if (shipyardRes.status === 'fulfilled' && shipyardRes.value.ok) shipyard = await shipyardRes.value.json();
+      } catch { shipyard = []; }
+      try {
+        if (expeditionsRes.status === 'fulfilled' && expeditionsRes.value.ok) expeditions = await expeditionsRes.value.json();
+      } catch { expeditions = []; }
+      try {
+        if (nowRes.status === 'fulfilled' && nowRes.value.ok) nowData = await nowRes.value.json();
+      } catch { nowData = null; }
+
+      const nowItems = Array.isArray(updates?.roadmap?.now) ? updates.roadmap.now : [];
+      const recentUpdates = Array.isArray(updates?.updates) ? updates.updates.slice(0, 4) : [];
+      const activeFocus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus : [];
+      const activeExpeditions = Array.isArray(expeditions) ? expeditions.filter((item) => item.status === 'active').slice(0, 2) : [];
+      const shipyardPressure = Array.isArray(shipyard) ? shipyard.slice(0, 3) : [];
+      buildQueueState = buildBuildQueue({ nowItems, recentUpdates, activeFocus, shipyard: shipyardPressure, expeditions: activeExpeditions });
+      renderBuildQueue();
+    };
+
     const loadRunwayData = async () => {
       const [updatesRes, shipyardRes, nowRes] = await Promise.allSettled([
         fetch('assets/roost-updates.json', { cache: 'no-store' }),
@@ -6408,6 +6708,22 @@
       }
     });
 
+    buildQueueShuffle?.addEventListener('click', () => {
+      reshuffleBuildQueue();
+      setActionStatus('build queue reshuffled ✓', 'ok');
+    });
+
+    buildQueueCopy?.addEventListener('click', async () => {
+      const text = buildQueueBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('build queue brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for build queue brief.', 'warn');
+      }
+    });
+
     rerollRouteMixer?.addEventListener('click', () => {
       reshuffleRouteMixer();
       setActionStatus('route mixer reshuffled ✓', 'ok');
@@ -6456,6 +6772,7 @@
     renderLaunchDeck();
     loadRunwayData();
     loadWorkbenchSignals();
+    loadBuildQueue();
     renderRoutebook();
     renderRouteRelay();
     renderRouteMixer();
