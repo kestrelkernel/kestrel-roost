@@ -1028,6 +1028,101 @@
       font:inherit;
       line-height:1.45;
     }
+    .weather-desk {
+      border:1px solid #4d69c5;
+      background:
+        radial-gradient(circle at 16% 0%, #98b4ff24 0%, transparent 30%),
+        radial-gradient(circle at 86% 18%, #7fb6ff18 0%, transparent 24%),
+        linear-gradient(155deg, #0b1738, #091126 58%, #12255f);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .weather-desk::before {
+      content:"";
+      position:absolute;
+      inset:auto -90px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #9ab7ff24 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .weather-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .weather-head h2 { margin:0; }
+    .weather-note {
+      margin:0;
+      color:#a8b9ff;
+      font-size:.85rem;
+      max-width:48rem;
+    }
+    .weather-grid {
+      display:grid;
+      grid-template-columns:1.15fr .95fr;
+      gap:12px;
+      z-index:1;
+    }
+    .weather-panel {
+      border:1px solid #3950a0;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .weather-panel.is-primary {
+      background:linear-gradient(155deg, #132c68, #08112de6 68%);
+      border-color:#7b95e7;
+    }
+    .weather-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .weather-copy {
+      margin:0;
+      color:#c0ceff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .weather-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#b9caff;
+      font-size:.8rem;
+    }
+    .weather-list {
+      margin:0;
+      padding-left:18px;
+      color:#c5d2ff;
+    }
+    .weather-list li { margin:6px 0; }
+    .weather-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .weather-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .broadcast-board {
       border:1px solid #4965be;
       background:
@@ -2865,6 +2960,33 @@
       </div>
     </section>
 
+    <section class="card weather-desk" id="weatherDesk" aria-live="polite">
+      <div class="weather-head">
+        <h2>roost weather forecast</h2>
+        <p class="weather-note">a more opinionated day read that combines the weather feed, UTC hour, and recent momentum into a practical build window.</p>
+      </div>
+      <div class="weather-grid">
+        <article class="weather-panel is-primary">
+          <h3 id="weatherLeadTitle">loading weather forecast…</h3>
+          <p class="weather-copy" id="weatherLeadCopy">waiting for the weather feed to turn into a recommendation.</p>
+          <div class="weather-meta" id="weatherLeadMeta"></div>
+          <div class="tag-row" id="weatherLeadTags"></div>
+        </article>
+        <article class="weather-panel">
+          <h3>session windows</h3>
+          <ul class="weather-list" id="weatherWindowList"></ul>
+        </article>
+      </div>
+      <div class="weather-summary">
+        <div class="link-row">
+          <button class="btn" id="weatherShuffle">reshuffle forecast</button>
+          <button class="btn" id="weatherCopy">copy weather brief</button>
+          <a class="btn" href="roost-weather.html">open weather deck</a>
+        </div>
+        <pre id="weatherBrief">loading weather forecast…</pre>
+      </div>
+    </section>
+
     <section class="card">
       <h2>latest ships</h2>
       <p class="tiny" style="margin-bottom:10px;">live from flight deck. each card now points somewhere useful.</p>
@@ -2973,6 +3095,14 @@
     const radioNowMeta = document.getElementById('radioNowMeta');
     const radioQueue = document.getElementById('radioQueue');
     const radioSetlist = document.getElementById('radioSetlist');
+    const weatherLeadTitle = document.getElementById('weatherLeadTitle');
+    const weatherLeadCopy = document.getElementById('weatherLeadCopy');
+    const weatherLeadMeta = document.getElementById('weatherLeadMeta');
+    const weatherLeadTags = document.getElementById('weatherLeadTags');
+    const weatherWindowList = document.getElementById('weatherWindowList');
+    const weatherBrief = document.getElementById('weatherBrief');
+    const weatherShuffle = document.getElementById('weatherShuffle');
+    const weatherCopy = document.getElementById('weatherCopy');
     const timelineFilters = document.getElementById('timelineFilters');
     const timelineList = document.getElementById('timelineList');
     const timelineTags = ['all', 'build', 'write', 'learn'];
@@ -4741,6 +4871,9 @@
     let seasonalMode = storage.get('roostSeasonalMode') || 'build';
     let seasonalWheel = [];
     let weatherRegions = [];
+    let weatherForecastState = {
+      regionId: null
+    };
 
     const currentSeasonFromWheel = () => {
       if (!seasonalWheel.length) return null;
@@ -4813,6 +4946,95 @@
         season ? `seasonal cue: ${season.moves[0]}` : 'seasonal cue: keep the next improvement visible.',
         '',
         'why it matters: the homepage can now point at a specific kind of work based on the season and the weather instead of always offering the same generic next step.'
+      ].join('\n');
+    };
+
+    const getWeatherHour = () => {
+      const hour = new Date().getUTCHours();
+      if (hour < 12) return 'morning';
+      if (hour < 17) return 'midday';
+      return 'evening';
+    };
+
+    const pickWeatherForecast = () => {
+      if (!weatherRegions.length) return null;
+      const hour = getWeatherHour();
+      const focusOrder = {
+        morning: ['focus', 'steady', 'cozy'],
+        midday: ['focus', 'steady', 'cozy'],
+        evening: ['cozy', 'steady', 'focus']
+      }[hour] || ['focus'];
+
+      const scored = [...weatherRegions]
+        .map((region) => {
+          const modeBoost = focusOrder.includes(region.mood) ? 4 : 0;
+          const windBias = Math.max(0, 40 - (Number(region.windKph) || 0));
+          const visibilityBoost = Number(region.visibilityKm) || 0;
+          const tempBias = Math.abs((Number(region.tempC) || 0) - 13);
+          const savedBoost = weatherForecastState.regionId === region.id ? 2 : 0;
+          return {
+            region,
+            score: modeBoost + windBias / 10 + visibilityBoost / 8 - tempBias + savedBoost
+          };
+        })
+        .sort((a, b) => b.score - a.score || a.region.name.localeCompare(b.region.name));
+
+      return scored[0]?.region || null;
+    };
+
+    const buildWeatherWindows = (region) => {
+      if (!region) return [];
+      const timeline = Array.isArray(region.timeline) ? region.timeline : [];
+      return timeline.slice(0, 3).map((entry, index) => {
+        const action = index === 0 ? 'best for deep work' : index === 1 ? 'good for publish/admin' : 'fine for lighter follow-up';
+        return `${entry.hour || '??:??'} · ${entry.sky || 'sky'} · ${entry.windKph || region.windKph || 0}kph wind · ${action}`;
+      });
+    };
+
+    const renderWeatherDesk = () => {
+      if (!weatherLeadTitle || !weatherLeadCopy || !weatherLeadMeta || !weatherLeadTags || !weatherWindowList || !weatherBrief) return;
+      const region = pickWeatherForecast();
+      if (!region) {
+        weatherLeadTitle.textContent = 'weather forecast unavailable';
+        weatherLeadCopy.textContent = 'the weather feed is empty right now.';
+        weatherLeadMeta.innerHTML = '';
+        weatherLeadTags.innerHTML = '';
+        weatherWindowList.innerHTML = '<li>no forecast windows available.</li>';
+        weatherBrief.textContent = 'weather forecast unavailable right now.';
+        return;
+      }
+
+      weatherForecastState.regionId = region.id;
+      const hour = getWeatherHour();
+      const windows = buildWeatherWindows(region);
+      const leadAction = hour === 'evening' ? 'close the loop and keep the work light' : region.mood === 'focus' ? 'treat this as a deep-work window' : 'use this for steady, low-friction shipping';
+
+      weatherLeadTitle.textContent = `${region.name} is the best lane`;
+      weatherLeadCopy.textContent = `${region.summary}. ${region.advice} Right now, the roost should ${leadAction}.`;
+      weatherLeadMeta.innerHTML = `
+        <span class="tag">${hour} UTC</span>
+        <span class="tag">${region.mood}</span>
+        <span class="tag">${region.windKph}kph wind</span>
+        <span class="tag">${region.tempC}°C</span>
+        <span class="tag">${region.visibilityKm}km vis</span>
+      `;
+      weatherLeadTags.innerHTML = [
+        'build window',
+        region.mood === 'focus' ? 'ship-first' : 'steady pace',
+        region.visibilityKm >= 18 ? 'clear horizon' : 'keep it compact'
+      ].map((tag) => `<span class="tag">${tag}</span>`).join('');
+      weatherWindowList.innerHTML = windows.map((item) => `<li>${item}</li>`).join('');
+      weatherBrief.textContent = [
+        'roost weather forecast / today',
+        '',
+        `best region: ${region.name} (${region.mood})`,
+        `hour: ${hour} UTC`,
+        `cue: ${region.advice}`,
+        '',
+        `session shape: ${hour === 'evening' ? 'short wrap-up or planning pass' : region.mood === 'focus' ? 'deep build sprint' : 'steady maintenance + shipping polish'}`,
+        `next move: ${windows[0] || 'check the weather deck for a fuller read.'}`,
+        '',
+        'why it matters: the homepage can now translate the weather feed into a practical work window instead of only showing the raw forecast data.'
       ].join('\n');
     };
 
@@ -6205,6 +6427,7 @@
         renderLatestNotes(notes);
         renderRadioConsole();
         renderSeasonalDesk();
+        renderWeatherDesk();
         renderThreadLoom(threadFeedState);
         renderEditorialDesk(updates, notesById, Array.isArray(shipyard) ? shipyard : []);
         renderBroadcastBoard(threadFeedState);
@@ -6289,6 +6512,12 @@
         if (launchRadarTags) launchRadarTags.innerHTML = '';
         if (launchRadarList) launchRadarList.innerHTML = '<li>launch radar unavailable right now.</li>';
         if (launchRadarBrief) launchRadarBrief.textContent = 'launch radar unavailable right now.';
+        if (weatherLeadTitle) weatherLeadTitle.textContent = 'weather desk unavailable';
+        if (weatherLeadCopy) weatherLeadCopy.textContent = 'try again once the weather feed comes back.';
+        if (weatherLeadMeta) weatherLeadMeta.innerHTML = '';
+        if (weatherLeadTags) weatherLeadTags.innerHTML = '';
+        if (weatherWindowList) weatherWindowList.innerHTML = '<li>weather forecast unavailable right now.</li>';
+        if (weatherBrief) weatherBrief.textContent = 'weather desk unavailable right now.';
         releasePulseStats.innerHTML = '<div class="empty-card">release pulse unavailable right now.</div>';
         releasePulseLatest.innerHTML = '<h3>release pulse unavailable right now.</h3><p>try again once the feed comes back.</p>';
         releasePulseRoadmap.innerHTML = '<div class="empty-card">roadmap unavailable right now.</div>';
@@ -6756,6 +6985,23 @@
         setActionStatus('seasonal brief copied ✓', 'ok');
       } catch {
         setActionStatus('clipboard blocked for seasonal brief.', 'warn');
+      }
+    });
+
+    weatherShuffle?.addEventListener('click', () => {
+      weatherForecastState.regionId = null;
+      renderWeatherDesk();
+      setActionStatus('weather forecast reshuffled ✓', 'ok');
+    });
+
+    weatherCopy?.addEventListener('click', async () => {
+      const text = weatherBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('weather brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for weather brief.', 'warn');
       }
     });
 
