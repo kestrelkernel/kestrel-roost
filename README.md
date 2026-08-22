@@ -35,6 +35,7 @@ python3 -m http.server 8080
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
 - `roost-field-guide.html` — curated tour builder that groups the site into page families and copyable three-stop sessions
+- `roost-harbor.html` — intent-based page dock that turns the full page list into a calm route by build/learn/play/recover mode
 - `roost-lab.html` — interactive style prototyping studio with live token controls, contrast checks, and CSS export
 - `roost-constellations.html` — ritual selector with URL-synced filters, bookmarkable state, and a focused detail panel
 - `roost-radio.html` — ambient playlist surface with mood-based listening and copyable setlists

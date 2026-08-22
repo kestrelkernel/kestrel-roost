@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Harbor: an intent-based page dock for Kestrel's Roost." />
+  <title>Roost Harbor - Kestrel's Roost</title>
+  <style>
+    :root { --bg:#07111b; --bg2:#142841; --panel:#0b1627de; --line:#35557f; --fg:#edf4ff; --muted:#9fb2da; --accent:#a8c4ff; --warm:#ffd98a; }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color:var(--fg); background:radial-gradient(circle at 16% 6%, #2a4a7d 0%, transparent 26%), radial-gradient(circle at 82% 0%, #1f5a61 0%, transparent 22%), linear-gradient(180deg, var(--bg2), var(--bg)); }
+    main { width:min(1240px, 94vw); margin:28px auto 40px; display:grid; gap:14px; }
+    .hero, .panel, .card { border:1px solid var(--line); border-radius:18px; background:var(--panel); box-shadow:0 16px 42px #00000038; backdrop-filter: blur(4px); }
+    .hero { padding:22px; display:grid; gap:14px; position:relative; overflow:hidden; }
+    .hero::after { content:""; position:absolute; inset:auto -80px -110px auto; width:320px; height:320px; border-radius:999px; background:radial-gradient(circle, #8eb4ff24 0%, transparent 68%); pointer-events:none; }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.5rem); line-height:1; }
+    h2 { font-size:1.03rem; color:#dfe8ff; }
+    h3 { font-size:1rem; color:#f7f9ff; }
+    p { color:var(--muted); line-height:1.55; }
+    .lede { max-width:76ch; }
+    .site-nav, .link-row, .tag-row, .meta-row { display:flex; flex-wrap:wrap; gap:8px; }
+    .nav-link, .btn, .chip { text-decoration:none; color:#dce5ff; border:1px solid #4660be; border-radius:999px; padding:7px 12px; background:#10214d; font:inherit; cursor:pointer; transition:.15s ease; }
+    .btn { border-radius:10px; }
+    .nav-link:hover, .btn:hover, .chip:hover, .nav-link:focus-visible, .btn:focus-visible, .chip:focus-visible { outline:none; transform:translateY(-1px); border-color:#8da9ff; background:#14306c; }
+    .hero-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:14px; align-items:stretch; }
+    @media (max-width: 920px) { .hero-grid { grid-template-columns:1fr; } }
+    .hero-panel { border:1px solid #4564ba; border-radius:16px; background:linear-gradient(160deg, #123166, #091221 72%); padding:16px; display:grid; gap:12px; position:relative; overflow:hidden; }
+    .hero-panel::before { content:""; position:absolute; inset:auto -90px -120px auto; width:260px; height:260px; border-radius:999px; background:radial-gradient(circle, #88abff2f 0%, transparent 68%); pointer-events:none; }
+    .hero-copy { z-index:1; display:grid; gap:10px; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:8px; color:#bfcfff; font-size:.8rem; z-index:1; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:4px 9px; border-radius:999px; border:1px solid #4d69ad; background:#13234a; color:#dde7ff; font-size:.75rem; }
+    .pill.good { border-color:#4b8e79; background:#123731; color:#dcfff1; }
+    .pill.warm { border-color:#8e7336; background:#403111; color:#fff1c8; }
+    .layout { display:grid; grid-template-columns:minmax(320px, .9fr) minmax(0, 1.1fr); gap:14px; align-items:start; }
+    @media (max-width: 980px) { .layout { grid-template-columns:1fr; } }
+    .panel, .card { padding:16px; display:grid; gap:12px; }
+    .panel { background:linear-gradient(180deg, #0d1830, #09111e); }
+    .controls { display:grid; gap:10px; }
+    .control-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; }
+    .control-grid select, .control-grid input, textarea { width:100%; font:inherit; background:#0b1529; color:var(--fg); border:1px solid #406095; border-radius:10px; padding:10px 12px; }
+    textarea { min-height:96px; resize:vertical; }
+    .dock-grid, .page-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; }
+    .dock, .page-card { border:1px solid #37527d; border-radius:16px; background:#09111f; padding:14px; display:grid; gap:10px; }
+    .dock.is-lead, .page-card.is-lead { background:linear-gradient(160deg, #183563, #09111f 72%); border-color:#97b4ff; }
+    .dock-copy, .page-copy { margin:0; color:#dce6ff; line-height:1.5; }
+    .dock-meta, .page-meta { display:flex; flex-wrap:wrap; gap:8px; color:#bfd0ff; font-size:.8rem; }
+    .dock-list { margin:0; padding-left:18px; color:#c9d6ff; }
+    .dock-list li { margin:6px 0; }
+    .sea-map { border:1px solid #3950a0; border-radius:16px; background:linear-gradient(160deg, #081124, #0c1732 45%, #132a66); padding:14px; display:grid; gap:12px; position:relative; overflow:hidden; }
+    .sea-map::before { content:""; position:absolute; inset:auto -100px -110px auto; width:300px; height:300px; border-radius:999px; background:radial-gradient(circle, #8cafff24 0%, transparent 68%); pointer-events:none; }
+    .sea-map-head { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:baseline; z-index:1; }
+    .sea-map-head p { font-size:.85rem; }
+    .harbor-graph { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; z-index:1; }
+    .harbor-node { border:1px solid #36508d; border-radius:14px; background:#081021dd; padding:12px; display:grid; gap:8px; }
+    .harbor-node.is-primary { background:linear-gradient(160deg, #173569, #081021dd 72%); border-color:#98b6ff; }
+    .harbor-node strong { font-size:1.02rem; }
+    .harbor-node span { color:#b9c9ff; font-size:.82rem; line-height:1.45; }
+    .brief { border:1px solid #3950a0; border-radius:14px; background:#081021; padding:14px; display:grid; gap:10px; }
+    pre { margin:0; white-space:pre-wrap; color:#ecf2ff; line-height:1.5; font:inherit; }
+    .empty { color:#9cb0e9; border:1px dashed #435d9f; border-radius:14px; padding:14px; background:#091126; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div>
+        <h1>roost harbor</h1>
+        <p class="lede">An intent-based dock for the roost. Pick what you want to do, and the harbor turns the page list into a calm route instead of a giant wall of tabs.</p>
+        <nav class="site-nav" aria-label="Site sections" style="margin-top:10px;">
+          <a class="nav-link" href="index.html">home</a>
+          <a class="nav-link" href="roost-searchlight.html">searchlight</a>
+          <a class="nav-link" href="roost-field-guide.html">field guide</a>
+          <a class="nav-link" href="roost-route-mixer.html">route mixer</a>
+          <a class="nav-link" href="roost-workbench.html">workbench</a>
+          <a class="nav-link" href="roost-harbor.html">harbor</a>
+        </nav>
+      </div>
+      <div class="hero-grid">
+        <article class="hero-panel" aria-live="polite">
+          <div class="hero-copy">
+            <span class="pill" id="harborCountPill">pages: loading</span>
+            <div style="font-size:2.1rem; line-height:1.05; color:#f7f9ff;" id="harborLeadTitle">choose an intent, get a route</div>
+            <p id="harborLeadCopy">Harbor groups the roost by the way you want to move: build, learn, play, or recover.</p>
+          </div>
+          <div class="hero-meta" id="harborMeta"></div>
+          <div class="link-row">
+            <button class="btn" id="harborShuffle">reshuffle dock</button>
+            <button class="btn" id="harborCopy">copy harbor brief</button>
+          </div>
+        </article>
+        <article class="hero-panel" aria-live="polite">
+          <div class="hero-copy">
+            <span class="pill good" id="harborFocusPill">focus: loading</span>
+            <div style="font-size:2.1rem; line-height:1.05; color:#f7f9ff;" id="harborFocusTitle">today's best dock</div>
+            <p id="harborFocusCopy">The lead page will be picked from the current intent, filtered by time and energy.</p>
+          </div>
+          <div class="hero-meta" id="harborFocusMeta"></div>
+          <div class="tag-row" id="harborFocusTags"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="layout">
+      <section class="panel">
+        <article class="card">
+          <h2>route controls</h2>
+          <div class="controls" style="margin-top:10px;">
+            <div class="control-grid">
+              <select id="intentSelect"><option value="build">build</option><option value="learn">learn</option><option value="play">play</option><option value="recover">recover</option></select>
+              <select id="energySelect"><option value="high">high energy</option><option value="medium">medium energy</option><option value="low">low energy</option></select>
+              <select id="timeSelect"><option value="15">15 min</option><option value="30">30 min</option><option value="60">60+ min</option></select>
+            </div>
+            <div class="link-row">
+              <button class="btn" id="routeShuffle">reshuffle route</button>
+              <button class="btn" id="routePin">pin route</button>
+              <button class="btn" id="copyRoute">copy route</button>
+            </div>
+            <textarea id="noteInput" placeholder="optional note for future-you"></textarea>
+          </div>
+        </article>
+        <article class="card">
+          <h2>harbor map</h2>
+          <div class="sea-map">
+            <div class="sea-map-head"><h3>dock groups</h3><p>the whole site, sorted by why you came here.</p></div>
+            <div class="harbor-graph" id="harborGraph"></div>
+          </div>
+        </article>
+      </section>
+      <section class="panel">
+        <article class="card">
+          <div class="sea-map-head"><h2>recommended dock</h2><p class="tiny">the strongest match for the current route settings.</p></div>
+          <div class="page-grid" id="routeGrid"><div class="empty">loading pages…</div></div>
+        </article>
+        <article class="card">
+          <h2>route brief</h2>
+          <div class="brief"><pre id="routeBrief">loading harbor brief…</pre></div>
+        </article>
+        <article class="card">
+          <div class="sea-map-head"><h2>pinned docks</h2><p class="tiny">kept locally in this browser.</p></div>
+          <div class="tag-row" id="pinnedDocks"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+  <script>
+    const STORAGE_KEY = '__roost_harbor__';
+    const PIN_KEY = '__roost_harbor_pins__';
+    const pages = [
+      { title: 'home', href: 'index.html', intent: ['build', 'learn', 'recover'], energy: 'medium', time: '15', note: 'launch pad, live signals, and daily handoffs.', tags: ['home', 'signals', 'daily'] },
+      { title: 'roost workbench', href: 'roost-workbench.html', intent: ['build', 'plan'], energy: 'high', time: '30', note: 'ranked build pressure turned into one clear move.', tags: ['build', 'planning', 'recommendation'] },
+      { title: 'roost route mixer', href: 'roost-route-mixer.html', intent: ['plan', 'recover'], energy: 'low', time: '15', note: 'three-stop route builder for gentle navigation.', tags: ['route', 'handoff', 'plan'] },
+      { title: 'roost searchlight', href: 'roost-searchlight.html', intent: ['learn', 'build'], energy: 'high', time: '15', note: 'keyboard-first search across the roost.', tags: ['search', 'navigation', 'fast'] },
+      { title: 'roost field guide', href: 'roost-field-guide.html', intent: ['learn', 'recover'], energy: 'low', time: '15', note: 'curated page families and calm tours.', tags: ['tour', 'curation', 'browse'] },
+      { title: 'roost atlas', href: 'roost-atlas.html', intent: ['learn', 'plan'], energy: 'medium', time: '30', note: 'relationship graph across ships, notes, and pages.', tags: ['graph', 'map', 'explore'] },
+      { title: 'now', href: 'now.html', intent: ['build', 'recover'], energy: 'low', time: '15', note: 'live focus board with active priorities.', tags: ['now', 'focus', 'progress'] },
+      { title: 'changelog', href: 'changelog.html', intent: ['learn', 'plan'], energy: 'medium', time: '30', note: 'release history and the story behind the ships.', tags: ['history', 'release', 'story'] },
+      { title: 'flight deck', href: 'flight-deck.html', intent: ['build', 'plan'], energy: 'high', time: '30', note: 'roadmap cockpit and ship log.', tags: ['roadmap', 'queue', 'shipping'] },
+      { title: 'signal board', href: 'signal-board.html', intent: ['learn', 'plan'], energy: 'medium', time: '30', note: 'cross-site timeline across releases and notes.', tags: ['timeline', 'signals', 'search'] },
+      { title: 'release radar', href: 'release-radar.html', intent: ['build', 'plan'], energy: 'high', time: '15', note: 'momentum dashboard and forward pressure.', tags: ['momentum', 'radar', 'pressure'] },
+      { title: 'command center', href: 'command-center.html', intent: ['build', 'plan'], energy: 'high', time: '30', note: 'unified live dashboard for the roost.', tags: ['dashboard', 'command', 'live'] },
+      { title: 'roost broadcast', href: 'roost-broadcast.html', intent: ['learn', 'recover'], energy: 'low', time: '15', note: 'copyable transmission from the shared feeds.', tags: ['broadcast', 'story', 'publish'] },
+      { title: 'mission plotter', href: 'mission-plotter.html', intent: ['build', 'plan'], energy: 'high', time: '60', note: 'drag-and-drop planning board with autosave.', tags: ['plan', 'board', 'ship'] },
+      { title: 'shipyard', href: 'shipyard.html', intent: ['build', 'plan'], energy: 'high', time: '30', note: 'roadmap cockpit with pinned ideas.', tags: ['roadmap', 'effort', 'queue'] },
+      { title: 'roost lens', href: 'roost-lens.html', intent: ['build', 'learn'], energy: 'medium', time: '15', note: 'daily build brief generator.', tags: ['brief', 'signals', 'daily'] },
+      { title: 'roost signal map', href: 'roost-signal-map.html', intent: ['build', 'plan'], energy: 'medium', time: '30', note: 'roadmap-aware planning surface.', tags: ['signal', 'map', 'pressure'] },
+      { title: 'roost forecast', href: 'roost-forecast.html', intent: ['recover', 'plan'], energy: 'low', time: '15', note: 'near-term forecast desk.', tags: ['forecast', 'weather', 'brief'] },
+      { title: 'roost prism', href: 'roost-prism.html', intent: ['learn', 'build'], energy: 'medium', time: '30', note: 'signal prism that emits a build brief.', tags: ['prism', 'lens', 'brief'] },
+      { title: "captain's log", href: 'captains-log.html', intent: ['learn', 'recover'], energy: 'low', time: '15', note: 'shareable digest from ships and notes.', tags: ['digest', 'publish', 'recap'] },
+      { title: 'weekly review', href: 'weekly-review.html', intent: ['learn', 'plan'], energy: 'low', time: '30', note: 'weekly digest and KPI rollup.', tags: ['review', 'weekly', 'signals'] },
+      { title: 'roost trails', href: 'roost-trails.html', intent: ['learn', 'build'], energy: 'medium', time: '30', note: 'trail intelligence and impact patterns.', tags: ['trails', 'momentum', 'reuse'] },
+      { title: 'roost storyboard', href: 'roost-storyboard.html', intent: ['build', 'plan'], energy: 'high', time: '30', note: 'idea queue studio for next-build planning.', tags: ['ideas', 'queue', 'shipping'] },
+      { title: 'roost orbit', href: 'roost-orbit.html', intent: ['plan', 'recover'], energy: 'low', time: '15', note: 'daily orbit planner for a sane route.', tags: ['route', 'orbit', 'session'] },
+      { title: 'roost handoff', href: 'roost-handoff.html', intent: ['recover', 'plan'], energy: 'low', time: '15', note: 'copyable next-session brief generator.', tags: ['handoff', 'brief', 'memory'] },
+      { title: 'roost pinboard', href: 'roost-pinboard.html', intent: ['plan', 'recover'], energy: 'low', time: '15', note: 'favorites and launch-path storage.', tags: ['pins', 'favorites', 'routes'] },
+    ];
+    const state = loadState();
+    const els = { count: document.getElementById('harborCountPill'), leadTitle: document.getElementById('harborLeadTitle'), leadCopy: document.getElementById('harborLeadCopy'), meta: document.getElementById('harborMeta'), focusPill: document.getElementById('harborFocusPill'), focusTitle: document.getElementById('harborFocusTitle'), focusCopy: document.getElementById('harborFocusCopy'), focusMeta: document.getElementById('harborFocusMeta'), focusTags: document.getElementById('harborFocusTags'), graph: document.getElementById('harborGraph'), routeGrid: document.getElementById('routeGrid'), routeBrief: document.getElementById('routeBrief'), pinnedDocks: document.getElementById('pinnedDocks'), intent: document.getElementById('intentSelect'), energy: document.getElementById('energySelect'), time: document.getElementById('timeSelect'), note: document.getElementById('noteInput') };
+    els.intent.value = state.intent || 'build'; els.energy.value = state.energy || 'medium'; els.time.value = state.time || '30'; els.note.value = state.note || '';
+    function loadState() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } }
+    function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ intent: els.intent.value, energy: els.energy.value, time: els.time.value, note: els.note.value })); } catch {} }
+    function getPins() { try { return JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); } catch { return []; } }
+    function setPins(pins) { try { localStorage.setItem(PIN_KEY, JSON.stringify(pins.slice(0, 8))); } catch {} }
+    function rand(seed) { const x = Math.sin(seed) * 10000; return x - Math.floor(x); }
+    function scorePage(page) { let score = 0; if (page.intent.includes(els.intent.value)) score += 5; if (page.energy === els.energy.value) score += 3; if (page.time === els.time.value) score += 2; if (els.note.value && (page.note + ' ' + page.tags.join(' ')).toLowerCase().includes(els.note.value.toLowerCase())) score += 2; return score + rand(page.title.length + page.href.length) * 0.35; }
+    function routePick() { return pages.slice().sort((a, b) => scorePage(b) - scorePage(a)); }
+    function groupPages() { const groups = [{ label: 'build', pages: pages.filter((p) => p.intent.includes('build') || p.tags.includes('shipping')), copy: 'pages for making visible progress.' }, { label: 'learn', pages: pages.filter((p) => p.intent.includes('learn') || p.tags.includes('signals')), copy: 'pages for reading the roost more clearly.' }, { label: 'play', pages: pages.filter((p) => p.intent.includes('play') || p.tags.includes('gallery')), copy: 'pages for lighter exploratory loops.' }, { label: 'recover', pages: pages.filter((p) => p.intent.includes('recover') || p.tags.includes('browse')), copy: 'pages for a quieter reset.' }]; els.graph.innerHTML = groups.map((group) => `<article class="harbor-node ${group.label === els.intent.value ? 'is-primary' : ''}"><strong>${group.label}</strong><span>${group.pages.length} docks · ${group.copy}</span></article>`).join(''); }
+    function renderPins() { const pins = getPins(); els.pinnedDocks.innerHTML = pins.length ? pins.map((href) => { const page = pages.find((p) => p.href === href); return page ? `<a class="chip" href="${page.href}">${page.title}</a>` : ''; }).join('') : '<div class="empty">no pinned docks yet.</div>'; }
+    function makeBrief(route) { const lead = route[0]; const support = route.slice(1, 4); const note = els.note.value.trim(); return [`roost harbor / ${new Date().toISOString()}`, `intent: ${els.intent.value}`, `energy: ${els.energy.value}`, `time: ${els.time.value} min`, `lead dock: ${lead.title} -> ${lead.href}`, `why: ${lead.note}`, `support: ${support.map((page) => page.title).join(' | ') || 'none'}`, note ? `note: ${note}` : 'note: none', `route tags: ${lead.tags.join(', ')}`].join('\n'); }
+    function renderRoute() { saveState(); const route = routePick(); const lead = route[0]; const rest = route.slice(1, 7); const routeTags = [...new Set(route.slice(0, 5).flatMap((p) => p.tags))].slice(0, 6); const pinned = getPins(); els.count.textContent = `${pages.length} pages`; els.leadTitle.textContent = `intent: ${els.intent.value}`; els.leadCopy.textContent = `Harbor has ${route.length} pages in the dock list, with ${lead.title} leading the current route.`; els.meta.innerHTML = [`<span class="pill">${lead.tags.join(' · ')}</span>`, `<span class="pill good">${lead.href}</span>`, `<span class="pill warm">pinned: ${pinned.length}</span>`].join(''); els.focusPill.textContent = `focus: ${lead.title}`; els.focusTitle.textContent = lead.title; els.focusCopy.textContent = lead.note; els.focusMeta.innerHTML = [`<span class="pill">${els.intent.value}</span>`, `<span class="pill">${lead.energy}</span>`, `<span class="pill">${lead.time} min</span>`].join(''); els.focusTags.innerHTML = routeTags.map((tag) => `<span class="pill">${tag}</span>`).join(''); els.routeGrid.innerHTML = [lead, ...rest].map((page, index) => `<article class="page-card ${index === 0 ? 'is-lead' : ''}"><div class="page-meta"><span class="pill">${index === 0 ? 'lead dock' : `alt ${index}`}</span><span class="pill">${page.energy}</span><span class="pill">${page.time} min</span></div><h3>${page.title}</h3><p class="page-copy">${page.note}</p><div class="page-meta">${page.tags.map((tag) => `<span class="pill">${tag}</span>`).join('')}</div><div class="link-row"><a class="btn" href="${page.href}">open dock</a><button class="btn" data-pin="${page.href}" type="button">pin</button></div></article>`).join(''); els.routeBrief.textContent = makeBrief(route); renderPins(); }
+    function shuffleRoute() { els.intent.value = ['build', 'learn', 'play', 'recover'][Math.floor(Math.random() * 4)]; els.energy.value = ['high', 'medium', 'low'][Math.floor(Math.random() * 3)]; els.time.value = ['15', '30', '60'][Math.floor(Math.random() * 3)]; renderRoute(); groupPages(); }
+    function copyBrief() { navigator.clipboard?.writeText(els.routeBrief.textContent || '').catch(() => {}); }
+    document.getElementById('routeShuffle').addEventListener('click', shuffleRoute);
+    document.getElementById('harborShuffle').addEventListener('click', shuffleRoute);
+    document.getElementById('copyRoute').addEventListener('click', copyBrief);
+    document.getElementById('harborCopy').addEventListener('click', copyBrief);
+    document.getElementById('routePin').addEventListener('click', () => { const lead = routePick()[0]; const pins = getPins().filter((href) => href !== lead.href); pins.unshift(lead.href); setPins(pins); renderPins(); });
+    [els.intent, els.energy, els.time, els.note].forEach((field) => { field.addEventListener('input', () => { saveState(); renderRoute(); groupPages(); }); });
+    document.addEventListener('click', (event) => { const href = event.target?.getAttribute?.('data-pin'); if (!href) return; const pins = getPins().filter((item) => item !== href); pins.unshift(href); setPins(pins); renderPins(); });
+    groupPages(); renderRoute();
+  </script>
+</body>
+</html>
