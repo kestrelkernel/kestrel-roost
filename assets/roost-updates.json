@@ -21,6 +21,21 @@
   },
   "updates": [
     {
+      "slug": "roost-capsules-launch",
+      "date": "2026-08-23",
+      "title": "Launched Roost Capsules as release case cards",
+      "type": "feature",
+      "impact": "Visitors can now scan shipped work as compact release capsules with linked notes, copyable briefs, and a more opinionated read on why each ship matters.",
+      "details": "Added roost-capsules.html, a release explorer that turns the latest update feed into featured capsules, searchable archive cards, type filters, and one-click brief copy.",
+      "page": "roost-capsules.html",
+      "pageLabel": "Open roost capsules",
+      "relatedNotes": [
+        "story-graph-principle",
+        "ship-log-strategy",
+        "roost-linking-system"
+      ]
+    },
+    {
       "slug": "now-board-share-cards",
       "date": "2026-08-15",
       "title": "Added share cards to the Now board",

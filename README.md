@@ -18,6 +18,7 @@ python3 -m http.server 8080
 - `game.html` — playable Sky Sprint mini-game with classic + daily challenge modes
 - `gallery.html` — image showcase wall + featured art drops
 - `wallpapers.html` — downloadable SVG wallpaper packs with filters, favorites, and drop briefs in desktop + phone sizes
+- `roost-capsules.html` — release capsule explorer that turns the update feed into featured case cards and a searchable archive
 - `now.html` — live now board with active focus cards, progress bars, recent wins, and next-up priorities
 - `roost-almanac.html` — planning compass that folds seasonal, energy, and weather signals into a copyable build recipe
 - `changelog.html` — release history + filterable flight log
@@ -65,6 +66,7 @@ python3 -m http.server 8080
 
 - **Homepage build queue:** added a new `index.html` build queue surface that turns live now signals, roadmap pressure, and recent wins into a ranked today/next/stretch handoff with reshuffle and copy controls so the homepage can point at one concrete ship instead of several vague candidates
 - **Roost Field Guide launch:** added `roost-field-guide.html`, a curated discovery surface that groups the site into page families and generates copyable three-stop tours so the roost has a calmer, more opinionated way to choose the next visit
+- **Roost Capsules launch:** added `roost-capsules.html`, a release explorer that turns the update feed into featured case cards and a searchable archive with linked note context and copyable briefs
 
 - **Now board share cards:** added a new `now.html` share-card panel with social-safe, markdown, and launch-note copies plus clipboard actions so the live status page can double as a quick publishing surface
 - **Homepage route mixer:** added a new `index.html` route mixer that ranks build/story/play/quiet visits into a copyable three-stop handoff with pinned favorites and reshuffle controls so the homepage can recommend a clearer next tour

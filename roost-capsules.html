@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Release capsules for Kestrel's Roost" />
+  <title>Roost Capsules · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#09101f;
+      --bg2:#111d41;
+      --fg:#edf1ff;
+      --muted:#a7b7ef;
+      --card:#0c1530cc;
+      --line:#33468a;
+      --accent:#9fb9ff;
+      --accent2:#f0c98b;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    html { background:var(--bg); }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:transparent;
+      overflow-x:hidden;
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background:
+        radial-gradient(circle at 18% 0%, #3054b42c 0%, transparent 38%),
+        radial-gradient(circle at 82% 100%, #1d2e6728 0%, transparent 42%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap { width:min(1120px, 92vw); margin:32px auto; display:grid; gap:14px; }
+    .card { border:1px solid var(--line); background:var(--card); border-radius:18px; padding:20px; box-shadow:0 10px 30px #00000033; backdrop-filter:blur(4px); }
+    h1 { margin:0 0 8px; font-size:clamp(2rem, 5vw, 3.2rem); }
+    h2 { margin:0 0 10px; font-size:1.02rem; color:#cdd9ff; }
+    p { margin:0; color:var(--muted); line-height:1.6; }
+    .site-nav,.toolbar,.meta-row,.link-row,.tag-row,.summary-grid,.capsule-grid { display:flex; flex-wrap:wrap; gap:8px; }
+    .site-nav { margin-top:10px; }
+    .nav-link,.btn,.filter { border:1px solid #4258a8; border-radius:999px; color:#dfe6ff; text-decoration:none; font:inherit; background:#102050; padding:6px 11px; cursor:pointer; transition:.15s ease; }
+    .btn { border-radius:10px; background:#11235b; padding:8px 12px; }
+    .filter.active,.nav-link:hover,.nav-link:focus-visible,.btn:hover,.btn:focus-visible,.filter:hover,.filter:focus-visible { background:#17306f; border-color:#7d97ff; outline:none; transform:translateY(-1px); }
+    .summary-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+    .capsule-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); }
+    .summary { border:1px solid #374b8f; background:#0a1434; border-radius:14px; padding:14px; display:grid; gap:8px; }
+    .summary strong { font-size:1.65rem; color:#fff; }
+    .summary span { color:#b8c8ff; text-transform:uppercase; letter-spacing:.08em; font-size:.74rem; }
+    .capsule { border:1px solid #3e549f; border-radius:16px; background:linear-gradient(180deg, #0c1638, #091127); padding:16px; display:grid; gap:10px; }
+    .capsule.is-lead { border-color:#d8b67a; background:linear-gradient(180deg, #18152b, #0b1127); }
+    .capsule-head { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:flex-start; }
+    .capsule-kicker { color:var(--accent2); text-transform:uppercase; letter-spacing:.12em; font-size:.72rem; }
+    .capsule h3 { margin:0; font-size:1.02rem; color:#fff; }
+    .capsule-copy { color:#dde6ff; line-height:1.55; }
+    .capsule dl { margin:0; display:grid; gap:8px; }
+    .capsule dt { color:#c9d6ff; font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; }
+    .capsule dd { margin:2px 0 0; color:#f1f5ff; line-height:1.5; }
+    .capsule-meta { display:flex; flex-wrap:wrap; gap:8px; color:#b8c8ff; font-size:.78rem; }
+    .capsule-tag { border:1px solid #4259a9; border-radius:999px; padding:4px 8px; background:#0d1840; font-size:.75rem; }
+    .capsule-meter { height:10px; border-radius:999px; border:1px solid #40559d; background:#091226; overflow:hidden; }
+    .capsule-meter span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg, #88b4ff, #f0c98b); }
+    .search { flex:1; min-width:220px; border:1px solid #4258a8; border-radius:10px; padding:10px 12px; font:inherit; color:var(--fg); background:#091431; }
+    .empty { border:1px dashed #41539a; border-radius:12px; padding:14px; color:#a8b9ff; }
+    footer { text-align:center; color:#8ea3ea; font-size:.84rem; padding:4px 0 18px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>roost capsules</h1>
+      <p>release entries recast as small case studies, so the newest ships read like useful capsules instead of log noise.</p>
+      <nav class="site-nav" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="roost-casebook.html">roost casebook</a>
+      </nav>
+    </section>
+    <section class="card summary-grid" aria-label="Capsule summary">
+      <article class="summary"><span>capsules featured</span><strong id="capsuleCount">--</strong><p>Top releases from the shared update feed, ready to scan in under a minute.</p></article>
+      <article class="summary"><span>linked notes</span><strong id="noteLinkCount">--</strong><p>Why-it-exists context from the note archive stays visible beside the ship.</p></article>
+      <article class="summary"><span>most recent ship</span><strong id="latestShip">--</strong><p id="latestShipHint">loading the latest release capsule…</p></article>
+    </section>
+    <section class="card">
+      <h2>featured capsule</h2>
+      <div class="capsule-grid" id="featuredCapsuleGrid" aria-live="polite"></div>
+    </section>
+    <section class="card">
+      <h2>capsule archive</h2>
+      <p>filter the release feed by type, then search across impact, details, and linked notes.</p>
+      <div class="toolbar">
+        <div class="tag-row" id="typeFilters" role="toolbar" aria-label="Filter capsule types"></div>
+        <input class="search" id="capsuleSearch" type="search" placeholder="search title, impact, page, or note trail" aria-label="Search capsules" />
+      </div>
+      <p id="capsuleCountLabel" style="color:#a8b9ff;font-size:.82rem;margin:10px 0 0;">loading archive…</p>
+      <div class="capsule-grid" id="capsuleGrid" aria-live="polite"></div>
+    </section>
+    <footer>small releases, bigger shape.</footer>
+  </main>
+  <script>
+    const featuredCapsuleGrid = document.getElementById('featuredCapsuleGrid');
+    const capsuleGrid = document.getElementById('capsuleGrid');
+    const capsuleCount = document.getElementById('capsuleCount');
+    const noteLinkCount = document.getElementById('noteLinkCount');
+    const latestShip = document.getElementById('latestShip');
+    const latestShipHint = document.getElementById('latestShipHint');
+    const capsuleSearch = document.getElementById('capsuleSearch');
+    const capsuleCountLabel = document.getElementById('capsuleCountLabel');
+    const typeFilters = document.getElementById('typeFilters');
+    let updates = [];
+    let notesById = new Map();
+    let activeType = 'all';
+    const normalize = (value) => String(value || '').toLowerCase();
+    const formatDate = (isoDate) => {
+      const parsed = new Date(`${isoDate}T00:00:00Z`);
+      if (Number.isNaN(parsed.getTime())) return isoDate;
+      return parsed.toLocaleDateString('en-GB', { timeZone: 'UTC', month: 'short', day: '2-digit', year: 'numeric' });
+    };
+    const relatedNotes = (entry) => (entry.relatedNotes || []).map((id) => notesById.get(id)).filter(Boolean);
+    const capsuleScore = (entry) => {
+      const base = ['feature', 'interaction', 'design'].includes(entry.type) ? 1.0 : 0.85;
+      return Math.min(base + Math.min(relatedNotes(entry).length * 0.08, 0.18), 1);
+    };
+    const capsuleCopy = (entry) => [
+      entry.title,
+      `Date: ${formatDate(entry.date)}`,
+      `Type: ${entry.type || 'update'}`,
+      `Impact: ${entry.impact || ''}`,
+      `What changed: ${entry.details || ''}`,
+      `Why it matters: ${entry.impact || entry.details || ''}`,
+      relatedNotes(entry).length ? `Linked notes: ${relatedNotes(entry).map((note) => note.title).join(', ')}` : null,
+      entry.page ? `Page: ${entry.pageLabel || entry.page}` : null
+    ].filter(Boolean).join('\n');
+    const makeCapsuleCard = (entry, featured = false) => {
+      const notes = relatedNotes(entry);
+      const card = document.createElement('article');
+      card.className = `capsule${featured ? ' is-lead' : ''}`;
+      const head = document.createElement('div');
+      head.className = 'capsule-head';
+      const titleBlock = document.createElement('div');
+      const kicker = document.createElement('div');
+      kicker.className = 'capsule-kicker';
+      kicker.textContent = featured ? 'featured capsule' : `${entry.type || 'update'} capsule`;
+      const title = document.createElement('h3');
+      title.textContent = entry.title;
+      const meta = document.createElement('p');
+      meta.className = 'capsule-meta';
+      meta.textContent = `${formatDate(entry.date)} · ${notes.length} linked note${notes.length === 1 ? '' : 's'}`;
+      titleBlock.append(kicker, title, meta);
+      const actions = document.createElement('div');
+      actions.className = 'link-row';
+      if (entry.page) {
+        const openPage = document.createElement('a');
+        openPage.className = 'btn';
+        openPage.href = entry.page;
+        openPage.textContent = entry.pageLabel || 'open page';
+        actions.appendChild(openPage);
+      }
+      const openChangelog = document.createElement('a');
+      openChangelog.className = 'btn';
+      openChangelog.href = `changelog.html#${entry.slug || ''}`;
+      openChangelog.textContent = 'open changelog';
+      actions.appendChild(openChangelog);
+      head.append(titleBlock, actions);
+      const copy = document.createElement('p');
+      copy.className = 'capsule-copy';
+      copy.textContent = entry.impact || entry.details || 'A compact release summary with no filler.';
+      const meter = document.createElement('div');
+      meter.className = 'capsule-meter';
+      const fill = document.createElement('span');
+      fill.style.width = `${Math.round(capsuleScore(entry) * 100)}%`;
+      meter.appendChild(fill);
+      const rows = document.createElement('dl');
+      [['what changed', entry.details || 'No extra detail provided.'], ['why it matters', entry.impact || 'It keeps the site moving forward.'], ['next thread', notes.slice(0, 2).map((note) => note.title).join(' and ') || 'the next release thread']]
+        .forEach(([label, value]) => { const dt = document.createElement('dt'); dt.textContent = label; const dd = document.createElement('dd'); dd.textContent = value; rows.append(dt, dd); });
+      const tags = document.createElement('div');
+      tags.className = 'tag-row';
+      const typeTag = document.createElement('span');
+      typeTag.className = 'capsule-tag';
+      typeTag.textContent = entry.type || 'update';
+      tags.appendChild(typeTag);
+      if (notes[0]?.tags?.length) {
+        for (const tag of notes[0].tags.slice(0, 2)) {
+          const item = document.createElement('span');
+          item.className = 'capsule-tag';
+          item.textContent = tag;
+          tags.appendChild(item);
+        }
+      }
+      const footer = document.createElement('div');
+      footer.className = 'meta-row';
+      const brief = document.createElement('span');
+      brief.className = 'capsule-meta';
+      brief.textContent = `brief seeds: ${notes.length}`;
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'btn';
+      copyBtn.textContent = 'copy capsule';
+      copyBtn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(capsuleCopy(entry)); copyBtn.textContent = 'copied'; setTimeout(() => { copyBtn.textContent = 'copy capsule'; }, 1200); }
+        catch { copyBtn.textContent = 'copy failed'; setTimeout(() => { copyBtn.textContent = 'copy capsule'; }, 1200); }
+      });
+      footer.append(brief, copyBtn);
+      card.append(head, copy, meter, rows, tags, footer);
+      return card;
+    };
+    const renderFilters = () => {
+      const types = ['all', ...new Set(updates.map((entry) => entry.type).filter(Boolean))];
+      typeFilters.innerHTML = '';
+      for (const type of types) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'filter';
+        button.textContent = type;
+        button.classList.toggle('active', type === activeType);
+        button.addEventListener('click', () => { activeType = type; renderFilters(); renderArchive(); });
+        typeFilters.appendChild(button);
+      }
+    };
+    const renderArchive = () => {
+      const query = normalize(capsuleSearch.value.trim());
+      const rows = [...updates]
+        .filter((entry) => activeType === 'all' || entry.type === activeType)
+        .filter((entry) => {
+          if (!query) return true;
+          const notes = relatedNotes(entry);
+          const haystack = normalize([entry.title, entry.impact, entry.details, entry.type, entry.page, entry.pageLabel, ...notes.map((note) => `${note.title} ${note.summary} ${(note.tags || []).join(' ')}`)].join(' '));
+          return haystack.includes(query);
+        })
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      capsuleGrid.innerHTML = '';
+      capsuleCountLabel.textContent = `${rows.length} capsule${rows.length === 1 ? '' : 's'} shown`;
+      if (rows.length === 0) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = 'No matches yet. Try another type or a broader search.'; capsuleGrid.appendChild(empty); return; }
+      for (const entry of rows) capsuleGrid.appendChild(makeCapsuleCard(entry));
+    };
+    const bootstrap = async () => {
+      try {
+        const [updatesResponse, notesResponse] = await Promise.all([fetch('assets/roost-updates.json', { cache: 'no-store' }), fetch('assets/roost-notes.json', { cache: 'no-store' })]);
+        if (!updatesResponse.ok || !notesResponse.ok) throw new Error('Failed to load capsule data');
+        const updatesData = await updatesResponse.json();
+        const notesData = await notesResponse.json();
+        updates = Array.isArray(updatesData.updates) ? updatesData.updates : [];
+        notesById = new Map((Array.isArray(notesData.notes) ? notesData.notes : []).map((note) => [note.id, note]));
+        capsuleCount.textContent = String(updates.length);
+        noteLinkCount.textContent = String(new Set(updates.flatMap((entry) => entry.relatedNotes || [])).size);
+        latestShip.textContent = updates[0]?.title || 'none yet';
+        latestShipHint.textContent = updates[0] ? `${formatDate(updates[0].date)} · ${updates[0].impact}` : 'No release data found.';
+        featuredCapsuleGrid.innerHTML = '';
+        if (updates[0]) featuredCapsuleGrid.appendChild(makeCapsuleCard(updates[0], true));
+        if (updates[1]) featuredCapsuleGrid.appendChild(makeCapsuleCard(updates[1]));
+        renderFilters();
+        renderArchive();
+      } catch {
+        featuredCapsuleGrid.innerHTML = '<div class="empty">Unable to load capsule data right now.</div>';
+        capsuleGrid.innerHTML = '<div class="empty">Unable to load capsule archive right now.</div>';
+        capsuleCount.textContent = '--';
+        noteLinkCount.textContent = '--';
+        latestShip.textContent = 'offline';
+        latestShipHint.textContent = 'The shared release feed could not be loaded.';
+      }
+    };
+    capsuleSearch.addEventListener('input', renderArchive);
+    bootstrap();
+  </script>
+</body>
+</html>
