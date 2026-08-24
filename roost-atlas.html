@@ -177,6 +177,31 @@
       gap:8px;
       margin-top:8px;
     }
+    .route-modes {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .route-mode-btn {
+      font:inherit;
+      color:#e3eaff;
+      border:1px solid #4962be;
+      border-radius:999px;
+      background:#0f1d4d;
+      padding:7px 11px;
+      cursor:pointer;
+    }
+    .route-mode-btn.is-active {
+      background:#183170;
+      border-color:#8da7ff;
+      color:#f5f8ff;
+    }
+    .route-mode-btn:hover,
+    .route-mode-btn:focus-visible {
+      border-color:#7390ff;
+      outline:2px solid #9ab4ff;
+      outline-offset:2px;
+    }
     .route-grid {
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -192,6 +217,29 @@
       font-size:.82rem;
       line-height:1.5;
       min-height:44px;
+    }
+    .saved-routes {
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+    }
+    .saved-route-row {
+      display:grid;
+      gap:8px;
+      border:1px solid #2f458d;
+      border-radius:10px;
+      background:#09143a;
+      padding:10px;
+    }
+    .saved-route-row strong { color:#eef3ff; }
+    .saved-route-meta {
+      font-size:.76rem;
+      color:#9db0ef;
+    }
+    .saved-route-actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
     }
     .pill-row {
       display:flex;
@@ -303,6 +351,11 @@
           <h2>route planner</h2>
           <p style="font-size:.82rem; margin-bottom:8px;">Pick any two nodes to reveal the shortest story path between them.</p>
           <div class="route-controls">
+            <div class="route-modes" role="group" aria-label="Route highlight modes">
+              <button class="route-mode-btn is-active" data-route-mode="route" type="button">focus route</button>
+              <button class="route-mode-btn" data-route-mode="neighbors" type="button">show neighbors</button>
+              <button class="route-mode-btn" data-route-mode="all" type="button">show all</button>
+            </div>
             <div class="route-grid">
               <label>From
                 <select id="routeFrom"></select>
@@ -311,8 +364,12 @@
                 <select id="routeTo"></select>
               </label>
             </div>
-            <button id="routeBtn" type="button">plot shortest route</button>
+            <div class="saved-route-actions">
+              <button id="routeBtn" type="button">plot shortest route</button>
+              <button id="saveRouteBtn" type="button">save route</button>
+            </div>
             <div id="routeResult" class="route-result">Select two points to map a route.</div>
+            <div class="saved-routes" id="savedRoutes"></div>
           </div>
         </article>
       </aside>
@@ -340,9 +397,12 @@
     const routeFrom = document.getElementById('routeFrom');
     const routeTo = document.getElementById('routeTo');
     const routeBtn = document.getElementById('routeBtn');
+    const saveRouteBtn = document.getElementById('saveRouteBtn');
     const routeResult = document.getElementById('routeResult');
+    const savedRoutes = document.getElementById('savedRoutes');
     const atlasSearch = document.getElementById('atlasSearch');
     const focusBtn = document.getElementById('focusBtn');
+    const routeModeBtns = Array.from(document.querySelectorAll('[data-route-mode]'));
 
     const TYPE_COLOR = {
       update: '#8ab0ff',
@@ -354,6 +414,8 @@
     let selectedId = null;
     let hoveredId = null;
     let routePathIds = [];
+    let routeMode = 'route';
+    let savedRouteList = [];
     let searchTerm = '';
     let pendingState = null;
     let hasUrlState = false;
@@ -383,6 +445,7 @@
       if (routeFrom.value) params.set('from', routeFrom.value);
       if (routeTo.value) params.set('to', routeTo.value);
       if (routePathIds.length > 1) params.set('route', routePathIds.join(','));
+      if (routeMode !== 'route') params.set('mode', routeMode);
       if (Math.abs(view.zoom - 1) > 0.001) params.set('zoom', view.zoom.toFixed(3));
       if (Math.abs(view.x) > 1 || Math.abs(view.y) > 1) {
         params.set('pan', `${Math.round(view.x)},${Math.round(view.y)}`);
@@ -405,12 +468,43 @@
         from: params.get('from') || '',
         to: params.get('to') || '',
         route: params.get('route') || '',
+        mode: params.get('mode') || '',
         zoom: params.get('zoom') || '',
         pan: params.get('pan') || ''
       };
       if (pendingState.scope) scopeSelect.value = pendingState.scope;
       atlasSearch.value = pendingState.q;
       searchTerm = pendingState.q.toLowerCase();
+    }
+
+    function getStorage() {
+      try {
+        return window.localStorage;
+      } catch {
+        return null;
+      }
+    }
+
+    function loadSavedRoutes() {
+      const storage = getStorage();
+      if (!storage) return [];
+      try {
+        const raw = storage.getItem('roostAtlasSavedRoutes');
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item === 'object') : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function persistSavedRoutes() {
+      const storage = getStorage();
+      if (!storage) return;
+      try {
+        storage.setItem('roostAtlasSavedRoutes', JSON.stringify(savedRouteList.slice(0, 8)));
+      } catch {
+        // ignore storage failures
+      }
     }
 
     function filterUpdates(updates, scope) {
@@ -583,6 +677,7 @@
 
       const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
       const linkedToSelected = new Set();
+      const routeSet = new Set(routePathIds);
       if (selectedId) {
         graph.edges.forEach((edge) => {
           if (edge.from === selectedId) linkedToSelected.add(edge.to);
@@ -598,12 +693,16 @@
         const b = worldToScreen(to.x, to.y);
         const onRoute = routePathIds.length > 1 && routePathIds.includes(edge.from) && routePathIds.includes(edge.to) && Math.abs(routePathIds.indexOf(edge.from) - routePathIds.indexOf(edge.to)) === 1;
         const isHighlighted = onRoute || (selectedId && (edge.from === selectedId || edge.to === selectedId));
-        ctx.strokeStyle = isHighlighted ? '#9fb5ff' : 'rgba(70, 95, 180, 0.62)';
-        ctx.lineWidth = onRoute ? 2.6 : isHighlighted ? 1.8 : 1;
+        const modeHighlights = routeMode === 'all' || (routeMode === 'neighbors' && (routeSet.has(edge.from) || routeSet.has(edge.to) || linkedToSelected.has(edge.from) || linkedToSelected.has(edge.to)));
+        const dimmed = routeMode === 'route' && routePathIds.length > 1 && !onRoute && !isHighlighted;
+        ctx.strokeStyle = onRoute ? '#d5e0ff' : modeHighlights || isHighlighted ? '#9fb5ff' : 'rgba(70, 95, 180, 0.62)';
+        ctx.globalAlpha = dimmed ? 0.18 : 1;
+        ctx.lineWidth = onRoute ? 2.8 : isHighlighted || modeHighlights ? 1.9 : 1;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
         ctx.stroke();
+        ctx.globalAlpha = 1;
       });
 
       graph.nodes.forEach((node) => {
@@ -613,11 +712,13 @@
         const linked = linkedToSelected.has(node.id);
         const inRoute = routePathIds.includes(node.id);
         const matchesSearch = !searchTerm || [node.label, node.short, node.type].join(' ').toLowerCase().includes(searchTerm);
-        const shouldEmphasize = selected || hovered || inRoute || matchesSearch || !selectedId || linked;
+        const routeVisible = routeMode === 'all' || (routeMode === 'neighbors' && (inRoute || linked || routeSet.has(node.id)));
+        const shouldEmphasize = selected || hovered || inRoute || matchesSearch || !selectedId || linked || routeVisible;
+        const dimmed = routeMode === 'route' && routePathIds.length > 1 && !shouldEmphasize;
 
         ctx.beginPath();
         ctx.fillStyle = TYPE_COLOR[node.type] || '#b6c6ff';
-        ctx.globalAlpha = shouldEmphasize ? 1 : 0.18;
+        ctx.globalAlpha = dimmed ? 0.18 : shouldEmphasize ? 1 : 0.18;
         ctx.arc(p.x, p.y, (node.r + (inRoute ? 3 : selected ? 3 : hovered ? 2 : 0)) * view.zoom, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
@@ -719,6 +820,9 @@
           routeResult.textContent = ids.map((id) => nodeById.get(id)?.label || id).join(' → ');
         }
       }
+      if (pendingState?.mode && ['route', 'neighbors', 'all'].includes(pendingState.mode)) {
+        routeMode = pendingState.mode;
+      }
       if (pendingState?.node && nodeById.has(pendingState.node)) {
         selectedId = pendingState.node;
         setDetails(nodeById.get(selectedId));
@@ -734,6 +838,7 @@
           view.y = y;
         }
       }
+      syncModeButtons();
       pendingState = null;
     }
 
@@ -818,6 +923,69 @@
       }
     }
 
+    function renderSavedRoutes() {
+      if (!savedRoutes) return;
+      if (!savedRouteList.length) {
+        savedRoutes.innerHTML = '<div class="saved-route-row"><strong>No saved routes yet</strong><span class="saved-route-meta">Plot a path, then save it for later reopening.</span></div>';
+        return;
+      }
+
+      savedRoutes.innerHTML = savedRouteList.map((item, index) => {
+        const labels = Array.isArray(item.labels) ? item.labels.join(' → ') : item.ids.join(' → ');
+        return `
+          <div class="saved-route-row">
+            <strong>${item.title}</strong>
+            <div class="saved-route-meta">${item.mode || 'route'} · ${item.scope || 'all'} · ${item.savedAt || ''}</div>
+            <div class="saved-route-meta">${labels}</div>
+            <div class="saved-route-actions">
+              <button class="route-mode-btn" type="button" data-open-route="${index}">open</button>
+              <button class="route-mode-btn" type="button" data-drop-route="${index}">delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      savedRoutes.querySelectorAll('[data-open-route]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const item = savedRouteList[Number(btn.getAttribute('data-open-route'))];
+          if (!item) return;
+          routeMode = item.mode || 'route';
+          routePathIds = item.ids.slice();
+          routeFrom.value = item.from;
+          routeTo.value = item.to;
+          selectedId = item.ids[0] || selectedId;
+          const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+          if (selectedId && nodeById.has(selectedId)) setDetails(nodeById.get(selectedId));
+          routeResult.textContent = item.labels?.length ? item.labels.join(' → ') : 'Saved route reopened.';
+          syncModeButtons();
+          draw();
+          syncUrlState();
+        });
+      });
+
+      savedRoutes.querySelectorAll('[data-drop-route]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const index = Number(btn.getAttribute('data-drop-route'));
+          savedRouteList.splice(index, 1);
+          persistSavedRoutes();
+          renderSavedRoutes();
+        });
+      });
+    }
+
+    function syncModeButtons() {
+      routeModeBtns.forEach((btn) => {
+        btn.classList.toggle('is-active', btn.dataset.routeMode === routeMode);
+      });
+    }
+
+    function setRouteMode(nextMode) {
+      routeMode = nextMode;
+      syncModeButtons();
+      draw();
+      syncUrlState();
+    }
+
     function shortestPath(fromId, toId) {
       if (!fromId || !toId || fromId === toId) return [fromId].filter(Boolean);
       const adjacency = new Map(graph.nodes.map((n) => [n.id, []]));
@@ -865,6 +1033,7 @@
       graph = buildGraph(updates, notes, scopeSelect.value);
       runLayout();
       refreshRouteOptions();
+      renderSavedRoutes();
       updateStats();
       applyPendingSelection();
       if (!selectedId) {
@@ -872,6 +1041,7 @@
         setDetails(graph.nodes[0] || null);
       }
       if (!hasUrlState) centerView();
+      syncModeButtons();
       syncUrlState();
     }
 
@@ -888,8 +1058,38 @@
       routeResult.textContent = routePathIds.map((id) => nodeById.get(id)?.label || id).join(' → ');
       selectedId = routePathIds[0];
       setDetails(nodeById.get(selectedId));
+      routeMode = 'route';
+      syncModeButtons();
       draw();
       syncUrlState();
+    });
+
+    saveRouteBtn?.addEventListener('click', () => {
+      if (routePathIds.length < 2) {
+        routeResult.textContent = 'Plot a route first, then save it.';
+        return;
+      }
+      const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+      const labels = routePathIds.map((id) => nodeById.get(id)?.label || id);
+      const nextItem = {
+        title: labels[0] && labels[labels.length - 1] ? `${labels[0]} → ${labels[labels.length - 1]}` : 'saved route',
+        ids: routePathIds.slice(),
+        labels,
+        from: routeFrom.value,
+        to: routeTo.value,
+        mode: routeMode,
+        scope: scopeSelect.value,
+        savedAt: new Date().toISOString().slice(0, 10)
+      };
+      savedRouteList = [nextItem, ...savedRouteList.filter((item) => JSON.stringify(item.ids) !== JSON.stringify(nextItem.ids))].slice(0, 8);
+      persistSavedRoutes();
+      renderSavedRoutes();
+      routeResult.textContent = `Saved ${nextItem.title}.`;
+      syncUrlState();
+    });
+
+    routeModeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => setRouteMode(btn.dataset.routeMode || 'route'));
     });
 
     scopeSelect.addEventListener('change', loadData);
@@ -990,6 +1190,7 @@
     });
 
     applyUrlState();
+    savedRouteList = loadSavedRoutes();
     setCanvasSize();
     loadData().catch((error) => {
       detailTitle.textContent = 'Atlas offline';
