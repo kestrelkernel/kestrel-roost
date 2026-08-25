@@ -493,6 +493,94 @@
       font:inherit;
       line-height:1.45;
     }
+    .corridor-board {
+      border:1px solid #4c69c8;
+      background:
+        radial-gradient(circle at top left, #b2c6ff1f 0%, transparent 32%),
+        linear-gradient(155deg, #0d173a, #081127 58%, #152e70);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .corridor-board::before {
+      content:"";
+      position:absolute;
+      inset:auto auto -110px -90px;
+      width:280px;
+      height:280px;
+      border-radius:999px;
+      background:radial-gradient(circle, #96b5ff2b 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .corridor-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .corridor-head h2 { margin:0; }
+    .corridor-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:46rem;
+    }
+    .corridor-grid {
+      display:grid;
+      grid-template-columns:1.15fr .9fr .9fr;
+      gap:12px;
+      z-index:1;
+    }
+    .corridor-panel {
+      border:1px solid #35509f;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .corridor-panel.is-lead {
+      background:linear-gradient(155deg, #14306e, #08112de6 72%);
+      border-color:#7e97eb;
+    }
+    .corridor-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .corridor-copy {
+      margin:0;
+      color:#c2cfff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .corridor-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#bfd0ff;
+      font-size:.8rem;
+    }
+    .corridor-brief {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .corridor-brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .seasonal-desk {
       border:1px solid #4d69c5;
       background:linear-gradient(155deg, #0c1738, #09112a 58%, #12265d);
@@ -2524,6 +2612,23 @@
       </div>
     </section>
 
+    <section class="card corridor-board" id="launchCorridorBoard" aria-live="polite">
+      <div class="corridor-head">
+        <h2>launch corridor</h2>
+        <p class="corridor-note">the homepage's next-build compass: one lead choice, two backups, and the cleanest escape hatch when a session needs to stay shippable.</p>
+      </div>
+      <div class="corridor-grid" id="corridorGrid"></div>
+      <div class="corridor-brief">
+        <p class="tiny">loading corridor snapshot…</p>
+        <div class="links">
+          <button class="btn" id="corridorShuffle">reshuffle corridor</button>
+          <button class="btn" id="corridorCopy">copy corridor brief</button>
+          <a class="btn" href="roost-launch-corridor.html">open full corridor</a>
+        </div>
+        <pre id="corridorBrief">loading corridor…</pre>
+      </div>
+    </section>
+
     <section class="card" id="releasePulseBoard" aria-live="polite">
       <h2>release pulse</h2>
       <p class="tiny" style="margin-bottom:10px;">a quick scan of what just shipped, what is in motion, and where the roadmap is leaning next.</p>
@@ -3089,6 +3194,10 @@
     const runwayGrid = document.getElementById('runwayGrid');
     const runwayBrief = document.getElementById('runwayBrief');
     const copyRunwayBrief = document.getElementById('copyRunwayBrief');
+    const corridorGrid = document.getElementById('corridorGrid');
+    const corridorBrief = document.getElementById('corridorBrief');
+    const corridorShuffle = document.getElementById('corridorShuffle');
+    const corridorCopy = document.getElementById('corridorCopy');
     const releasePulseStats = document.getElementById('releasePulseStats');
     const releasePulseLatest = document.getElementById('releasePulseLatest');
     const releasePulseRoadmap = document.getElementById('releasePulseRoadmap');
@@ -3161,6 +3270,8 @@
       activeFocus: [],
       recentWins: []
     };
+    let corridorState = null;
+    let corridorSeed = 0;
     let beaconState = {
       lead: null,
       pressure: [],
@@ -5449,6 +5560,12 @@
       };
     })();
 
+    corridorSeed = Number.parseInt(storage.get('roostCorridorSeed') ?? '', 10);
+    if (!Number.isFinite(corridorSeed)) {
+      corridorSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+      storage.set('roostCorridorSeed', String(corridorSeed));
+    }
+
     const questHistoryMax = 5;
     const formatUtcTimestamp = (value) => {
       const date = new Date(value);
@@ -5817,6 +5934,99 @@
         '',
         'why it matters: the homepage can now point at a ranked build lane that blends backlog, momentum, and the current now feed.'
       ].join('\n');
+    };
+
+    const buildLaunchCorridorState = (updatesData, notesById, shipyard, expeditions, nowData) => {
+      const updates = Array.isArray(updatesData?.updates) ? updatesData.updates : [];
+      const roadmap = updatesData?.roadmap || { now: [], next: [], later: [] };
+      const notes = notesById instanceof Map ? [...notesById.values()] : Object.values(notesById || {});
+      const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      const latestUpdate = sortedUpdates[0] || null;
+      const activeFocus = Array.isArray(nowData?.activeFocus) ? nowData.activeFocus.slice(0, 2) : [];
+      const activeExpeditions = Array.isArray(expeditions) ? expeditions.filter((item) => item.status === 'active').slice(0, 2) : [];
+      const pressureNotes = [...notes].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 2);
+      const runwayCandidates = [...runwayData.shipyard]
+        .map((entry) => ({ entry, score: scoreRunwayCandidate(entry, { mode: 'ship' }) }))
+        .sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title));
+      const lead = runwayCandidates[0]?.entry || latestUpdate || null;
+      const backup = runwayCandidates[1]?.entry || activeFocus[0] || activeExpeditions[0] || null;
+      const escapeCopy = activeFocus[0]?.title
+        ? `pause on ${activeFocus[0].title}`
+        : activeExpeditions[0]?.name
+          ? `revisit ${activeExpeditions[0].name}`
+          : pressureNotes[0]?.title
+            ? `refresh ${pressureNotes[0].title}`
+            : 'drop back to a lighter page and keep the session moving';
+      const lanes = [
+        {
+          title: lead?.title || 'lead move',
+          copy: lead?.summary || lead?.impact || 'the best visible move right now.',
+          meta: [lead?.status || 'planned', lead?.horizon || 'near', lead?.page ? 'linked page' : 'no page'],
+          href: lead?.link || lead?.page || 'roost-launch-corridor.html'
+        },
+        {
+          title: backup?.title || backup?.name || 'backup route',
+          copy: backup?.summary || backup?.impact || 'a second surface that still earns its place.',
+          meta: [
+            backup?.energy || backup?.horizon || 'medium',
+            backup?.tags?.[0] || backup?.title || backup?.name || 'supporting',
+            backup?.minTime ? `${backup.minTime}+ min` : 'quick hop'
+          ],
+          href: backup?.link || backup?.page || 'now.html'
+        },
+        {
+          title: escapeCopy,
+          copy: [
+            roadmap.now?.[0] || 'roadmap pressure is light.',
+            activeExpeditions[0]?.summary || 'the active expedition list stays visible here.',
+            pressureNotes[0]?.summary || pressureNotes[0]?.note || 'notes can reset the direction when needed.'
+          ].filter(Boolean).join(' '),
+          meta: [
+            `${(roadmap.now || []).length} now bets`,
+            `${activeExpeditions.length} active expeditions`,
+            `${pressureNotes.length} fresh notes`
+          ],
+          href: 'roost-launch-corridor.html'
+        }
+      ];
+      const routeText = [
+        `launch corridor / ${['ship', 'stretch', 'quiet'][corridorSeed % 3]}`,
+        `lead: ${lead?.title || 'pick one visible improvement'}`,
+        `backups: ${lanes[1].title} | ${lanes[2].title}`,
+        `pressure: ${(roadmap.now || []).slice(0, 2).join(' | ') || 'quiet'}`,
+        `confidence: ${latestUpdate?.title || 'latest ship'} keeps the day pointed at visible progress.`,
+        `escape hatch: ${escapeCopy}`,
+        'why it matters: the homepage now names the next move, the fallback move, and the out if the session needs to stay small.'
+      ].join('\n');
+      return { lanes, routeText, latestUpdate, activeFocus, activeExpeditions, pressureNotes };
+    };
+
+    const renderLaunchCorridor = () => {
+      if (!corridorGrid || !corridorBrief || !corridorState) return;
+      const { lanes, routeText, latestUpdate, activeFocus, activeExpeditions, pressureNotes } = corridorState;
+      const ordered = [...lanes]
+        .map((lane) => ({ lane, order: Math.floor(seededRandom(corridorSeed + lane.title.length * 13)() * 10_000) }))
+        .sort((a, b) => a.order - b.order)
+        .map(({ lane }) => lane);
+      corridorGrid.innerHTML = ordered.map((lane, index) => `
+        <article class="corridor-panel ${index === 0 ? 'is-lead' : ''}">
+          <h3>${index === 0 ? 'lead' : index === 1 ? 'backup' : 'escape hatch'}</h3>
+          <p class="corridor-copy"><strong style="color:#fff;">${lane.title}</strong> - ${lane.copy}</p>
+          <div class="corridor-meta">${lane.meta.map((item) => `<span class="tag">${item}</span>`).join('')}</div>
+          <div class="link-row"><a class="btn" href="${lane.href}">open surface</a></div>
+        </article>
+      `).join('');
+      corridorBrief.textContent = routeText;
+      const corridorNote = corridorBrief.parentElement?.querySelector('.tiny');
+      if (corridorNote) {
+        corridorNote.textContent = `lead from ${latestUpdate?.date || 'today'} · ${activeFocus.length} active focus items · ${activeExpeditions.length} expeditions · ${pressureNotes.length} fresh notes`;
+      }
+    };
+
+    const reshuffleLaunchCorridor = () => {
+      corridorSeed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostCorridorSeed', String(corridorSeed));
+      renderLaunchCorridor();
     };
 
     const setRunwayMode = (nextMode) => {
@@ -6277,6 +6487,8 @@
       };
 
       renderRunwayBoard();
+      corridorState = buildLaunchCorridorState(updatesData, new Map(), runwayData.shipyard, [], nowData);
+      renderLaunchCorridor();
     };
 
     const renderLatestShips = (updates, notesById) => {
@@ -6437,6 +6649,8 @@
         renderBroadcastBoard(threadFeedState);
         beaconState = buildBeaconState(updatesData, notesById, Array.isArray(shipyard) ? shipyard : [], Array.isArray(expeditions) ? expeditions : [], nowData);
         renderBeaconBoard();
+        corridorState = buildLaunchCorridorState(updatesData, notesById, Array.isArray(shipyard) ? shipyard : [], Array.isArray(expeditions) ? expeditions : [], nowData);
+        renderLaunchCorridor();
         launchRadarState = buildLaunchRadar(getLaunchRadarMode(), launchRadarPayload);
         renderLaunchRadar();
 
@@ -6510,6 +6724,8 @@
         if (dispatchBrief) dispatchBrief.textContent = 'dispatch unavailable right now.';
         if (beaconGrid) beaconGrid.innerHTML = '<div class="empty-card">route beacon unavailable right now.</div>';
         if (beaconBrief) beaconBrief.textContent = 'beacon unavailable right now.';
+        if (corridorGrid) corridorGrid.innerHTML = '<div class="empty-card">launch corridor unavailable right now.</div>';
+        if (corridorBrief) corridorBrief.textContent = 'launch corridor unavailable right now.';
         if (launchRadarTitle) launchRadarTitle.textContent = 'launch radar unavailable';
         if (launchRadarLead) launchRadarLead.textContent = 'try again once the shared feeds come back.';
         if (launchRadarMeta) launchRadarMeta.innerHTML = '';
@@ -6558,6 +6774,20 @@
         setActionStatus('dispatch brief copied ✓', 'ok');
       } catch {
         setActionStatus('clipboard blocked for dispatch brief.', 'warn');
+      }
+    });
+    corridorShuffle?.addEventListener('click', () => {
+      reshuffleLaunchCorridor();
+      setActionStatus('corridor reshuffled ✓', 'ok');
+    });
+    corridorCopy?.addEventListener('click', async () => {
+      const text = corridorBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('corridor brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for corridor brief.', 'warn');
       }
     });
     skylineShuffle?.addEventListener('click', () => {
