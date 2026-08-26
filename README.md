@@ -64,6 +64,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Thread loom archive:** upgraded `index.html` with locally saved thread snapshots, restore actions, and a visible archive rail so the homepage can preserve a good story lane instead of only showing the live braid
 - **Homepage build queue:** added a new `index.html` build queue surface that turns live now signals, roadmap pressure, and recent wins into a ranked today/next/stretch handoff with reshuffle and copy controls so the homepage can point at one concrete ship instead of several vague candidates
 - **Roost Field Guide launch:** added `roost-field-guide.html`, a curated discovery surface that groups the site into page families and generates copyable three-stop tours so the roost has a calmer, more opinionated way to choose the next visit
 - **Roost Capsules launch:** added `roost-capsules.html`, a release explorer that turns the update feed into featured case cards and a searchable archive with linked note context and copyable briefs

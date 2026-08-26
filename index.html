@@ -1587,6 +1587,70 @@
       font:inherit;
       line-height:1.45;
     }
+    .thread-archive {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      margin-top:12px;
+    }
+    .thread-archive-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .thread-archive-head h3 {
+      margin:0;
+      font-size:.98rem;
+      color:#f0f4ff;
+    }
+    .thread-archive-note {
+      font-size:.8rem;
+      color:#a9bbff;
+    }
+    .thread-archive-list {
+      display:grid;
+      gap:8px;
+    }
+    .thread-archive-entry {
+      border:1px solid #314885;
+      border-radius:10px;
+      background:#0b1535;
+      padding:10px 12px;
+      display:grid;
+      gap:6px;
+    }
+    .thread-archive-entry.is-active {
+      border-color:#8eaaff;
+      background:linear-gradient(155deg, #122962, #081231 72%);
+    }
+    .thread-archive-title {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .thread-archive-title strong {
+      color:#f5f8ff;
+      font-size:.94rem;
+    }
+    .thread-archive-summary {
+      color:#c5d2ff;
+      line-height:1.45;
+      font-size:.88rem;
+    }
+    .thread-archive-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      font-size:.75rem;
+      color:#b9caff;
+    }
     .editorial-desk {
       border:1px solid #4c66c4;
       background:
@@ -2786,6 +2850,19 @@
         <h3 style="margin:0; font-size:.98rem; color:#f0f4ff;">copyable thread brief</h3>
         <pre id="threadBrief">loading thread brief…</pre>
       </div>
+      <div class="thread-archive">
+        <div class="thread-archive-head">
+          <h3>saved thread snapshots</h3>
+          <span class="thread-archive-note">kept locally so you can reopen a good story lane later.</span>
+        </div>
+        <div class="link-row">
+          <button class="btn" id="threadSave">save thread snapshot</button>
+          <button class="btn" id="threadClearArchive">clear archive</button>
+        </div>
+        <div class="thread-archive-list" id="threadArchiveList">
+          <div class="empty-card">no thread snapshots saved yet.</div>
+        </div>
+      </div>
     </section>
 
     <section class="card editorial-desk" id="editorialDesk" aria-live="polite">
@@ -3502,6 +3579,9 @@
     const threadShuffle = document.getElementById('threadShuffle');
     const threadCopy = document.getElementById('threadCopy');
     const threadBrief = document.getElementById('threadBrief');
+    const threadSave = document.getElementById('threadSave');
+    const threadClearArchive = document.getElementById('threadClearArchive');
+    const threadArchiveList = document.getElementById('threadArchiveList');
     const editorialModes = document.getElementById('editorialModes');
     const editorialLeadCard = document.getElementById('editorialLeadCard');
     const editorialLeadMeta = document.getElementById('editorialLeadMeta');
@@ -3995,6 +4075,13 @@
     let threadState = {
       themeId: storage.get('roostThreadTheme') || threadThemes[0].id
     };
+    let threadArchive = [];
+    try {
+      const archived = JSON.parse(storage.get(THREAD_ARCHIVE_KEY) || '[]');
+      threadArchive = Array.isArray(archived) ? archived.slice(0, 5) : [];
+    } catch {
+      threadArchive = [];
+    }
     const editorialModesList = [
       { id: 'ship', label: 'ship', summary: 'push visible feature work', weight: 5 },
       { id: 'story', label: 'story', summary: 'connect launches and notes', weight: 4 },
@@ -4156,6 +4243,7 @@
           `next page: ${theme.page}`,
           'why it matters: the homepage can now braid the site into a narrative lane instead of just surfacing isolated pages.'
         ].join('\n');
+        renderThreadArchive();
         return;
       }
 
@@ -4206,7 +4294,52 @@
         '',
         `why it matters: the homepage can now braid ${theme.label} signals into one navigable story thread.`
       ].join('\n');
+      renderThreadArchive();
     };
+
+    const renderThreadArchive = () => {
+      if (!threadArchiveList) return;
+      if (!threadArchive.length) {
+        threadArchiveList.innerHTML = '<div class="empty-card">no thread snapshots saved yet.</div>';
+        return;
+      }
+
+      threadArchiveList.innerHTML = threadArchive.map((entry, index) => `
+        <article class="thread-archive-entry ${index === 0 ? 'is-active' : ''}">
+          <div class="thread-archive-title">
+            <strong>${entry.themeLabel || 'thread snapshot'}</strong>
+            <span>${entry.savedAt ? new Date(entry.savedAt).toLocaleString() : 'just now'}</span>
+          </div>
+          <div class="thread-archive-summary">${entry.lead || 'saved thread lane'}</div>
+          <div class="thread-archive-meta">
+            <span class="tag">${entry.themeId || 'thread'}</span>
+            <span class="tag">${index === 0 ? 'latest' : `saved #${threadArchive.length - index}`}</span>
+          </div>
+          <div class="link-row">
+            <button class="btn" type="button" data-thread-restore="${entry.id}">restore brief</button>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const saveThreadArchive = () => {
+      const brief = threadBrief?.textContent || '';
+      if (!brief.trim()) return;
+      const theme = threadThemes.find((entry) => entry.id === threadState.themeId) || threadThemes[0];
+      const leadLine = brief.split('\n').find((line) => line.startsWith('lead signal:')) || '';
+      const entry = {
+        id: `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
+        savedAt: new Date().toISOString(),
+        themeId: theme.id,
+        themeLabel: theme.label,
+        lead: leadLine.replace('lead signal: ', '').trim() || 'thread snapshot',
+        brief
+      };
+      threadArchive = [entry, ...threadArchive.filter((item) => item.brief !== brief)].slice(0, 5);
+      storage.set(THREAD_ARCHIVE_KEY, JSON.stringify(threadArchive));
+      renderThreadArchive();
+    };
+    renderThreadArchive();
 
     const getEditorialMode = () => editorialModesList.find((mode) => mode.id === editorialState.modeId) || editorialModesList[0];
 
@@ -4347,6 +4480,35 @@
       } catch {
         setActionStatus('clipboard blocked for thread brief.', 'warn');
       }
+    });
+
+    threadSave?.addEventListener('click', () => {
+      saveThreadArchive();
+      setActionStatus('thread snapshot saved ✓', 'ok');
+    });
+
+    threadClearArchive?.addEventListener('click', () => {
+      threadArchive = [];
+      storage.remove(THREAD_ARCHIVE_KEY);
+      renderThreadArchive();
+      setActionStatus('thread archive cleared ✓', 'ok');
+    });
+
+    threadArchiveList?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const snapshotId = target.dataset.threadRestore;
+      if (!snapshotId) return;
+      const snapshot = threadArchive.find((entry) => entry.id === snapshotId);
+      if (!snapshot) return;
+      const theme = threadThemes.find((entry) => entry.id === snapshot.themeId);
+      if (theme) {
+        threadState.themeId = theme.id;
+        storage.set('roostThreadTheme', theme.id);
+      }
+      renderThreadLoom(threadFeedState);
+      if (threadBrief) threadBrief.textContent = snapshot.brief;
+      setActionStatus('thread snapshot restored ✓', 'ok');
     });
 
     editorialModes?.addEventListener('click', (event) => {
@@ -5559,6 +5721,7 @@
         }
       };
     })();
+    const THREAD_ARCHIVE_KEY = 'roostThreadArchive';
 
     corridorSeed = Number.parseInt(storage.get('roostCorridorSeed') ?? '', 10);
     if (!Number.isFinite(corridorSeed)) {
