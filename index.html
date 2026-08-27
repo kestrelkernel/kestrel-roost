@@ -1651,6 +1651,127 @@
       font-size:.75rem;
       color:#b9caff;
     }
+    .session-postcard {
+      border:1px solid #4c66c4;
+      background:
+        radial-gradient(circle at top right, #93acff22 0, transparent 36%),
+        linear-gradient(155deg, #09122f, #111f49 62%, #0a1230);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .session-postcard::before {
+      content:"";
+      position:absolute;
+      inset:auto -120px -120px auto;
+      width:300px;
+      height:300px;
+      border-radius:999px;
+      background:radial-gradient(circle, #98b2ff20 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .session-postcard-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+      position:relative;
+    }
+    .session-postcard-head h2 { margin:0; }
+    .session-postcard-note {
+      margin:0;
+      color:#a8b9ff;
+      font-size:.85rem;
+    }
+    .session-postcard-grid {
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:12px;
+      z-index:1;
+      position:relative;
+    }
+    .session-postcard-panel {
+      border:1px solid #4056a4;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .session-postcard-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f1f4ff;
+    }
+    .session-postcard-copy {
+      margin:0;
+      color:#d5ddff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .session-postcard-meta {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      color:#a8b9ff;
+      font-size:.78rem;
+    }
+    .session-postcard-archive {
+      border:1px solid #4056a4;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .session-postcard-archive h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f1f4ff;
+    }
+    .session-postcard-brief {
+      border:1px solid #4056a4;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+      position:relative;
+    }
+    .session-postcard-brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      color:#dfe6ff;
+    }
+    .session-postcard-entry {
+      border:1px solid #314885;
+      border-radius:10px;
+      background:#0b1535;
+      padding:10px 12px;
+      display:grid;
+      gap:6px;
+    }
+    .session-postcard-entry-title {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .session-postcard-entry-title strong {
+      color:#f5f8ff;
+      font-size:.94rem;
+    }
+    .session-postcard-entry-summary {
+      color:#c5d2ff;
+      line-height:1.45;
+      font-size:.88rem;
+    }
     .editorial-desk {
       border:1px solid #4c66c4;
       background:
@@ -2865,6 +2986,39 @@
       </div>
     </section>
 
+    <section class="card session-postcard" id="sessionPostcardBoard" aria-live="polite">
+      <div class="session-postcard-head">
+        <h2>session postcard</h2>
+        <p class="session-postcard-note">freeze the current homepage mood into a copyable brief and keep a small archive of the best ones.</p>
+      </div>
+      <div class="session-postcard-grid">
+        <article class="session-postcard-panel">
+          <h3>today's postcard</h3>
+          <p class="session-postcard-copy" id="sessionPostcardLead">loading postcard…</p>
+          <div class="session-postcard-meta" id="sessionPostcardMeta"></div>
+          <div class="link-row" id="sessionPostcardLinks"></div>
+        </article>
+        <article class="session-postcard-archive">
+          <h3>saved postcards</h3>
+          <p class="session-postcard-copy">pin a snapshot when the homepage lands on a particularly good route. the archive stays local.</p>
+          <div class="link-row">
+            <button class="btn" id="saveSessionPostcard">save postcard</button>
+            <button class="btn" id="clearSessionPostcards">clear archive</button>
+          </div>
+          <div id="sessionPostcardArchive" class="grid" style="grid-template-columns:1fr; gap:10px;">
+            <div class="empty-card">no postcards saved yet.</div>
+          </div>
+        </article>
+      </div>
+      <div class="session-postcard-brief">
+        <div class="link-row">
+          <button class="btn" id="copySessionPostcard">copy postcard brief</button>
+          <button class="btn" id="reshuffleSessionPostcard">reshuffle postcard</button>
+        </div>
+        <pre id="sessionPostcardBrief">loading session postcard…</pre>
+      </div>
+    </section>
+
     <section class="card editorial-desk" id="editorialDesk" aria-live="polite">
       <div class="editorial-head">
         <h2>roost editorial desk</h2>
@@ -3582,6 +3736,16 @@
     const threadSave = document.getElementById('threadSave');
     const threadClearArchive = document.getElementById('threadClearArchive');
     const threadArchiveList = document.getElementById('threadArchiveList');
+    const sessionPostcardBoard = document.getElementById('sessionPostcardBoard');
+    const sessionPostcardLead = document.getElementById('sessionPostcardLead');
+    const sessionPostcardMeta = document.getElementById('sessionPostcardMeta');
+    const sessionPostcardLinks = document.getElementById('sessionPostcardLinks');
+    const sessionPostcardArchive = document.getElementById('sessionPostcardArchive');
+    const sessionPostcardBrief = document.getElementById('sessionPostcardBrief');
+    const saveSessionPostcard = document.getElementById('saveSessionPostcard');
+    const clearSessionPostcards = document.getElementById('clearSessionPostcards');
+    const copySessionPostcard = document.getElementById('copySessionPostcard');
+    const reshuffleSessionPostcard = document.getElementById('reshuffleSessionPostcard');
     const editorialModes = document.getElementById('editorialModes');
     const editorialLeadCard = document.getElementById('editorialLeadCard');
     const editorialLeadMeta = document.getElementById('editorialLeadMeta');
@@ -4082,6 +4246,21 @@
     } catch {
       threadArchive = [];
     }
+    const SESSION_POSTCARD_KEY = 'roostSessionPostcardArchive';
+    let sessionPostcardArchiveState = [];
+    try {
+      const archived = JSON.parse(storage.get(SESSION_POSTCARD_KEY) || '[]');
+      sessionPostcardArchiveState = Array.isArray(archived) ? archived.slice(0, 5) : [];
+    } catch {
+      sessionPostcardArchiveState = [];
+    }
+    let connectedSnapshot = {
+      updates: [],
+      notes: [],
+      nowData: {},
+      shipyard: [],
+      expeditions: []
+    };
     const editorialModesList = [
       { id: 'ship', label: 'ship', summary: 'push visible feature work', weight: 5 },
       { id: 'story', label: 'story', summary: 'connect launches and notes', weight: 4 },
@@ -4340,6 +4519,116 @@
       renderThreadArchive();
     };
     renderThreadArchive();
+
+    const buildSessionPostcard = () => {
+      const questStreakCount = Number.parseInt(storage.get('roostQuestStreakCount') ?? '0', 10);
+      const streakLabel = Number.isFinite(questStreakCount) && questStreakCount === 1
+        ? '1 day'
+        : `${Number.isFinite(questStreakCount) ? questStreakCount : 0} days`;
+      const latestUpdate = [...(Array.isArray(connectedSnapshot.updates) ? connectedSnapshot.updates : [])]
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)))[0] || null;
+      const latestNote = [...(Array.isArray(connectedSnapshot.notes) ? connectedSnapshot.notes : [])]
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)))[0] || null;
+      const featuredRoute = routebookRecentState[0] || routebookPinsState[0] || null;
+      const routePage = roostPages.find((page) => page.href === featuredRoute) || roostPages.find((page) => page.href === 'roost-route-mixer.html') || roostPages[0];
+      const theme = threadThemes.find((entry) => entry.id === threadState.themeId) || threadThemes[0];
+      const workbenchCue = [workbenchSignals.build, workbenchSignals.care, workbenchSignals.spark].filter(Boolean).join(' • ');
+      const leadLine = latestUpdate
+        ? `${latestUpdate.title} keeps the homepage pointed at visible progress.`
+        : 'the homepage is still waiting for the next ship to set the tone.';
+      const supportLine = latestNote
+        ? `The freshest note is ${latestNote.title}, which keeps the story layer from going flat.`
+        : 'There is no fresh note pressure yet, so the postcard leans on the current route.';
+      const routeLine = routePage
+        ? `The best next hop is ${routePage.title}.`
+        : 'The routebook still needs a stronger anchor page.';
+      const pinnedLine = routebookPinsState.length
+        ? `${routebookPinsState.length} pinned page${routebookPinsState.length === 1 ? '' : 's'} stay in memory.`
+        : 'No pinned pages yet, which leaves the routebook light and flexible.';
+      const focusLine = workbenchCue
+        ? `Workbench cue: ${workbenchCue}.`
+        : 'Workbench cue: the daily brief still needs a stronger build/care/spark split.';
+
+      return {
+        lead: leadLine,
+        meta: [
+          latestUpdate?.type || 'update',
+          latestUpdate?.date || 'unknown date',
+          theme.label,
+          streakLabel
+        ],
+        links: [
+          latestUpdate?.page ? { href: latestUpdate.page, label: latestUpdate.pageLabel || 'open latest ship' } : null,
+          latestNote ? { href: `notes.html#${latestNote.id}`, label: 'open latest note' } : null,
+          routePage ? { href: routePage.href, label: `open ${routePage.title}` } : null,
+          { href: 'roost-route-mixer.html', label: 'open route mixer' }
+        ].filter(Boolean),
+        brief: [
+          'session postcard / today',
+          '',
+          `lead: ${leadLine}`,
+          `support: ${supportLine}`,
+          `route: ${routeLine}`,
+          `memory: ${pinnedLine}`,
+          `focus: ${focusLine}`,
+          '',
+          `why it matters: this homepage now turns the live roost state into a shareable postcard, not just another dashboard readout.`
+        ].join('\n')
+      };
+    };
+
+    let sessionPostcardState = buildSessionPostcard();
+
+    const renderSessionPostcardArchive = () => {
+      if (!sessionPostcardArchive) return;
+      if (!sessionPostcardArchiveState.length) {
+        sessionPostcardArchive.innerHTML = '<div class="empty-card">no postcards saved yet.</div>';
+        return;
+      }
+
+      sessionPostcardArchive.innerHTML = sessionPostcardArchiveState.map((entry, index) => `
+        <article class="session-postcard-entry ${index === 0 ? 'is-active' : ''}">
+          <div class="session-postcard-entry-title">
+            <strong>${entry.leadLabel || 'session postcard'}</strong>
+            <span>${entry.savedAt ? new Date(entry.savedAt).toLocaleString() : 'just now'}</span>
+          </div>
+          <div class="session-postcard-entry-summary">${entry.routeLabel || 'saved homepage route'}</div>
+          <div class="thread-archive-meta">
+            <span class="tag">${entry.themeLabel || 'thread'}</span>
+            <span class="tag">${index === 0 ? 'latest' : `saved #${sessionPostcardArchiveState.length - index}`}</span>
+          </div>
+          <div class="link-row">
+            <button class="btn" type="button" data-session-postcard-restore="${entry.id}">restore postcard</button>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const renderSessionPostcard = () => {
+      sessionPostcardState = buildSessionPostcard();
+      if (!sessionPostcardLead || !sessionPostcardMeta || !sessionPostcardLinks || !sessionPostcardBrief) return;
+      sessionPostcardLead.textContent = sessionPostcardState.lead;
+      sessionPostcardMeta.innerHTML = sessionPostcardState.meta.map((item) => `<span class="tag">${item}</span>`).join('');
+      sessionPostcardLinks.innerHTML = sessionPostcardState.links.map((item) => `<a class="mini-link" href="${item.href}">${item.label}</a>`).join('');
+      sessionPostcardBrief.textContent = sessionPostcardState.brief;
+      renderSessionPostcardArchive();
+    };
+
+    const saveSessionPostcardArchive = () => {
+      const entry = {
+        id: `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
+        savedAt: new Date().toISOString(),
+        themeLabel: (threadThemes.find((item) => item.id === threadState.themeId) || threadThemes[0]).label,
+        leadLabel: sessionPostcardState.lead,
+        routeLabel: sessionPostcardState.links[2]?.label || 'saved homepage route',
+        brief: sessionPostcardState.brief
+      };
+      sessionPostcardArchiveState = [entry, ...sessionPostcardArchiveState.filter((item) => item.brief !== entry.brief)].slice(0, 5);
+      storage.set(SESSION_POSTCARD_KEY, JSON.stringify(sessionPostcardArchiveState));
+      renderSessionPostcardArchive();
+    };
+
+    renderSessionPostcard();
 
     const getEditorialMode = () => editorialModesList.find((mode) => mode.id === editorialState.modeId) || editorialModesList[0];
 
@@ -6794,6 +7083,13 @@
         weatherRegions = weatherResponse.ok ? (await weatherResponse.json())?.regions || [] : [];
         const shipyard = shipyardResponse.ok ? await shipyardResponse.json() : [];
         const expeditions = expeditionsResponse.ok ? await expeditionsResponse.json() : [];
+        connectedSnapshot = {
+          updates,
+          notes,
+          nowData,
+          shipyard: Array.isArray(shipyard) ? shipyard : [],
+          expeditions: Array.isArray(expeditions) ? expeditions : []
+        };
         threadFeedState = { updates, notes, shipyard: Array.isArray(shipyard) ? shipyard : [] };
         launchRadarPayload = { updates, notes, shipyard: Array.isArray(shipyard) ? shipyard : [], nowData };
         pickRadioTracks();
@@ -6816,6 +7112,7 @@
         renderLaunchCorridor();
         launchRadarState = buildLaunchRadar(getLaunchRadarMode(), launchRadarPayload);
         renderLaunchRadar();
+        renderSessionPostcard();
 
         const sortedUpdates = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const roadmap = updatesData?.roadmap || {};
@@ -6911,6 +7208,11 @@
         if (threadMeta) threadMeta.innerHTML = '';
         if (threadSignals) threadSignals.innerHTML = '<li>thread feed unavailable right now.</li>';
         if (threadBrief) threadBrief.textContent = 'thread unavailable right now.';
+        if (sessionPostcardLead) sessionPostcardLead.textContent = 'postcard unavailable right now.';
+        if (sessionPostcardMeta) sessionPostcardMeta.innerHTML = '';
+        if (sessionPostcardLinks) sessionPostcardLinks.innerHTML = '';
+        if (sessionPostcardBrief) sessionPostcardBrief.textContent = 'session postcard unavailable right now.';
+        if (sessionPostcardArchive) sessionPostcardArchive.innerHTML = '<div class="empty-card">postcard archive unavailable right now.</div>';
         if (editorialLeadCard) editorialLeadCard.innerHTML = '<h3>editorial desk unavailable</h3><p class="editorial-copy">try again once the shared feeds come back.</p>';
         if (editorialLeadMeta) editorialLeadMeta.innerHTML = '';
         if (editorialLeadLinks) editorialLeadLinks.innerHTML = '';
@@ -6966,6 +7268,45 @@
       } catch {
         setActionStatus('clipboard blocked for skyline brief.', 'warn');
       }
+    });
+    saveSessionPostcard?.addEventListener('click', () => {
+      saveSessionPostcardArchive();
+      setActionStatus('session postcard saved ✓', 'ok');
+    });
+    clearSessionPostcards?.addEventListener('click', () => {
+      sessionPostcardArchiveState = [];
+      storage.remove(SESSION_POSTCARD_KEY);
+      renderSessionPostcardArchive();
+      setActionStatus('session postcard archive cleared ✓', 'ok');
+    });
+    copySessionPostcard?.addEventListener('click', async () => {
+      const text = sessionPostcardBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('session postcard copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for session postcard.', 'warn');
+      }
+    });
+    reshuffleSessionPostcard?.addEventListener('click', () => {
+      sessionPostcardState = buildSessionPostcard();
+      sessionPostcardState.links = [...sessionPostcardState.links].sort(() => Math.random() - 0.5);
+      if (sessionPostcardLead) sessionPostcardLead.textContent = sessionPostcardState.lead;
+      if (sessionPostcardMeta) sessionPostcardMeta.innerHTML = sessionPostcardState.meta.map((item) => `<span class="tag">${item}</span>`).join('');
+      if (sessionPostcardLinks) sessionPostcardLinks.innerHTML = sessionPostcardState.links.map((item) => `<a class="mini-link" href="${item.href}">${item.label}</a>`).join('');
+      if (sessionPostcardBrief) sessionPostcardBrief.textContent = sessionPostcardState.brief;
+      setActionStatus('session postcard reshuffled ✓', 'ok');
+    });
+    sessionPostcardArchive?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const snapshotId = target.dataset.sessionPostcardRestore;
+      if (!snapshotId) return;
+      const snapshot = sessionPostcardArchiveState.find((entry) => entry.id === snapshotId);
+      if (!snapshot) return;
+      sessionPostcardBrief.textContent = snapshot.brief;
+      setActionStatus('session postcard restored ✓', 'ok');
     });
 
     const savedAccent = storage.get('roostAccent');
