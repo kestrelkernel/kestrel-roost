@@ -21,6 +21,7 @@ python3 -m http.server 8080
 - `roost-capsules.html` — release capsule explorer that turns the update feed into featured case cards and a searchable archive
 - `now.html` — live now board with active focus cards, progress bars, recent wins, and next-up priorities
 - `roost-almanac.html` — planning compass that folds seasonal, energy, and weather signals into a copyable build recipe
+- `roost-seasonal-compass.html` — seasonal brief that merges the yearwheel and almanac into one copyable session plan
 - `changelog.html` — release history + filterable flight log
 - `roost-chronicle.html` — story-arc explorer that ties launches, notes, and roadmap cues into a copyable brief
 - `roost-casebook.html` — narrative release dossiers that bundle major launches, linked rationale, and copyable briefs
@@ -65,6 +66,7 @@ python3 -m http.server 8080
 ## New in this iteration
 
 - **Thread loom archive:** upgraded `index.html` with locally saved thread snapshots, restore actions, and a visible archive rail so the homepage can preserve a good story lane instead of only showing the live braid
+- **Seasonal compass launch:** added `roost-seasonal-compass.html`, a new planning surface that merges the yearwheel and almanac into one copyable seasonal brief, and wired it into the homepage so the quarter view is one click away
 - **Homepage build queue:** added a new `index.html` build queue surface that turns live now signals, roadmap pressure, and recent wins into a ranked today/next/stretch handoff with reshuffle and copy controls so the homepage can point at one concrete ship instead of several vague candidates
 - **Roost Field Guide launch:** added `roost-field-guide.html`, a curated discovery surface that groups the site into page families and generates copyable three-stop tours so the roost has a calmer, more opinionated way to choose the next visit
 - **Roost Capsules launch:** added `roost-capsules.html`, a release explorer that turns the update feed into featured case cards and a searchable archive with linked note context and copyable briefs

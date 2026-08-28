@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Seasonal Compass: combine the yearwheel and almanac into one copyable session brief." />
+  <title>Roost Seasonal Compass</title>
+  <style>
+    :root {
+      --bg:#07101b;
+      --bg2:#111c36;
+      --card:#0c152be6;
+      --line:#35528f;
+      --line2:#79a6ff;
+      --fg:#edf3ff;
+      --muted:#a8b9e5;
+      --accent:#98c6ff;
+      --good:#8bf0c4;
+      --warm:#ffd58a;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% 0%, #27437f 0%, transparent 34%),
+        radial-gradient(circle at 88% 12%, #17425d 0%, transparent 28%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    main {
+      width:min(1180px, 92vw);
+      margin:0 auto;
+      padding:30px 0 44px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .panel, .list-card, .brief {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      box-shadow:0 18px 44px #00000035;
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:22px;
+      display:grid;
+      gap:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -120px -150px auto;
+      width:360px;
+      height:360px;
+      border-radius:999px;
+      background:radial-gradient(circle, #87a8ff24 0%, transparent 68%);
+      pointer-events:none;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2.15rem, 5.4vw, 3.65rem); line-height:1; }
+    .lede { max-width:72ch; line-height:1.6; color:var(--muted); }
+    .topline, .row, .chips, .meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .pill, .chip, .btn {
+      border:1px solid #4464ac;
+      border-radius:999px;
+      padding:8px 12px;
+      background:#11224b;
+      color:#dce7ff;
+      font:inherit;
+      text-decoration:none;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .pill:hover, .chip:hover, .btn:hover, .pill:focus-visible, .chip:focus-visible, .btn:focus-visible {
+      outline:none;
+      transform:translateY(-1px);
+      border-color:var(--line2);
+      background:#13295d;
+    }
+    .pill.is-good { background:#dffdf1; color:#123a2c; border-color:#dffdf1; }
+    .pill.is-warm { background:#fff0ca; color:#42300b; border-color:#fff0ca; }
+    .layout {
+      display:grid;
+      grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);
+      gap:14px;
+      align-items:start;
+    }
+    .panel {
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .panel h2 { font-size:1rem; color:#d8e2ff; }
+    .season-rail {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .season-card, .window-card, .route-card {
+      border:1px solid #354d86;
+      border-radius:14px;
+      background:#081125;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .season-card.is-current {
+      border-color:#7d9bf2;
+      background:linear-gradient(160deg, #11285f, #081125 70%);
+    }
+    .season-card h3, .window-card h3, .route-card h3 { font-size:1rem; }
+    .copy-box, pre {
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font:inherit;
+      line-height:1.55;
+      color:#e9efff;
+    }
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+      gap:10px;
+    }
+    .stat {
+      border:1px solid #334a82;
+      border-radius:14px;
+      background:#09111f;
+      padding:12px;
+      display:grid;
+      gap:4px;
+    }
+    .stat .label {
+      font-size:.76rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#96abd9;
+    }
+    .stat .value { font-size:1.2rem; color:#f5f8ff; }
+    .stat .sub { color:var(--muted); line-height:1.45; }
+    .brief {
+      padding:16px;
+      display:grid;
+      gap:10px;
+      position:sticky;
+      top:14px;
+    }
+    .brief pre {
+      border:1px solid #2f4578;
+      border-radius:12px;
+      background:#050c19;
+      padding:12px;
+    }
+    .brief .meta {
+      color:#b4c6f6;
+      font-size:.82rem;
+    }
+    .section-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+    }
+    .mini-list {
+      margin:0;
+      padding-left:18px;
+      color:#d7e2ff;
+      line-height:1.5;
+    }
+    .mini-list li { margin:6px 0; }
+    .status {
+      font-size:.84rem;
+      color:#b8c8fb;
+      min-height:1.2em;
+    }
+    .footer {
+      color:#8fa4db;
+      font-size:.82rem;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns:1fr; }
+      .brief { position:static; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="topline">
+        <span class="pill is-good" id="seasonPill">season scan</span>
+        <span class="pill" id="monthPill">month</span>
+        <span class="pill" id="utcPill">utc</span>
+      </div>
+      <h1>Roost Seasonal Compass</h1>
+      <p class="lede">The roost already knows what the yearwheel wants and which windows the almanac likes. This page merges both into one readable session so today can start with a clear season, a sane energy choice, and a next move that actually fits the calendar.</p>
+      <div class="stats" id="stats"></div>
+      <div class="row">
+        <a class="btn" href="index.html">back home</a>
+        <a class="btn" href="roost-yearwheel.html">open yearwheel</a>
+        <a class="btn" href="roost-almanac.html">open almanac</a>
+        <button class="btn" id="copyBtn" type="button">copy brief</button>
+      </div>
+      <p class="status" id="status"></p>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <article class="list-card">
+          <h2>Seasonal map</h2>
+          <p class="footer">The current quarter sets the tone; the full wheel keeps the rest of the year visible.</p>
+          <div class="season-rail" id="seasonRail" aria-live="polite"></div>
+        </article>
+
+        <div class="section-grid">
+          <article class="list-card">
+            <h2>Best windows</h2>
+            <div id="windowRail" class="section-grid" style="grid-template-columns:1fr; margin-top:10px;"></div>
+          </article>
+          <article class="list-card">
+            <h2>Seasonal moves</h2>
+            <ul class="mini-list" id="moveList"></ul>
+          </article>
+        </div>
+      </div>
+
+      <aside class="brief">
+        <div class="meta">
+          <span id="briefMeta">loading brief…</span>
+        </div>
+        <h2>Copyable brief</h2>
+        <pre id="briefText">loading seasonal brief...</pre>
+        <div class="row">
+          <button class="btn" id="refreshBtn" type="button">recalculate</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const load = async (path) => {
+      const response = await fetch(path, { cache: 'no-store' });
+      if (!response.ok) throw new Error(path);
+      return response.json();
+    };
+
+    const energyRank = { Low: 1, Medium: 2, High: 3 };
+    const monthsShort = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    function currentSeason(yearwheel, monthName) {
+      return yearwheel.find((item) => item.months.includes(monthName)) || yearwheel[0];
+    }
+
+    function bestWindows(almanac) {
+      return [...almanac]
+        .map((item) => {
+          const startHour = Number(item.window.split('-')[0].split(':')[0]);
+          const timeBias = startHour >= 8 && startHour <= 12 ? 3 : startHour >= 13 && startHour <= 16 ? 2 : 1;
+          return { ...item, score: timeBias + (energyRank[item.energy] || 0) };
+        })
+        .sort((a, b) => b.score - a.score || (energyRank[b.energy] || 0) - (energyRank[a.energy] || 0));
+    }
+
+    function render(data) {
+      const now = new Date();
+      const monthName = now.toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
+      const utcStamp = now.toISOString().slice(11, 16) + ' UTC';
+      const season = currentSeason(data.yearwheel, monthName);
+      const windows = bestWindows(data.almanac);
+      const leadWindow = windows[0];
+      const secondWindow = windows[1] || windows[0];
+      const seasonIndex = data.yearwheel.indexOf(season);
+      const nextSeason = data.yearwheel[(seasonIndex + 1) % data.yearwheel.length];
+
+      el('seasonPill').textContent = `${season.season} · ${season.theme}`;
+      el('monthPill').textContent = monthName;
+      el('utcPill').textContent = utcStamp;
+
+      el('stats').innerHTML = [
+        { label: 'season', value: season.season, sub: season.theme },
+        { label: 'best window', value: leadWindow.window, sub: `${leadWindow.title} · ${leadWindow.energy} energy` },
+        { label: 'next season', value: nextSeason.season, sub: nextSeason.moves[0] },
+        { label: 'today mode', value: leadWindow.kind, sub: leadWindow.note }
+      ].map((item) => `<div class="stat"><div class="label">${item.label}</div><div class="value">${item.value}</div><div class="sub">${item.sub}</div></div>`).join('');
+
+      el('seasonRail').innerHTML = data.yearwheel.map((item, index) => `
+        <article class="season-card ${item.season === season.season ? 'is-current' : ''}">
+          <div class="topline" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <h3>${item.season}</h3>
+              <p class="footer">${item.theme}</p>
+            </div>
+            <span class="pill">${item.months.join(' / ')}</span>
+          </div>
+          <ul class="mini-list">
+            ${item.moves.map((move) => `<li>${move}</li>`).join('')}
+          </ul>
+          ${item.season === season.season ? `<p class="footer">Current quarter. Keep the lane visible and the scope honest.</p>` : ''}
+        </article>
+      `).join('');
+
+      el('windowRail').innerHTML = [leadWindow, secondWindow].map((item, index) => `
+        <article class="window-card ${index === 0 ? 'is-current' : ''}">
+          <div class="topline" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <h3>${item.title}</h3>
+              <p class="footer">${item.date} · ${item.kind}</p>
+            </div>
+            <span class="pill ${item.energy === 'High' ? 'is-good' : item.energy === 'Low' ? 'is-warm' : ''}">${item.energy}</span>
+          </div>
+          <p class="copy-box">${item.note}</p>
+          <p class="footer">Best for ${item.window}. Score ${item.score}/6.</p>
+        </article>
+      `).join('');
+
+      el('moveList').innerHTML = [
+        season.moves[0],
+        leadWindow.note,
+        `Close the quarter by preparing for ${nextSeason.season.toLowerCase()}.`,
+        season.moves[1] || season.moves[0]
+      ].map((move) => `<li>${move}</li>`).join('');
+
+      const brief = [
+        `Season: ${season.season} (${season.theme})`,
+        `Current month: ${monthName}`,
+        `Best window: ${leadWindow.window} for ${leadWindow.title} (${leadWindow.energy} energy)`,
+        `Backup window: ${secondWindow.window} for ${secondWindow.title}`,
+        '',
+        'Plan:',
+        `1. ${season.moves[0]}`,
+        `2. ${leadWindow.note}`,
+        `3. ${season.moves[1] || nextSeason.moves[0]}`,
+        '',
+        `Next season to prep: ${nextSeason.season} · ${nextSeason.theme}`
+      ].join('\n');
+
+      el('briefMeta').textContent = `UTC ${utcStamp} · ${monthName} scan`;
+      el('briefText').textContent = brief;
+      el('copyBtn').onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(brief);
+          el('status').textContent = 'Seasonal brief copied to clipboard.';
+        } catch {
+          el('status').textContent = 'Clipboard blocked. Copy the brief manually.';
+        }
+      };
+      el('refreshBtn').onclick = () => render(data);
+    }
+
+    Promise.all([
+      load('assets/roost-yearwheel.json'),
+      load('assets/roost-almanac.json')
+    ]).then(([yearwheel, almanac]) => {
+      render({ yearwheel, almanac });
+    }).catch(() => {
+      el('briefMeta').textContent = 'seasonal data unavailable';
+      el('briefText').textContent = 'Try reloading once the shared yearwheel and almanac data are available.';
+    });
+  </script>
+</body>
+</html>
