@@ -1013,6 +1013,109 @@
       font:inherit;
       line-height:1.45;
     }
+    .dispatch-archive {
+      border:1px solid #4b67c8;
+      background:
+        radial-gradient(circle at 14% 8%, #96b4ff22 0%, transparent 28%),
+        linear-gradient(155deg, #0d1738, #081120 58%, #12265a);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .dispatch-archive::before {
+      content:"";
+      position:absolute;
+      inset:auto -120px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #91adff26 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .dispatch-archive-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .dispatch-archive-head h2 { margin:0; }
+    .dispatch-archive-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:48rem;
+    }
+    .dispatch-archive-grid {
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:12px;
+      z-index:1;
+    }
+    .dispatch-archive-panel {
+      border:1px solid #3950a0;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .dispatch-archive-panel.is-primary {
+      background:linear-gradient(155deg, #132d69, #08112de6 68%);
+      border-color:#7a95ea;
+    }
+    .dispatch-archive-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .dispatch-archive-copy {
+      margin:0;
+      color:#c0ceff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .dispatch-archive-list {
+      display:grid;
+      gap:10px;
+    }
+    .dispatch-archive-item {
+      border:1px solid #33498f;
+      border-radius:12px;
+      background:#0b1638;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .dispatch-archive-item.is-empty {
+      border-style:dashed;
+      background:#08112da6;
+      color:#aabaff;
+    }
+    .dispatch-archive-item h4 {
+      margin:0;
+      color:#f3f6ff;
+      font-size:.95rem;
+    }
+    .dispatch-archive-item p {
+      margin:0;
+      color:#bfd0ff;
+      line-height:1.45;
+      font-size:.9rem;
+    }
+    .dispatch-archive-item .tag-row {
+      gap:6px;
+    }
+    .dispatch-archive-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#b9caff;
+      font-size:.8rem;
+    }
     .seasonal-desk::before {
       content:"";
       position:absolute;
@@ -3282,6 +3385,28 @@
       </div>
     </section>
 
+    <section class="card dispatch-archive" id="dispatchArchiveBoard" aria-live="polite">
+      <div class="dispatch-archive-head">
+        <h2>dispatch archive</h2>
+        <p class="dispatch-archive-note">the homepage now keeps the best build brief, route, and radar snapshots in one local archive so a good plan can be reopened instead of evaporating at refresh time.</p>
+      </div>
+      <div class="dispatch-archive-grid">
+        <article class="dispatch-archive-panel is-primary">
+          <h3>current capture</h3>
+          <p class="dispatch-archive-copy" id="dispatchArchiveLead">save a board snapshot to pin the day’s strongest brief.</p>
+          <div class="dispatch-archive-meta" id="dispatchArchiveMeta"></div>
+          <div class="link-row">
+            <button class="btn" id="saveDispatchSnapshot" type="button">capture live mix</button>
+            <button class="mini-link" id="copyDispatchSnapshot" type="button">copy capture</button>
+          </div>
+        </article>
+        <article class="dispatch-archive-panel">
+          <h3>saved snapshots</h3>
+          <div class="dispatch-archive-list" id="dispatchArchiveList"></div>
+        </article>
+      </div>
+    </section>
+
     <section class="card seasonal-desk" id="seasonalDesk" aria-live="polite">
       <div class="seasonal-head">
         <h2>seasonal weather desk</h2>
@@ -3797,6 +3922,11 @@
     const buildQueueBrief = document.getElementById('buildQueueBrief');
     const buildQueueShuffle = document.getElementById('buildQueueShuffle');
     const buildQueueCopy = document.getElementById('buildQueueCopy');
+    const dispatchArchiveLead = document.getElementById('dispatchArchiveLead');
+    const dispatchArchiveMeta = document.getElementById('dispatchArchiveMeta');
+    const dispatchArchiveList = document.getElementById('dispatchArchiveList');
+    const saveDispatchSnapshot = document.getElementById('saveDispatchSnapshot');
+    const copyDispatchSnapshot = document.getElementById('copyDispatchSnapshot');
     const seasonalGrid = document.getElementById('seasonalGrid');
     const seasonalBrief = document.getElementById('seasonalBrief');
     const seasonalModes = document.getElementById('seasonalModes');
@@ -5049,6 +5179,73 @@
     ];
 
     let buildQueueState = [];
+    const dispatchArchiveKey = 'roostDispatchArchive';
+    let dispatchArchiveState = [];
+
+    const loadDispatchArchive = () => {
+      try {
+        const saved = JSON.parse(storage.get(dispatchArchiveKey) || '[]');
+        dispatchArchiveState = Array.isArray(saved) ? saved.filter((entry) => entry && typeof entry === 'object') : [];
+      } catch {
+        dispatchArchiveState = [];
+      }
+    };
+
+    const saveDispatchArchive = () => {
+      storage.set(dispatchArchiveKey, JSON.stringify(dispatchArchiveState.slice(0, 6)));
+    };
+
+    const makeDispatchSnapshot = (label, source, text, detail) => ({
+      id: `${source}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      label,
+      source,
+      text,
+      detail,
+      date: new Date().toISOString()
+    });
+
+    const renderDispatchArchive = () => {
+      if (!dispatchArchiveLead || !dispatchArchiveMeta || !dispatchArchiveList) return;
+      const lead = dispatchArchiveState[0];
+      if (lead) {
+        dispatchArchiveLead.textContent = lead.text;
+        dispatchArchiveMeta.innerHTML = [
+          `<span class="tag">${lead.label}</span>`,
+          `<span class="tag">${lead.source}</span>`,
+          `<span>${new Date(lead.date).toISOString().slice(0, 16).replace('T', ' ')}</span>`
+        ].join('');
+      } else {
+        dispatchArchiveLead.textContent = 'save a board snapshot to pin the day’s strongest brief.';
+        dispatchArchiveMeta.innerHTML = '<span class="tag">empty archive</span><span class="tag">local only</span>';
+      }
+
+      if (!dispatchArchiveState.length) {
+        dispatchArchiveList.innerHTML = '<div class="dispatch-archive-item is-empty"><p>No snapshots yet. Capture the current mix to keep a useful route around.</p></div>';
+        return;
+      }
+
+      dispatchArchiveList.innerHTML = dispatchArchiveState.slice(0, 5).map((entry) => `
+        <article class="dispatch-archive-item">
+          <div class="dispatch-archive-meta">
+            <span class="tag">${entry.label}</span>
+            <span class="tag">${entry.source}</span>
+            <span>${new Date(entry.date).toISOString().slice(0, 10)}</span>
+          </div>
+          <h4>${entry.detail}</h4>
+          <p>${entry.text}</p>
+          <div class="link-row">
+            <button class="mini-link" data-dispatch-restore="${entry.id}" type="button">restore</button>
+            <button class="mini-link" data-dispatch-copy="${entry.id}" type="button">copy</button>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const addDispatchSnapshot = (snapshot) => {
+      dispatchArchiveState = [snapshot, ...dispatchArchiveState.filter((entry) => entry.id !== snapshot.id)].slice(0, 6);
+      saveDispatchArchive();
+      renderDispatchArchive();
+    };
 
     const buildBuildQueue = (payload = {}) => {
       const nowItems = Array.isArray(payload.nowItems) ? payload.nowItems : [];
@@ -5151,6 +5348,17 @@
         '',
         `why it matters: the homepage now names one concrete ship, one follow-on, and one stretch move before the rest of the page asks for attention.`
       ].join('\n');
+    };
+
+    const captureBuildQueueSnapshot = () => {
+      const lead = buildQueueState[0];
+      if (!lead) return null;
+      return makeDispatchSnapshot(
+        'build queue',
+        'build queue',
+        buildQueueBrief?.textContent || '',
+        `${lead.page?.title || 'queue lead'} · ${lead.goal}`
+      );
     };
 
     const reshuffleBuildQueue = (payload = {}) => {
@@ -5333,6 +5541,16 @@
       launchRadarState = state;
     };
 
+    const captureLaunchRadarSnapshot = () => {
+      if (!launchRadarState) return null;
+      return makeDispatchSnapshot(
+        'launch radar',
+        'launch radar',
+        launchRadarBrief?.textContent || '',
+        `${launchRadarState.leadPage?.title || 'radar lead'} · ${launchRadarState.mode?.label || 'mode'}`
+      );
+    };
+
     const reshuffleLaunchRadar = (payload = {}) => {
       launchRadarSeed = Math.floor(Math.random() * 9_999_999);
       storage.set('roostLaunchRadarSeed', String(launchRadarSeed));
@@ -5422,6 +5640,13 @@
         `why it matters: the homepage can now turn one intent into a ranked route instead of a flat page directory.`
       ].join('\n');
     };
+
+    const captureRouteMixerSnapshot = () => makeDispatchSnapshot(
+      'route mixer',
+      'route mixer',
+      routeMixerSummary?.textContent || '',
+      `${routeMixerModeMap[routeMixerMode]?.label || 'route'} · route snapshot`
+    );
 
     const reshuffleRouteMixer = () => {
       routeMixerSeed = Math.floor(Math.random() * 9_999_999);
@@ -7687,6 +7912,16 @@
       }
     });
 
+    saveBuildQueueSnapshot?.addEventListener('click', () => {
+      const snapshot = captureBuildQueueSnapshot();
+      if (!snapshot) {
+        setActionStatus('no build queue snapshot to save yet.', 'warn');
+        return;
+      }
+      addDispatchSnapshot(snapshot);
+      setActionStatus('build queue snapshot saved ✓', 'ok');
+    });
+
     buildQueueShuffle?.addEventListener('click', () => {
       reshuffleBuildQueue();
       setActionStatus('build queue reshuffled ✓', 'ok');
@@ -7700,6 +7935,56 @@
         setActionStatus('build queue brief copied ✓', 'ok');
       } catch {
         setActionStatus('clipboard blocked for build queue brief.', 'warn');
+      }
+    });
+
+    saveDispatchSnapshot?.addEventListener('click', () => {
+      const snapshot = captureBuildQueueSnapshot() || captureLaunchRadarSnapshot() || captureRouteMixerSnapshot();
+      if (!snapshot) {
+        setActionStatus('dispatch archive has nothing to capture yet.', 'warn');
+        return;
+      }
+      addDispatchSnapshot(snapshot);
+      setActionStatus('live dispatch snapshot captured ✓', 'ok');
+    });
+
+    copyDispatchSnapshot?.addEventListener('click', async () => {
+      const text = (dispatchArchiveState[0]?.text || captureBuildQueueSnapshot()?.text || captureLaunchRadarSnapshot()?.text || captureRouteMixerSnapshot()?.text || '').trim();
+      if (!text) {
+        setActionStatus('capture a dispatch snapshot first.', 'warn');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('dispatch snapshot copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for dispatch snapshot.', 'warn');
+      }
+    });
+
+    dispatchArchiveList?.addEventListener('click', async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const restoreId = target.dataset.dispatchRestore;
+      const copyId = target.dataset.dispatchCopy;
+      const entry = dispatchArchiveState.find((item) => item.id === restoreId || item.id === copyId);
+      if (!entry) return;
+
+      if (restoreId) {
+        if (entry.source === 'build queue' && buildQueueBrief) buildQueueBrief.textContent = entry.text;
+        if (entry.source === 'launch radar' && launchRadarBrief) launchRadarBrief.textContent = entry.text;
+        if (entry.source === 'route mixer' && routeMixerSummary) routeMixerSummary.textContent = entry.text;
+        setActionStatus(`restored ${entry.source} snapshot ✓`, 'ok');
+        return;
+      }
+
+      if (copyId) {
+        try {
+          await navigator.clipboard.writeText(entry.text || '');
+          setActionStatus('dispatch snapshot copied ✓', 'ok');
+        } catch {
+          setActionStatus('clipboard blocked for dispatch snapshot.', 'warn');
+        }
       }
     });
 
@@ -7769,6 +8054,7 @@
     loadRunwayData();
     loadWorkbenchSignals();
     loadBuildQueue();
+    loadDispatchArchive();
     renderRoutebook();
     renderRouteRelay();
     renderRouteMixer();
@@ -7776,6 +8062,7 @@
     loadNowTimeline();
     loadMissionBoard();
     renderSeasonalDesk();
+    renderDispatchArchive();
 
     missionBoardList.addEventListener('change', (event) => {
       const target = event.target;
