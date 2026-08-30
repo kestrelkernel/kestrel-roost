@@ -56,6 +56,7 @@ python3 -m http.server 8080
 - `roost-storyboard.html` — idea queue studio with impact/effort scoring, shipped toggles, and markdown export for next-build planning
 - `roost-council.html` — decision studio with seasonal context, mode filters, draw history, and copyable briefs
 - `roost-handoff.html` — copyable session brief generator that distills the latest now/updates/milestones data into a next-step handoff
+- `roost-session-scheduler.html` — timed work planner that turns live roost signals into a concrete 30/60/90-minute session with saved presets
 - `roost-orbit.html` — daily orbit planner that turns intent, energy, and time into a copyable 3-stop route
 - `roost-launch-corridor.html` — launch compass that ranks the next build, compares mode scores, and saves local briefing snapshots
 - `roost-route-mixer.html` — interactive route builder that turns updates, roadmap pressure, and note trails into a copyable three-stop visit plan

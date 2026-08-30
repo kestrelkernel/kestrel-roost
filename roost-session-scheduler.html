@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Session Scheduler: turn live roost signals into a timed work plan." />
+  <title>Roost Session Scheduler · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#07101f;
+      --bg2:#132951;
+      --card:#0c1633de;
+      --panel:#081229;
+      --line:#3756ab;
+      --fg:#edf2ff;
+      --muted:#a7b9f2;
+      --accent:#8eb3ff;
+      --accent2:#79f0d1;
+      --good:#85e3b7;
+      --warn:#ffd37e;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% -10%, #27468f 0%, transparent 36%),
+        radial-gradient(circle at 90% 110%, #17315f 0%, transparent 40%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1180px, 94vw);
+      margin:32px auto 42px;
+      display:grid;
+      gap:14px;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      padding:18px;
+      box-shadow:0 14px 36px #00000033;
+      backdrop-filter: blur(4px);
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.4rem); }
+    h2 { font-size:1.02rem; color:#d7e2ff; }
+    p { color:var(--muted); line-height:1.55; }
+    .site-nav, .toolbar, .row, .tag-row, .stats, .control-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .btn, .nav-link, .chip, .mode-btn {
+      border:1px solid #4a67c5;
+      background:#102257;
+      color:#e7edff;
+      border-radius:999px;
+      padding:8px 12px;
+      text-decoration:none;
+      font:inherit;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .btn:hover, .nav-link:hover, .chip:hover, .mode-btn:hover,
+    .btn:focus-visible, .nav-link:focus-visible, .chip:focus-visible, .mode-btn:focus-visible {
+      transform:translateY(-1px);
+      border-color:#89a6ff;
+      background:#17306d;
+      outline:none;
+    }
+    .mode-btn.is-active, .chip.is-active {
+      background:#dce6ff;
+      color:#10204f;
+      border-color:#dce6ff;
+    }
+    .hero {
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:14px;
+      align-items:stretch;
+    }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns:1fr; }
+    }
+    .hero-panel {
+      border:1px solid #4664be;
+      border-radius:16px;
+      background:linear-gradient(155deg, #11275d, #081227 68%);
+      padding:16px;
+      display:grid;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero-panel::before {
+      content:"";
+      position:absolute;
+      inset:auto -90px -110px auto;
+      width:280px;
+      height:280px;
+      border-radius:999px;
+      background:radial-gradient(circle, #8db3ff25 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .hero-copy { display:grid; gap:12px; z-index:1; }
+    .select,
+    .input {
+      background:#091432;
+      border:1px solid #4360b5;
+      border-radius:10px;
+      color:var(--fg);
+      font:inherit;
+      padding:10px 12px;
+    }
+    .input { min-width:190px; flex:1; }
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+      gap:10px;
+    }
+    .stat {
+      border:1px solid #355098;
+      border-radius:14px;
+      padding:14px;
+      background:#08112c;
+      display:grid;
+      gap:6px;
+    }
+    .stat strong {
+      color:#f5f8ff;
+      font-size:1.42rem;
+      line-height:1;
+    }
+    .stat span {
+      color:#a9bdfd;
+      font-size:.76rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .panel {
+      border:1px solid #344d96;
+      border-radius:14px;
+      background:var(--panel);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .plan-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .plan-block {
+      border:1px solid #3b55a3;
+      border-radius:14px;
+      background:linear-gradient(180deg, #0b1430, #081227);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .plan-block.is-primary {
+      background:linear-gradient(155deg, #132f70, #081227 72%);
+      border-color:#8aa8ff;
+    }
+    .plan-block h3 { font-size:1rem; color:#f4f7ff; }
+    .plan-block p { color:#c3d1ff; }
+    .meter {
+      height:9px;
+      border-radius:999px;
+      background:#12224f;
+      overflow:hidden;
+      border:1px solid #304886;
+    }
+    .meter span {
+      display:block;
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .brief {
+      white-space:pre-wrap;
+      margin:0;
+      color:#e6edff;
+      line-height:1.55;
+      background:#07102a;
+      border:1px solid #2f4791;
+      border-radius:14px;
+      padding:14px;
+      min-height:220px;
+    }
+    .list {
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+    }
+    .list li { margin:5px 0; }
+    .support-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+    }
+    .support-card {
+      border:1px solid #344d95;
+      border-radius:14px;
+      background:#08112c;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .support-card h3 { font-size:1rem; color:#f4f7ff; }
+    .support-card p { font-size:.93rem; }
+    .preset-list {
+      display:grid;
+      gap:10px;
+    }
+    .preset {
+      border:1px solid #344d95;
+      border-radius:12px;
+      background:#091230;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .preset-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .tiny { font-size:.82rem; color:#9eb1ef; }
+    .status { min-height:1.2em; font-size:.85rem; color:#bfd0ff; }
+    .status.ok { color:var(--good); }
+    .status.warn { color:var(--warn); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; }
+      .btn:hover, .nav-link:hover, .chip:hover, .mode-btn:hover { transform:none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card hero">
+      <div class="hero-panel">
+        <div class="hero-copy">
+          <div class="row">
+            <a class="btn" href="index.html">← back home</a>
+            <a class="btn" href="roost-workbench.html">open workbench</a>
+            <a class="btn" href="roost-handoff.html">open handoff</a>
+          </div>
+          <div>
+            <h1>roost session scheduler</h1>
+            <p>turn the live roost into a timed work block. choose the minutes you have, the energy you actually have, and the kind of change you want to ship, then get a concrete plan instead of a vague intention.</p>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>session controls</h2>
+        <div class="control-row">
+          <label class="tiny">minutes
+            <select id="minutes" class="select">
+              <option value="30">30</option>
+              <option value="45">45</option>
+              <option value="60" selected>60</option>
+              <option value="90">90</option>
+              <option value="120">120</option>
+            </select>
+          </label>
+          <label class="tiny">energy
+            <select id="energy" class="select">
+              <option value="low">low</option>
+              <option value="steady" selected>steady</option>
+              <option value="high">high</option>
+            </select>
+          </label>
+          <label class="tiny">goal
+            <select id="goal" class="select">
+              <option value="ship" selected>ship visible work</option>
+              <option value="stabilize">clean up friction</option>
+              <option value="expand">explore a bigger surface</option>
+            </select>
+          </label>
+          <label class="tiny">focus
+            <select id="focus" class="select">
+              <option value="auto" selected>auto pick</option>
+              <option value="build">build</option>
+              <option value="write">write</option>
+              <option value="design">design</option>
+              <option value="plan">plan</option>
+            </select>
+          </label>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="reroll">reshape session</button>
+          <button class="btn" id="copyBrief">copy brief</button>
+          <button class="btn" id="savePreset">save preset</button>
+          <button class="btn" id="clearPresets">clear presets</button>
+        </div>
+        <p id="status" class="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>recommended shape</h2>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="card">
+      <h2>timed plan</h2>
+      <div class="plan-grid" id="planGrid" aria-live="polite"></div>
+      <div style="margin-top:12px;">
+        <h3 class="tiny" style="margin-bottom:8px;">copyable brief</h3>
+        <pre class="brief" id="brief">loading session brief...</pre>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>supporting signals</h2>
+      <div class="support-grid" id="supportGrid"></div>
+    </section>
+
+    <section class="card">
+      <h2>saved presets</h2>
+      <div class="preset-list" id="presetList">
+        <div class="panel">loading saved presets...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const byId = id => document.getElementById(id);
+    const STORAGE_KEY = 'roostSessionSchedulerPresets';
+
+    const state = {
+      minutes: 60,
+      energy: 'steady',
+      goal: 'ship',
+      focus: 'auto',
+      data: {
+        now: null,
+        updates: null,
+        milestones: null,
+        expeditions: null,
+        shipyard: null,
+        yearwheel: null
+      },
+      presets: []
+    };
+
+    const modes = {
+      ship: {
+        label: 'ship visible work',
+        lead: 'favor one concrete change and a small finishing pass',
+        cadence: ['pick a target', 'build the visible core', 'polish the edge and publish']
+      },
+      stabilize: {
+        label: 'clean up friction',
+        lead: 'reduce risk first, then make the smallest safe visible fix',
+        cadence: ['audit the rough spot', 'remove the blocker', 'verify the happy path']
+      },
+      expand: {
+        label: 'explore a bigger surface',
+        lead: 'make space for a larger feature or a richer interaction',
+        cadence: ['map the opportunity', 'prototype the broadest useful slice', 'tighten into a shareable draft']
+      }
+    };
+
+    const energyMap = {
+      low: { label: 'low energy', pace: 'gentle', buffer: 'keep one extra checkpoint and short breaks' },
+      steady: { label: 'steady energy', pace: 'balanced', buffer: 'hold a normal pace with one midpoint reset' },
+      high: { label: 'high energy', pace: 'fast', buffer: 'push the main chunk early while momentum is fresh' }
+    };
+
+    const focusOptions = {
+      build: { label: 'build', note: 'best for visible product changes, UI moves, or tooling' },
+      write: { label: 'write', note: 'best for docs, story surfaces, changelog updates, or copy systems' },
+      design: { label: 'design', note: 'best for layout, styling, and interaction shape' },
+      plan: { label: 'plan', note: 'best for roadmaps, sequencing, and session prep' }
+    };
+
+    function safeFetch(path) {
+      return fetch(path, { cache: 'no-store' }).then(res => res.json());
+    }
+
+    function pickFocus() {
+      if (state.focus !== 'auto') return state.focus;
+      if (state.goal === 'ship') return state.energy === 'high' ? 'build' : 'design';
+      if (state.goal === 'stabilize') return 'plan';
+      return 'design';
+    }
+
+    function preferredShip() {
+      const updates = state.data.updates?.updates || [];
+      const expeditions = state.data.expeditions || [];
+      const shipyard = state.data.shipyard || [];
+      const candidates = [
+        updates[0] && { title: updates[0].title, kind: 'fresh ship', detail: updates[0].summary || updates[0].note || 'recent release' },
+        expeditions.find(item => /active|planned/i.test(item.status || '')) && { title: expeditions.find(item => /active|planned/i.test(item.status || '')).title, kind: 'expedition', detail: 'keep the mission moving' },
+        shipyard[0] && { title: shipyard[0].title, kind: 'roadmap item', detail: shipyard[0].impact || 'highest priority item' }
+      ].filter(Boolean);
+      return candidates[0] || { title: 'roost homepage', kind: 'surface', detail: 'improve the front door' };
+    }
+
+    function makePlan() {
+      const focusKey = pickFocus();
+      const focus = focusOptions[focusKey];
+      const mode = modes[state.goal];
+      const energy = energyMap[state.energy];
+      const ship = preferredShip();
+      const minutes = state.minutes;
+      const segments = minutes <= 30 ? [10, 12, 8] : minutes <= 45 ? [12, 18, 12] : minutes <= 60 ? [15, 25, 20] : minutes <= 90 ? [20, 35, 20, 15] : [25, 40, 30, 25];
+      const total = segments.reduce((sum, value) => sum + value, 0);
+      const scaled = segments.map(value => Math.max(6, Math.round(value * minutes / total)));
+      const steps = [
+        {
+          title: 'orient',
+          minutes: scaled[0],
+          copy: `open with ${ship.kind} work around ${ship.title}. capture the current state, choose the first cut, and remove ambiguity before you build.`
+        },
+        {
+          title: 'execute',
+          minutes: scaled[1] || 10,
+          copy: `${mode.cadence[1]}. ${focus.label === 'build' ? 'ship the visible chunk first.' : 'shape the support work while the target stays explicit.'}`
+        },
+        {
+          title: 'refine',
+          minutes: scaled[2] || 8,
+          copy: `${mode.cadence[2]}. verify the result, tighten the rough edges, and write the next action so the session can continue cleanly.`
+        }
+      ];
+      if (scaled[3]) {
+        steps.push({
+          title: 'close',
+          minutes: scaled[3],
+          copy: 'capture the outcome in one sentence, copy the brief if it helps, and mark the next move before you stop.'
+        });
+      }
+
+      const support = [
+        {
+          title: 'session bias',
+          body: `${mode.label} with ${energy.label}. ${mode.lead}.`
+        },
+        {
+          title: 'focus lane',
+          body: `${focus.label}: ${focus.note}.`
+        },
+        {
+          title: 'best next ship',
+          body: `${ship.title} (${ship.kind}) - ${ship.detail}.`
+        },
+        {
+          title: 'risk check',
+          body: energy.buffer
+        }
+      ];
+
+      const brief = [
+        'roost session scheduler',
+        `goal: ${mode.label}`,
+        `energy: ${energy.label}`,
+        `focus: ${focus.label}`,
+        `target: ${ship.title}`,
+        '',
+        'plan:',
+        ...steps.map((step, index) => `${index + 1}. [${step.minutes}m] ${step.title} - ${step.copy}`),
+        '',
+        `close by leaving the next step visible and the session handoff short.`
+      ].join('\n');
+
+      return { focus, mode, energy, ship, steps, support, brief };
+    }
+
+    function render() {
+      const plan = makePlan();
+      byId('stats').innerHTML = [
+        { label: 'minutes', value: `${state.minutes}m`, note: 'session length' },
+        { label: 'pace', value: plan.energy.pace, note: 'how quickly to move' },
+        { label: 'focus', value: plan.focus.label, note: 'what to optimize' },
+        { label: 'target', value: plan.ship.kind, note: plan.ship.title }
+      ].map(stat => `
+        <article class="stat">
+          <span>${stat.label}</span>
+          <strong>${stat.value}</strong>
+          <div class="tiny">${stat.note}</div>
+        </article>
+      `).join('');
+
+      byId('planGrid').innerHTML = plan.steps.map((step, index) => `
+        <article class="plan-block ${index === 0 ? 'is-primary' : ''}">
+          <div class="tiny">phase ${index + 1}</div>
+          <h3>${step.title}</h3>
+          <div class="meter"><span style="width:${Math.min(100, (step.minutes / state.minutes) * 100)}%"></span></div>
+          <p><strong>${step.minutes} minutes</strong> - ${step.copy}</p>
+        </article>
+      `).join('');
+
+      byId('brief').textContent = plan.brief;
+      byId('supportGrid').innerHTML = plan.support.map(item => `
+        <article class="support-card">
+          <h3>${item.title}</h3>
+          <p>${item.body}</p>
+        </article>
+      `).join('');
+
+      renderPresets();
+    }
+
+    function loadPresets() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        state.presets = raw ? JSON.parse(raw) : [];
+      } catch {
+        state.presets = [];
+      }
+    }
+
+    function savePresets() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.presets.slice(0, 6)));
+      } catch {}
+    }
+
+    function addPreset() {
+      const plan = makePlan();
+      const preset = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        createdAt: new Date().toISOString(),
+        minutes: state.minutes,
+        energy: state.energy,
+        goal: state.goal,
+        focus: state.focus,
+        brief: plan.brief,
+        title: `${state.minutes}m ${plan.mode.label}`
+      };
+      state.presets = [preset, ...state.presets.filter(item => item.brief !== preset.brief)].slice(0, 6);
+      savePresets();
+      render();
+      setStatus('preset saved locally ✓', 'ok');
+    }
+
+    function renderPresets() {
+      if (!state.presets.length) {
+        byId('presetList').innerHTML = '<div class="panel">no presets saved yet. capture a strong session shape and keep it for later.</div>';
+        return;
+      }
+      byId('presetList').innerHTML = state.presets.map(preset => `
+        <article class="preset">
+          <div class="preset-head">
+            <div>
+              <h3>${preset.title}</h3>
+              <div class="tiny">${new Date(preset.createdAt).toLocaleString()} · ${preset.minutes}m · ${preset.energy}</div>
+            </div>
+            <div class="row">
+              <button class="btn" type="button" data-restore="${preset.id}">restore</button>
+              <button class="btn" type="button" data-copy="${preset.id}">copy</button>
+            </div>
+          </div>
+          <p>${modes[preset.goal].label} · ${focusOptions[preset.focus === 'auto' ? 'build' : preset.focus]?.label || 'auto'}</p>
+        </article>
+      `).join('');
+    }
+
+    function setStatus(message, tone) {
+      const el = byId('status');
+      el.textContent = message;
+      el.className = `status ${tone || ''}`.trim();
+    }
+
+    function applyControlsFromState() {
+      byId('minutes').value = String(state.minutes);
+      byId('energy').value = state.energy;
+      byId('goal').value = state.goal;
+      byId('focus').value = state.focus;
+    }
+
+    async function copyBrief() {
+      const text = byId('brief').textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('session brief copied ✓', 'ok');
+      } catch {
+        setStatus('clipboard blocked for session brief.', 'warn');
+      }
+    }
+
+    async function copyPreset(id) {
+      const preset = state.presets.find(item => item.id === id);
+      if (!preset) return;
+      try {
+        await navigator.clipboard.writeText(preset.brief);
+        setStatus('preset copied ✓', 'ok');
+      } catch {
+        setStatus('clipboard blocked for preset.', 'warn');
+      }
+    }
+
+    function restorePreset(id) {
+      const preset = state.presets.find(item => item.id === id);
+      if (!preset) return;
+      state.minutes = preset.minutes;
+      state.energy = preset.energy;
+      state.goal = preset.goal;
+      state.focus = preset.focus;
+      applyControlsFromState();
+      render();
+      setStatus('preset restored ✓', 'ok');
+    }
+
+    async function loadData() {
+      const [now, updates, milestones, expeditions, shipyard, yearwheel] = await Promise.all([
+        safeFetch('assets/roost-now.json'),
+        safeFetch('assets/roost-updates.json'),
+        safeFetch('assets/roost-milestones.json'),
+        safeFetch('assets/roost-expeditions.json'),
+        safeFetch('assets/roost-shipyard.json'),
+        safeFetch('assets/roost-yearwheel.json')
+      ]);
+      state.data = { now, updates, milestones, expeditions, shipyard, yearwheel };
+    }
+
+    async function boot() {
+      loadPresets();
+      await loadData();
+      render();
+    }
+
+    byId('minutes').addEventListener('change', event => {
+      state.minutes = Number(event.target.value);
+      render();
+    });
+    byId('energy').addEventListener('change', event => {
+      state.energy = event.target.value;
+      render();
+    });
+    byId('goal').addEventListener('change', event => {
+      state.goal = event.target.value;
+      render();
+    });
+    byId('focus').addEventListener('change', event => {
+      state.focus = event.target.value;
+      render();
+    });
+    byId('reroll').addEventListener('click', () => {
+      state.goal = ['ship', 'stabilize', 'expand'][(Math.random() * 3) | 0];
+      state.energy = ['low', 'steady', 'high'][(Math.random() * 3) | 0];
+      state.focus = ['auto', 'build', 'write', 'design', 'plan'][(Math.random() * 5) | 0];
+      state.minutes = [30, 45, 60, 90, 120][(Math.random() * 5) | 0];
+      applyControlsFromState();
+      render();
+      setStatus('session reshaped ✓', 'ok');
+    });
+    byId('copyBrief').addEventListener('click', copyBrief);
+    byId('savePreset').addEventListener('click', addPreset);
+    byId('clearPresets').addEventListener('click', () => {
+      state.presets = [];
+      savePresets();
+      render();
+      setStatus('presets cleared ✓', 'ok');
+    });
+    byId('presetList').addEventListener('click', event => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const restoreId = target.dataset.restore;
+      const copyId = target.dataset.copy;
+      if (restoreId) restorePreset(restoreId);
+      if (copyId) copyPreset(copyId);
+    });
+
+    boot().catch(() => {
+      byId('brief').textContent = 'roost session scheduler data is unavailable right now.';
+      byId('presetList').innerHTML = '<div class="panel">data unavailable right now.</div>';
+      setStatus('live data unavailable; using fallback surface.', 'warn');
+    });
+  </script>
+</body>
+</html>
