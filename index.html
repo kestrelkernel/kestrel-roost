@@ -703,6 +703,149 @@
       font:inherit;
       line-height:1.45;
     }
+    .roost-atlas {
+      border:1px solid #4f6fcc;
+      background:
+        radial-gradient(circle at top left, #9fb7ff22 0%, transparent 32%),
+        linear-gradient(155deg, #0d1738, #081124 58%, #142c69);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .roost-atlas::before {
+      content:"";
+      position:absolute;
+      inset:auto -120px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #93afff24 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .roost-atlas-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .roost-atlas-head h2 { margin:0; }
+    .roost-atlas-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:44rem;
+    }
+    .roost-atlas-controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      z-index:1;
+    }
+    .roost-atlas-mode {
+      background:#0a1438;
+      border:1px solid #3f56a8;
+      border-radius:999px;
+      color:#dfe7ff;
+      padding:8px 12px;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .roost-atlas-mode.is-active {
+      background:#183170;
+      border-color:#8da7ff;
+      color:#f5f8ff;
+    }
+    .roost-atlas-mode:hover,
+    .roost-atlas-mode:focus-visible {
+      transform: translateY(-1px);
+      border-color:#6f8dff;
+      outline:none;
+    }
+    .roost-atlas-grid {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:12px;
+      z-index:1;
+    }
+    .roost-atlas-panel {
+      border:1px solid #35509f;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .roost-atlas-panel.is-primary {
+      background:linear-gradient(155deg, #14306e, #08112de6 72%);
+      border-color:#7e97eb;
+    }
+    .roost-atlas-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .roost-atlas-copy {
+      margin:0;
+      color:#c2cfff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .roost-atlas-list {
+      margin:0;
+      padding-left:18px;
+      color:#c5d2ff;
+    }
+    .roost-atlas-list li { margin:6px 0; }
+    .roost-atlas-family-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      z-index:1;
+    }
+    .roost-atlas-family {
+      border:1px solid #35509f;
+      border-radius:12px;
+      background:#081231d9;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .roost-atlas-family.is-lead {
+      background:linear-gradient(155deg, #122962, #081231 72%);
+      border-color:#7d97eb;
+    }
+    .roost-atlas-family h4 {
+      margin:0;
+      font-size:1rem;
+      color:#f4f7ff;
+    }
+    .roost-atlas-family p {
+      margin:0;
+      color:#aebfff;
+      line-height:1.5;
+      font-size:.92rem;
+    }
+    .roost-atlas-summary {
+      border:1px solid #3950a0;
+      border-radius:12px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      z-index:1;
+    }
+    .roost-atlas-summary pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.45;
+    }
     .launch-window {
       border:1px solid #4e6fcf;
       background:
@@ -3310,6 +3453,39 @@
       </div>
     </section>
 
+    <section class="card roost-atlas" id="roostAtlasBoard" aria-live="polite">
+      <div class="roost-atlas-head">
+        <h2>roost atlas</h2>
+        <p class="roost-atlas-note">the homepage now maps the site into living page families, so visitors can jump by purpose instead of treating the roost like a long index.</p>
+      </div>
+      <div class="roost-atlas-controls" id="roostAtlasModes">
+        <button class="roost-atlas-mode is-active" type="button" data-roost-atlas-mode="build">build</button>
+        <button class="roost-atlas-mode" type="button" data-roost-atlas-mode="story">story</button>
+        <button class="roost-atlas-mode" type="button" data-roost-atlas-mode="play">play</button>
+      </div>
+      <div class="links" style="margin-bottom:10px;">
+        <button class="btn" id="roostAtlasShuffle">reshuffle atlas</button>
+        <button class="btn" id="roostAtlasCopy">copy atlas brief</button>
+      </div>
+      <div class="roost-atlas-grid">
+        <article class="roost-atlas-panel is-primary">
+          <h3 id="roostAtlasTitle">loading atlas…</h3>
+          <p class="roost-atlas-copy" id="roostAtlasLead">waiting for the page families to resolve into a route.</p>
+          <div class="tag-row" id="roostAtlasMeta"></div>
+          <div class="link-row" id="roostAtlasLinks"></div>
+        </article>
+        <article class="roost-atlas-panel">
+          <h3>what this mode favors</h3>
+          <ul class="roost-atlas-list" id="roostAtlasList"></ul>
+        </article>
+      </div>
+      <div class="roost-atlas-family-grid" id="roostAtlasFamilies"></div>
+      <div class="roost-atlas-summary">
+        <div class="status" id="roostAtlasStatus"></div>
+        <pre id="roostAtlasBrief">loading atlas brief…</pre>
+      </div>
+    </section>
+
     <section class="card launch-window" id="launchWindowBoard" aria-live="polite">
       <div class="launch-window-head">
         <h2>launch window desk</h2>
@@ -3900,6 +4076,18 @@
     const routeMixerModesEl = document.getElementById('routeMixerModes');
     const routeMixerStops = document.getElementById('routeMixerStops');
     const routeMixerSummary = document.getElementById('routeMixerSummary');
+    const roostAtlasBoard = document.getElementById('roostAtlasBoard');
+    const roostAtlasModes = document.getElementById('roostAtlasModes');
+    const roostAtlasTitle = document.getElementById('roostAtlasTitle');
+    const roostAtlasLead = document.getElementById('roostAtlasLead');
+    const roostAtlasMeta = document.getElementById('roostAtlasMeta');
+    const roostAtlasLinks = document.getElementById('roostAtlasLinks');
+    const roostAtlasList = document.getElementById('roostAtlasList');
+    const roostAtlasFamilies = document.getElementById('roostAtlasFamilies');
+    const roostAtlasStatus = document.getElementById('roostAtlasStatus');
+    const roostAtlasBrief = document.getElementById('roostAtlasBrief');
+    const roostAtlasShuffle = document.getElementById('roostAtlasShuffle');
+    const roostAtlasCopy = document.getElementById('roostAtlasCopy');
     const seasonalDesk = document.getElementById('seasonalDesk');
     const launchWindowBoard = document.getElementById('launchWindowBoard');
     const launchWindowMeta = document.getElementById('launchWindowMeta');
@@ -5062,6 +5250,12 @@
       routeMixerSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
       storage.set('roostRouteMixerSeed', String(routeMixerSeed));
     }
+    let roostAtlasMode = storage.get('roostAtlasMode') || 'build';
+    let roostAtlasSeed = Number.parseInt(storage.get('roostAtlasSeed') ?? '', 10);
+    if (!Number.isFinite(roostAtlasSeed)) {
+      roostAtlasSeed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, '')) + 17;
+      storage.set('roostAtlasSeed', String(roostAtlasSeed));
+    }
     let routeMixerPinsState;
     try {
       routeMixerPinsState = JSON.parse(storage.get('roostRouteMixerPins') ?? '[]');
@@ -5655,6 +5849,140 @@
       routeMixerSeed = Math.floor(Math.random() * 9_999_999);
       storage.set('roostRouteMixerSeed', String(routeMixerSeed));
       renderRouteMixer();
+    };
+
+    const atlasModeMap = {
+      build: {
+        label: 'build atlas',
+        focus: 'page systems, tooling, and visible progress',
+        prompt: 'Build the surface that makes the site easier to extend.',
+        keywords: ['tooling', 'planning', 'workflow']
+      },
+      story: {
+        label: 'story atlas',
+        focus: 'release stories, notes, and connective tissue',
+        prompt: 'Highlight the pages that explain why the roost exists.',
+        keywords: ['content', 'navigation', 'history']
+      },
+      play: {
+        label: 'play atlas',
+        focus: 'interactive pages, games, and lighter visits',
+        prompt: 'Point visitors at the pages that feel tactile and fun.',
+        keywords: ['interaction', 'gamefeel', 'art']
+      }
+    };
+    const atlasModeOrder = ['build', 'story', 'play'];
+    const atlasFamilyDefinitions = [
+      { id: 'build', label: 'build cockpit', keywords: ['tooling', 'planning', 'workflow'], blurb: 'Pages that turn the site into a decision engine or planning surface.' },
+      { id: 'story', label: 'story layers', keywords: ['content', 'navigation', 'history'], blurb: 'Pages that connect launches, notes, and narrative context.' },
+      { id: 'play', label: 'play wing', keywords: ['interaction', 'gamefeel', 'art'], blurb: 'Pages that trade in motion, mood, or self-contained fun.' },
+      { id: 'signals', label: 'signal consoles', keywords: ['visibility', 'product', 'workflow'], blurb: 'Pages that turn feeds into visible momentum and shared status.' }
+    ];
+
+    const scoreAtlasPage = (page, family) => {
+      const pageTags = Array.isArray(page.tags) ? page.tags : [];
+      const tags = new Set([...pageTags, page.energy || '']);
+      const pageText = `${page.title || ''} ${page.description || ''}`.toLowerCase();
+      let score = family.keywords.reduce((total, keyword) => total + (tags.has(keyword) || pageText.includes(keyword) ? 3 : 0), 0);
+      if ((page.title || '').toLowerCase().includes('roost')) score += 1;
+      if (pageTags.includes('planning') && family.id === 'build') score += 2;
+      if (pageTags.includes('interactive') && family.id === 'play') score += 2;
+      if (pageTags.includes('history') && family.id === 'story') score += 2;
+      return score;
+    };
+
+    const buildAtlasFamilies = (mode) => {
+      const seedRng = seededRandom(roostAtlasSeed + mode.length * 13);
+      return atlasFamilyDefinitions.map((family) => {
+        const ranked = roostPages
+          .map((page) => ({
+            page,
+            score: scoreAtlasPage(page, family) + Math.floor(seedRng() * 2)
+          }))
+          .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title));
+        const best = ranked.slice(0, 3).map((entry) => entry.page);
+        const lead = ranked[0]?.page || roostPages[0];
+        return {
+          ...family,
+          lead,
+          pages: best,
+          score: ranked[0]?.score || 0,
+          count: roostPages.filter((page) => scoreAtlasPage(page, family) > 0).length
+        };
+      });
+    };
+
+    const renderRoostAtlas = () => {
+      if (!roostAtlasTitle || !roostAtlasBrief) return;
+      const cfg = atlasModeMap[roostAtlasMode] || atlasModeMap.build;
+      const families = buildAtlasFamilies(roostAtlasMode);
+      const leadFamily = families[0];
+      const links = [...new Set(families.flatMap((family) => family.pages.map((page) => page.href)))]
+        .slice(0, 4)
+        .map((href) => roostPages.find((page) => page.href === href))
+        .filter(Boolean);
+
+      if (roostAtlasModes) {
+        roostAtlasModes.innerHTML = atlasModeOrder.map((mode) => `
+          <button class="roost-atlas-mode ${mode === roostAtlasMode ? 'is-active' : ''}" type="button" data-roost-atlas-mode="${mode}">${mode}</button>
+        `).join('');
+      }
+      roostAtlasTitle.textContent = cfg.label;
+      roostAtlasLead.textContent = leadFamily ? `${cfg.focus}. The strongest family right now is ${leadFamily.label}, anchored by ${leadFamily.lead.title}.` : 'waiting for the page families to resolve into a route.';
+      if (roostAtlasMeta) {
+        roostAtlasMeta.innerHTML = [
+          `<span class="tag">${cfg.label}</span>`,
+          `<span class="tag">${roostPages.length} pages</span>`,
+          `<span class="tag">${families.length} families</span>`,
+          leadFamily ? `<span class="tag">${leadFamily.count} matches</span>` : ''
+        ].filter(Boolean).join('');
+      }
+      if (roostAtlasLinks) {
+        roostAtlasLinks.innerHTML = links.map((page) => `<a class="btn" href="${page.href}">open ${page.title}</a>`).join('');
+      }
+      if (roostAtlasList) {
+        roostAtlasList.innerHTML = [
+          `lead family: ${leadFamily?.label || 'none'}`,
+          `anchor page: ${leadFamily?.lead?.title || 'none'}`,
+          `secondary family: ${families[1]?.label || 'none'}`,
+          `best fit for: ${cfg.prompt}`
+        ].map((line) => `<li>${line}</li>`).join('');
+      }
+      if (roostAtlasFamilies) {
+        roostAtlasFamilies.innerHTML = families.map((family, index) => `
+          <article class="roost-atlas-family ${index === 0 ? 'is-lead' : ''}">
+            <h4>${family.label}</h4>
+            <p>${family.blurb}</p>
+            <div class="tag-row">
+              <span class="tag">${family.pages.length} visible</span>
+              <span class="tag">${family.count} matches</span>
+            </div>
+            <div class="link-row">
+              ${family.pages.map((page) => `<a class="mini-link" href="${page.href}">${page.title}</a>`).join('')}
+            </div>
+          </article>
+        `).join('');
+      }
+      if (roostAtlasStatus) {
+        roostAtlasStatus.textContent = `mode ${cfg.label} · ${leadFamily?.count || 0} matches in the lead family`;
+      }
+      roostAtlasBrief.textContent = [
+        `roost atlas / ${cfg.label}`,
+        '',
+        `focus: ${cfg.focus}`,
+        `lead family: ${leadFamily?.label || 'none'}`,
+        `anchor: ${leadFamily?.lead?.title || 'none'}`,
+        '',
+        `best matches: ${families.map((family) => `${family.label} -> ${family.pages.map((page) => page.title).join(' | ')}`).join('\n')}`,
+        '',
+        `why it matters: the homepage can now route by purpose, so the site reads like a map of systems instead of a flat directory.`
+      ].join('\n');
+    };
+
+    const reshuffleRoostAtlas = () => {
+      roostAtlasSeed = Math.floor(Math.random() * 9_999_999);
+      storage.set('roostAtlasSeed', String(roostAtlasSeed));
+      renderRoostAtlas();
     };
 
     const seasonalCopyByMode = {
@@ -7872,6 +8200,33 @@
       setActionStatus('route mixer pins updated ✓', 'ok');
     });
 
+    roostAtlasModes?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const nextMode = target.dataset.roostAtlasMode;
+      if (!nextMode || !atlasModeMap[nextMode]) return;
+      roostAtlasMode = nextMode;
+      storage.set('roostAtlasMode', roostAtlasMode);
+      renderRoostAtlas();
+      setActionStatus(`roost atlas shifted to ${roostAtlasMode} mode ✓`, 'ok');
+    });
+
+    roostAtlasShuffle?.addEventListener('click', () => {
+      reshuffleRoostAtlas();
+      setActionStatus('roost atlas reshuffled ✓', 'ok');
+    });
+
+    roostAtlasCopy?.addEventListener('click', async () => {
+      const text = roostAtlasBrief?.textContent || '';
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('roost atlas brief copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for roost atlas brief.', 'warn');
+      }
+    });
+
     launchWindowShuffleBtn?.addEventListener('click', () => {
       reshuffleLaunchWindow();
       setActionStatus('launch window reshuffled ✓', 'ok');
@@ -8061,6 +8416,7 @@
     renderRoutebook();
     renderRouteRelay();
     renderRouteMixer();
+    renderRoostAtlas();
     renderLaunchWindow();
     loadNowTimeline();
     loadMissionBoard();

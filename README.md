@@ -66,6 +66,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Homepage roost atlas:** added a new `index.html` atlas section that groups the site into build/story/play families, highlights the strongest pages in each lane, and exposes a copyable brief so the homepage can route by purpose instead of acting like a flat index
 - **Thread loom archive:** upgraded `index.html` with locally saved thread snapshots, restore actions, and a visible archive rail so the homepage can preserve a good story lane instead of only showing the live braid
 - **Seasonal compass launch:** added `roost-seasonal-compass.html`, a new planning surface that merges the yearwheel and almanac into one copyable seasonal brief, and wired it into the homepage so the quarter view is one click away
 - **Homepage build queue:** added a new `index.html` build queue surface that turns live now signals, roadmap pressure, and recent wins into a ranked today/next/stretch handoff with reshuffle and copy controls so the homepage can point at one concrete ship instead of several vague candidates
