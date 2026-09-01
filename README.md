@@ -31,6 +31,7 @@ python3 -m http.server 8080
 - `roost-lens.html` — daily build brief generator that turns updates, notes, and roadmap pressure into a concrete next move
 - `roost-signal-map.html` — roadmap-aware planning board that fuses releases, notes, and pressure lanes into a copyable brief
 - `roost-forecast.html` — forecast desk that compresses live roadmap, focus, and note signals into a three-day planning brief
+- `roost-currents.html` — living motion map that ranks recent ships and note trails into a copyable next experiment
 - `roost-prism.html` — signal prism that blends updates, notes, expeditions, and shipyard data into a copyable daily build brief
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
@@ -93,6 +94,7 @@ python3 -m http.server 8080
 - **Roost Chronicle launch:** added `roost-chronicle.html`, a living story-arc explorer that groups launches, notes, and roadmap cues into a copyable brief with connected-signal panels
 - **Roost Prism launch:** added `roost-prism.html`, a new signal prism that classifies current updates, notes, expeditions, and shipyard queue items into mode lenses and emits a copyable build brief for the day
 - **Roost Forecast Desk launch:** added `roost-forecast.html`, a near-term forecast surface that turns roadmap pressure, active focus, and recent wins into a mode-aware three-day brief with a saved local note
+- **Roost Currents launch:** added `roost-currents.html`, a living motion map that ranks recent ships and note trails into a copyable next experiment plus a local snapshot archive so the roost can name its present tense
 - **Roost Atlas share links:** upgraded `roost-atlas.html` with URL-synced scope, search, selected node, route, and camera state plus a one-click copyable share link so map sessions can be reopened exactly as shared
 - **Roost Briefing signal console:** expanded `roost-briefing.html` with signal breakdown cards, more opinionated route suggestions, and copyable route prompts so the briefing can adapt to focus-first or ship-first sessions instead of acting like a static summary
 - **Roost Signal Map launch:** added `roost-signal-map.html`, a roadmap-first planning board that ranks recent releases, surfaces note-driven context, and exports a copyable brief so the homepage ecosystem has one more high-signal planning surface

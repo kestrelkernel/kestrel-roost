@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Currents: a living map of the site's recent motion and the next experiment worth shipping." />
+  <title>roost currents</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#06101b;
+      --bg2:#13264a;
+      --panel:#0d1730dc;
+      --line:#385693;
+      --fg:#eef3ff;
+      --muted:#a7b8e3;
+      --accent:#9cc9ff;
+      --accent2:#91efc4;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 12% 0%, #2c4d862d 0%, transparent 32%),
+        radial-gradient(circle at 88% 12%, #14476a33 0%, transparent 26%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    main {
+      width:min(1160px, 92vw);
+      margin:0 auto;
+      padding:30px 0 44px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+      box-shadow:0 16px 40px #00000034;
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:22px;
+      display:grid;
+      gap:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -120px -120px auto;
+      width:340px;
+      height:340px;
+      border-radius:999px;
+      background:radial-gradient(circle, #9ac5ff22 0%, transparent 70%);
+      pointer-events:none;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.35rem); line-height:1; }
+    .lede { color:var(--muted); line-height:1.6; max-width:78ch; }
+    .topline, .toolbar, .meta-row, .link-row, .tag-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .pill, .mode, .btn, .nav-link {
+      border:1px solid #4c6db7;
+      border-radius:999px;
+      padding:7px 12px;
+      background:#11254d;
+      color:#dbe6ff;
+      text-decoration:none;
+      font:inherit;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn, .nav-link { border-radius:10px; }
+    .mode.is-active, .pill.is-accent {
+      background:#dbe6ff;
+      color:#0f2148;
+      border-color:#dbe6ff;
+    }
+    .btn:hover, .nav-link:hover, .mode:hover,
+    .btn:focus-visible, .nav-link:focus-visible, .mode:focus-visible {
+      outline:none;
+      transform:translateY(-1px);
+      border-color:#88a7ff;
+      background:#15326f;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns:minmax(300px, .96fr) minmax(0, 1.04fr);
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns:1fr; }
+    }
+    .stack { display:grid; gap:12px; }
+    .card {
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .summary-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:12px;
+    }
+    .summary {
+      border:1px solid #39559b;
+      border-radius:14px;
+      background:#081227;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .summary strong { font-size:1.65rem; color:#fff; }
+    .summary span { color:#b8c8ff; text-transform:uppercase; letter-spacing:.08em; font-size:.74rem; }
+    .panel-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .panel {
+      border:1px solid #39559b;
+      border-radius:14px;
+      background:#081227;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .panel.is-lead {
+      background:linear-gradient(155deg, #132a66, #081227 72%);
+      border-color:#82a0ef;
+    }
+    .panel h3 { color:#f7f9ff; font-size:1rem; }
+    .panel p, .copy, .muted { color:var(--muted); line-height:1.55; }
+    .meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:.78rem;
+      color:#bfd0ff;
+    }
+    .tag {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid #4f6ab7;
+      border-radius:999px;
+      padding:4px 8px;
+      background:#0f1f46;
+      color:#d8e5ff;
+      font-size:.78rem;
+    }
+    .meter {
+      height:10px;
+      border-radius:999px;
+      border:1px solid #40589d;
+      background:#091226;
+      overflow:hidden;
+    }
+    .meter span {
+      display:block;
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, #8ac2ff, #93efc5);
+    }
+    .brief {
+      border:1px solid #39559b;
+      border-radius:14px;
+      background:#08102d;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#dbe4ff;
+      font:inherit;
+      line-height:1.48;
+    }
+    .archive {
+      display:grid;
+      gap:10px;
+    }
+    .archive-item {
+      border:1px solid #39559b;
+      border-radius:14px;
+      background:#091225;
+      padding:14px;
+      display:grid;
+      gap:8px;
+    }
+    .archive-item h3 { font-size:1rem; color:#f4f7ff; }
+    .archive-item p { color:var(--muted); line-height:1.5; }
+    .archive-item .meta { font-size:.76rem; }
+    .empty {
+      border:1px dashed #456299;
+      border-radius:14px;
+      padding:14px;
+      color:var(--muted);
+      background:#08111f;
+    }
+    .status { min-height:1.2em; color:#c8d6ff; font-size:.84rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="topline">
+        <span class="pill is-accent">roost currents</span>
+        <span class="pill">living motion map</span>
+        <span class="pill">next experiment</span>
+      </div>
+      <h1>turn recent motion into a visible current.</h1>
+      <p class="lede">Currents reads the latest ships and note trails, sorts them by the kind of momentum they create, and then proposes one concrete experiment worth starting next. It is the roost’s way of saying what is pulling hardest right now.</p>
+      <nav class="topline" aria-label="Site sections">
+        <a class="nav-link" href="index.html">home</a>
+        <a class="nav-link" href="changelog.html">changelog</a>
+        <a class="nav-link" href="flight-deck.html">flight deck</a>
+        <a class="nav-link" href="roost-afterglow.html">afterglow</a>
+      </nav>
+    </section>
+
+    <section class="summary-grid card" aria-label="Current summary">
+      <article class="summary">
+        <span>strongest current</span>
+        <strong id="strongestCurrent">--</strong>
+        <p id="strongestHint">loading the dominant signal…</p>
+      </article>
+      <article class="summary">
+        <span>linked notes</span>
+        <strong id="linkedNotes">--</strong>
+        <p>Why this current exists and what it points at next.</p>
+      </article>
+      <article class="summary">
+        <span>newest ship</span>
+        <strong id="newestShip">--</strong>
+        <p id="newestHint">loading the latest release…</p>
+      </article>
+    </section>
+
+    <div class="layout">
+      <section class="stack">
+        <section class="card" aria-live="polite">
+          <div class="toolbar">
+            <h2>current modes</h2>
+            <div class="tag-row" id="modeSwitches" aria-label="current modes"></div>
+          </div>
+          <div class="panel-grid" id="currentGrid">
+            <div class="empty">loading current map…</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>copyable brief</h2>
+          <p class="muted">This is the one-paragraph handoff you would actually use if you had to explain the roost’s present tense to someone else.</p>
+          <div class="link-row">
+            <button class="btn" id="rerollCurrent">reshuffle currents</button>
+            <button class="btn" id="copyCurrentBrief">copy brief</button>
+            <button class="btn" id="saveCurrentSnapshot">save snapshot</button>
+          </div>
+          <div class="brief">
+            <pre id="currentBrief">loading brief…</pre>
+          </div>
+          <p class="status" id="currentStatus"></p>
+        </section>
+      </section>
+
+      <section class="stack">
+        <section class="card">
+          <h2>next experiment</h2>
+          <p class="muted">A small, visible follow-up that fits the strongest current instead of fighting it.</p>
+          <div id="experimentCard" class="panel is-lead"></div>
+        </section>
+
+        <section class="card">
+          <div class="toolbar">
+            <h2>saved snapshots</h2>
+            <button class="btn" id="clearSnapshots">clear archive</button>
+          </div>
+          <div id="snapshotArchive" class="archive">
+            <div class="empty">no snapshots yet</div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const modeConfigs = {
+      build: { label: 'build', blurb: 'weights fresh releases, shipping momentum, and visible product surface area.', focus: 'look for the page or pattern that would make the next build easier to see.' },
+      story: { label: 'story', blurb: 'weights note trails, release rationale, and surfaces that make the roost easier to explain.', focus: 'look for the connective tissue that turns a ship into a remembered story.' },
+      steady: { label: 'steady', blurb: 'balances release energy with durable pages that keep the site legible across sessions.', focus: 'look for the current that keeps the roost useful tomorrow, not just today.' },
+      spark: { label: 'spark', blurb: 'leans toward playful or visually striking surfaces that reward a quick visit.', focus: 'look for a small delight that can ship fast and still feel alive.' }
+    };
+    const modeOrder = ['build', 'story', 'steady', 'spark'];
+    const storageKey = 'roostCurrentsSnapshots';
+    const state = { updates: [], notes: [], mode: 'build', seed: Date.now() % 100000, snapshots: [] };
+    const el = {
+      modeSwitches: document.getElementById('modeSwitches'),
+      currentGrid: document.getElementById('currentGrid'),
+      strongestCurrent: document.getElementById('strongestCurrent'),
+      strongestHint: document.getElementById('strongestHint'),
+      linkedNotes: document.getElementById('linkedNotes'),
+      newestShip: document.getElementById('newestShip'),
+      newestHint: document.getElementById('newestHint'),
+      currentBrief: document.getElementById('currentBrief'),
+      currentStatus: document.getElementById('currentStatus'),
+      experimentCard: document.getElementById('experimentCard'),
+      snapshotArchive: document.getElementById('snapshotArchive'),
+      copyCurrentBrief: document.getElementById('copyCurrentBrief'),
+      saveCurrentSnapshot: document.getElementById('saveCurrentSnapshot'),
+      clearSnapshots: document.getElementById('clearSnapshots'),
+      rerollCurrent: document.getElementById('rerollCurrent')
+    };
+    const stableNoise = (entry, mode) => {
+      const input = `${mode}:${state.seed}:${entry.slug || entry.title || ''}`;
+      let hash = 0;
+      for (let index = 0; index < input.length; index += 1) {
+        hash = ((hash << 5) - hash + input.charCodeAt(index)) | 0;
+      }
+      return ((hash >>> 0) % 1000) / 1000;
+    };
+    const formatDate = (isoDate) => {
+      const parsed = new Date(`${isoDate}T00:00:00Z`);
+      return Number.isNaN(parsed.getTime()) ? isoDate : parsed.toLocaleDateString('en-GB', { timeZone: 'UTC', month: 'short', day: '2-digit', year: 'numeric' });
+    };
+    const loadSnapshots = () => {
+      try { state.snapshots = JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch { state.snapshots = []; }
+    };
+    const saveSnapshots = () => {
+      try { localStorage.setItem(storageKey, JSON.stringify(state.snapshots.slice(0, 8))); } catch {}
+    };
+    const noteMap = () => new Map(state.notes.map((note) => [note.id, note]));
+    const relatedNotes = (entry) => (entry.relatedNotes || []).map((id) => noteMap().get(id)).filter(Boolean);
+    const scoreEntry = (entry, mode) => {
+      const notes = relatedNotes(entry);
+      let score = 1;
+      if (mode === 'build') {
+        score += ['feature', 'interaction', 'design'].includes(entry.type) ? 1.1 : 0.5;
+        score += entry.page ? 0.45 : 0;
+      } else if (mode === 'story') {
+        score += notes.length * 0.45;
+        score += ['feature', 'interaction'].includes(entry.type) ? 0.35 : 0.1;
+      } else if (mode === 'steady') {
+        score += entry.page ? 0.5 : 0.2;
+        score += Math.max(0, 1 - Math.min(notes.length, 3) * 0.15);
+      } else {
+        score += ['design', 'interaction'].includes(entry.type) ? 0.9 : 0.2;
+        score += (entry.title || '').length < 48 ? 0.25 : 0;
+      }
+      score += Math.min(notes.length * 0.12, 0.3);
+      score += stableNoise(entry, mode) * 0.12;
+      return score;
+    };
+    const currentCandidates = (mode) => state.updates.slice().sort((a, b) => scoreEntry(b, mode) - scoreEntry(a, mode)).slice(0, 5).map((entry) => ({ entry, notes: relatedNotes(entry), score: scoreEntry(entry, mode) }));
+    const buildBrief = (mode, lead) => {
+      const notes = relatedNotes(lead.entry);
+      const topNotes = notes.slice(0, 2).map((note) => note.title).join(' and ') || 'the next story thread';
+      return [
+        `roost currents / ${modeConfigs[mode].label}`,
+        `strongest current: ${lead.entry.title}`,
+        `why it matters: ${lead.entry.impact || lead.entry.details || 'it keeps the roost moving.'}`,
+        `linked notes: ${notes.length ? notes.map((note) => note.title).join(', ') : 'none'}`,
+        `next experiment: ${modeConfigs[mode].focus} Start with ${topNotes}.`,
+        `supporting page: ${lead.entry.pageLabel || lead.entry.page || 'changelog.html'}`
+      ].join('\n');
+    };
+    const experimentCopy = (lead) => {
+      const notes = relatedNotes(lead.entry);
+      return [
+        lead.entry.title,
+        `Mode: ${modeConfigs[state.mode].label}`,
+        `Prompt: ${modeConfigs[state.mode].focus}`,
+        `Current: ${lead.entry.impact || lead.entry.details || 'visible motion with a clear next step.'}`,
+        `Small next experiment: create one page or section that amplifies ${notes[0]?.title || lead.entry.title}.`,
+        lead.entry.page ? `Open: ${lead.entry.pageLabel || lead.entry.page}` : null
+      ].filter(Boolean).join('\n');
+    };
+    const renderModes = () => {
+      el.modeSwitches.innerHTML = '';
+      for (const mode of modeOrder) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `mode${mode === state.mode ? ' is-active' : ''}`;
+        button.textContent = mode;
+        button.dataset.mode = mode;
+        el.modeSwitches.appendChild(button);
+      }
+    };
+    const renderArchive = () => {
+      el.snapshotArchive.innerHTML = '';
+      if (!state.snapshots.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'no snapshots yet';
+        el.snapshotArchive.appendChild(empty);
+        return;
+      }
+      for (const snapshot of state.snapshots) {
+        const item = document.createElement('article');
+        item.className = 'archive-item';
+        item.innerHTML = `<h3>${snapshot.title}</h3><p>${snapshot.summary}</p><div class="meta"><span>${snapshot.mode}</span><span>${snapshot.date}</span></div>`;
+        const row = document.createElement('div');
+        row.className = 'link-row';
+        const restore = document.createElement('button');
+        restore.className = 'btn';
+        restore.type = 'button';
+        restore.textContent = 'restore';
+        restore.addEventListener('click', () => {
+          state.mode = snapshot.mode;
+          renderModes();
+          render();
+          el.currentStatus.textContent = `restored snapshot from ${snapshot.date}`;
+        });
+        const copy = document.createElement('button');
+        copy.className = 'btn';
+        copy.type = 'button';
+        copy.textContent = 'copy';
+        copy.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(snapshot.summary);
+            el.currentStatus.textContent = 'snapshot copied ✓';
+          } catch {
+            el.currentStatus.textContent = 'clipboard blocked for snapshot.';
+          }
+        });
+        row.append(restore, copy);
+        item.appendChild(row);
+        el.snapshotArchive.appendChild(item);
+      }
+    };
+    const render = () => {
+      if (!state.updates.length) return;
+      const candidates = currentCandidates(state.mode);
+      const lead = candidates[0];
+      const newest = [...state.updates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+      const notes = relatedNotes(lead.entry);
+      el.strongestCurrent.textContent = lead.entry.title;
+      el.strongestHint.textContent = lead.entry.impact || lead.entry.details || 'a strong signal is pushing the site forward.';
+      el.linkedNotes.textContent = `${notes.length}`;
+      el.newestShip.textContent = newest?.title || '--';
+      el.newestHint.textContent = newest?.impact || newest?.details || 'the latest ship still matters.';
+      el.currentGrid.innerHTML = '';
+      candidates.forEach((item, idx) => {
+        const card = document.createElement('article');
+        card.className = `panel${idx === 0 ? ' is-lead' : ''}`;
+        card.innerHTML = `
+          <h3>${idx === 0 ? `dominant current: ${item.entry.title}` : item.entry.title}</h3>
+          <div class="meta"><span class="tag">${item.entry.type || 'update'}</span><span>${formatDate(item.entry.date)}</span><span>score ${item.score.toFixed(2)}</span></div>
+          <p>${item.entry.impact || item.entry.details || 'A current with no extra commentary.'}</p>
+          <div class="meter"><span style="width:${Math.min(100, Math.round((item.score / (candidates[0].score || 1)) * 100))}%"></span></div>
+          <div class="tag-row"><span class="tag">${item.entry.page ? 'has page' : 'no page'}</span><span class="tag">${item.notes.length} linked note${item.notes.length === 1 ? '' : 's'}</span></div>
+          <div class="link-row">
+            ${item.entry.page ? `<a class="btn" href="${item.entry.page}">open ${item.entry.pageLabel || 'page'}</a>` : ''}
+            <a class="btn" href="changelog.html#${item.entry.slug || ''}">open changelog</a>
+          </div>
+        `;
+        el.currentGrid.appendChild(card);
+      });
+      el.currentBrief.textContent = buildBrief(state.mode, lead);
+      el.experimentCard.innerHTML = `
+        <h3>${modeConfigs[state.mode].focus}</h3>
+        <p>${lead.entry.impact || lead.entry.details || 'the site has a visible current worth following.'}</p>
+        <div class="meta">
+          <span class="tag">${state.mode}</span>
+          <span class="tag">${lead.entry.type || 'update'}</span>
+          <span class="tag">${notes.length} linked note${notes.length === 1 ? '' : 's'}</span>
+        </div>
+        <p class="copy">${experimentCopy(lead)}</p>
+        <div class="link-row">
+          ${lead.entry.page ? `<a class="btn" href="${lead.entry.page}">open ${lead.entry.pageLabel || 'page'}</a>` : ''}
+          <button class="btn" type="button" id="copyExperiment">copy experiment</button>
+        </div>
+      `;
+      document.getElementById('copyExperiment')?.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(experimentCopy(lead));
+          el.currentStatus.textContent = 'experiment copied ✓';
+        } catch {
+          el.currentStatus.textContent = 'clipboard blocked for experiment.';
+        }
+      });
+      renderArchive();
+    };
+    const loadData = async () => {
+      const [updatesRes, notesRes] = await Promise.all([fetch('assets/roost-updates.json'), fetch('assets/roost-notes.json')]);
+      const updatesJson = await updatesRes.json();
+      const notesJson = await notesRes.json();
+      state.updates = Array.isArray(updatesJson.updates) ? updatesJson.updates : [];
+      state.notes = Array.isArray(notesJson.notes) ? notesJson.notes : [];
+      loadSnapshots();
+      renderModes();
+      render();
+    };
+    el.modeSwitches.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-mode]');
+      if (!target) return;
+      state.mode = target.dataset.mode;
+      renderModes();
+      render();
+      el.currentStatus.textContent = `${state.mode} currents selected ✓`;
+    });
+    el.rerollCurrent.addEventListener('click', () => {
+      state.seed = Math.floor(Math.random() * 1000000);
+      render();
+      el.currentStatus.textContent = 'currents reshuffled ✓';
+    });
+    el.copyCurrentBrief.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(el.currentBrief.textContent || '');
+        el.currentStatus.textContent = 'brief copied ✓';
+      } catch {
+        el.currentStatus.textContent = 'clipboard blocked for brief.';
+      }
+    });
+    el.saveCurrentSnapshot.addEventListener('click', () => {
+      const lead = currentCandidates(state.mode)[0];
+      if (!lead) return;
+      const snapshot = { id: `${Date.now()}-${state.mode}`, mode: state.mode, title: lead.entry.title, summary: buildBrief(state.mode, lead), date: new Date().toISOString().slice(0, 10) };
+      state.snapshots = [snapshot, ...state.snapshots].slice(0, 8);
+      saveSnapshots();
+      renderArchive();
+      el.currentStatus.textContent = 'snapshot saved locally ✓';
+    });
+    el.clearSnapshots.addEventListener('click', () => {
+      state.snapshots = [];
+      saveSnapshots();
+      renderArchive();
+      el.currentStatus.textContent = 'snapshot archive cleared.';
+    });
+    loadData().catch(() => {
+      el.currentGrid.innerHTML = '<div class="empty">currents unavailable right now.</div>';
+      el.currentBrief.textContent = 'currents unavailable right now.';
+      el.currentStatus.textContent = 'could not load the shared roost feeds.';
+    });
+  </script>
+</body>
+</html>
