@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A signal loom that braids the roost's latest updates, notes, and shipyard pressure into one replayable brief." />
+  <title>roost signal loom</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#06111a;
+      --bg2:#0a1c2b;
+      --panel:#0d1b2bcc;
+      --panel-strong:#10243acc;
+      --line:#31557d;
+      --line2:#7fb4ff;
+      --fg:#e8f0ff;
+      --muted:#97afd0;
+      --accent:#88c6ff;
+      --good:#88efbf;
+      --warn:#ffcf7d;
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color:var(--fg);
+      background:
+        radial-gradient(circle at 10% 0%, #1f4f78 0%, transparent 32%),
+        radial-gradient(circle at 92% 12%, #204e5a2e 0%, transparent 24%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    main {
+      width:min(1220px, 92vw);
+      margin:0 auto;
+      padding:28px 0 44px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .panel, .lane, .brief, .archive-item {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+      box-shadow:0 18px 40px #00000030;
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:22px;
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:14px;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -100px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #98c8ff1f 0%, transparent 68%);
+      pointer-events:none;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2rem, 5vw, 3.5rem); line-height:1; }
+    .lede {
+      max-width:78ch;
+      color:var(--muted);
+      line-height:1.6;
+    }
+    .topline, .controls, .chips, .meta-row, .stats {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .pill, .chip {
+      border:1px solid #48689e;
+      border-radius:999px;
+      padding:6px 10px;
+      background:#11213f;
+      color:#dbe7ff;
+      font-size:.8rem;
+    }
+    .pill.is-accent {
+      border-color:#cce2ff;
+      background:#dbe7ff;
+      color:#0e2047;
+    }
+    .button, button, a.button {
+      font:inherit;
+      cursor:pointer;
+      border:1px solid #4e73ab;
+      border-radius:12px;
+      padding:9px 12px;
+      background:#13274a;
+      color:var(--fg);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      transition:.15s ease;
+    }
+    .button:hover, button:hover, .button:focus-visible, button:focus-visible, a.button:hover, a.button:focus-visible {
+      transform:translateY(-1px);
+      border-color:var(--line2);
+      outline:none;
+      box-shadow:0 0 0 2px #7eaaff22;
+    }
+    .workspace {
+      display:grid;
+      grid-template-columns:minmax(0, 1.15fr) minmax(300px, .85fr);
+      gap:14px;
+      align-items:start;
+    }
+    .panel, .brief {
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .panel {
+      background:linear-gradient(180deg, #0d1b2bcc, #09111d);
+    }
+    .hero-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+    }
+    .stat {
+      border:1px solid #395486;
+      border-radius:14px;
+      background:#081425;
+      padding:12px;
+      display:grid;
+      gap:4px;
+    }
+    .stat strong { font-size:1.35rem; color:#f5f8ff; }
+    .stat span { color:var(--muted); line-height:1.45; font-size:.84rem; }
+    .mode-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .mode-btn {
+      background:#0b1530;
+      border:1px solid #3b578c;
+      color:#dfe8ff;
+      border-radius:999px;
+      padding:8px 12px;
+    }
+    .mode-btn.is-active {
+      background:#1a3569;
+      border-color:#90aef9;
+      color:#f6f8ff;
+    }
+    .mode-btn:hover, .mode-btn:focus-visible { outline:none; }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+      gap:12px;
+    }
+    .lane {
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .lane.is-lead {
+      background:linear-gradient(155deg, #133164, #081322 72%);
+      border-color:#7ea2f7;
+    }
+    .lane h3 {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+      font-size:1rem;
+    }
+    .lane small, .muted, .brief p, .archive-item p {
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .entry-list, .archive-list {
+      margin:0;
+      padding-left:18px;
+      color:#cfdbff;
+    }
+    .entry-list li, .archive-list li { margin:6px 0; }
+    .brief {
+      background:linear-gradient(180deg, #081423, #09111d);
+    }
+    .brief pre {
+      margin:0;
+      white-space:pre-wrap;
+      color:#e6eeff;
+      line-height:1.55;
+      font:inherit;
+    }
+    .archive-item {
+      padding:14px;
+      display:grid;
+      gap:10px;
+      border-radius:14px;
+    }
+    .archive-grid {
+      display:grid;
+      gap:10px;
+    }
+    .split {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .chip.is-active {
+      background:#dbe7ff;
+      color:#102244;
+      border-color:#dbe7ff;
+    }
+    .status {
+      min-height:1.2em;
+      color:#c4d3ff;
+      font-size:.84rem;
+    }
+    textarea {
+      width:100%;
+      min-height:170px;
+      border-radius:14px;
+      padding:12px;
+      font:inherit;
+      color:var(--fg);
+      border:1px solid #426096;
+      background:#081423;
+      resize:vertical;
+    }
+    footer {
+      text-align:center;
+      color:#91a8dc;
+      font-size:.84rem;
+      padding-top:4px;
+    }
+    @media (max-width: 920px) {
+      .workspace, .split { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div class="topline">
+      <span class="pill is-accent">roost signal loom</span>
+      <span class="pill">replayable brief</span>
+      <span class="pill">local first</span>
+    </div>
+    <h1>braid the live feeds into one readable move.</h1>
+    <p class="lede">This page takes the roost's updates, field notes, and shipyard queue, then turns them into a compact planning brief. You can filter the mix, compare the current signal against the previous window, and save a snapshot so a good session can be reopened instead of lost.</p>
+    <div class="controls">
+      <a class="button" href="index.html">back home</a>
+      <button id="reshuffleBtn" type="button">reshuffle loom</button>
+      <button id="copyBtn" type="button">copy brief</button>
+      <button id="saveBtn" type="button">save snapshot</button>
+      <button id="clearBtn" type="button">clear snapshots</button>
+    </div>
+    <div class="status" id="statusLine">loading signal loom…</div>
+    <div class="hero-grid" id="heroStats" aria-live="polite"></div>
+  </section>
+
+  <section class="panel">
+    <h2>signal lens</h2>
+    <p class="muted">Pick a mode to bias the brief toward shipping, narrative, or future work. The selected lens changes the lead card, the comparison strip, and the saved snapshot copy.</p>
+    <div class="mode-row" id="modeRow" role="tablist" aria-label="signal lens modes"></div>
+    <div class="chips" id="topicChips" aria-label="signal topics"></div>
+  </section>
+
+  <section class="workspace">
+    <section class="panel">
+      <div class="grid" id="signalGrid"></div>
+    </section>
+    <section class="brief">
+      <h2>brief</h2>
+      <p class="muted">A plain-text version you can paste into a note, message, or follow-up task.</p>
+      <pre id="briefText">loading brief…</pre>
+      <div class="split">
+        <div>
+          <h3 style="margin-bottom:8px;">compare window</h3>
+          <ul class="archive-list" id="compareList"></ul>
+        </div>
+        <div>
+          <h3 style="margin-bottom:8px;">saved snapshots</h3>
+          <div class="archive-grid" id="snapshotList"></div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <section class="panel">
+    <h2>source mix</h2>
+    <div class="grid" id="sourceGrid"></div>
+  </section>
+
+  <footer>signal loom uses the shared roost JSON feeds, local snapshots, and the current mode lens to keep the next move visible.</footer>
+</main>
+<script>
+(() => {
+  const MODE_KEY = 'roostSignalLoomMode';
+  const TOPIC_KEY = 'roostSignalLoomTopic';
+  const SNAP_KEY = 'roostSignalLoomSnapshots';
+  const modes = [
+    { id: 'build', label: 'build', blurb: 'bias toward near-term work and high-impact moves.' },
+    { id: 'story', label: 'story', blurb: 'lean on narrative updates and connective notes.' },
+    { id: 'future', label: 'future', blurb: 'surface roadmap pressure and queued ideas.' }
+  ];
+  const state = {
+    mode: localStorage.getItem(MODE_KEY) || 'build',
+    topic: localStorage.getItem(TOPIC_KEY) || 'all',
+    seed: Date.now()
+  };
+
+  const els = {
+    status: document.getElementById('statusLine'),
+    heroStats: document.getElementById('heroStats'),
+    modeRow: document.getElementById('modeRow'),
+    topicChips: document.getElementById('topicChips'),
+    signalGrid: document.getElementById('signalGrid'),
+    briefText: document.getElementById('briefText'),
+    compareList: document.getElementById('compareList'),
+    sourceGrid: document.getElementById('sourceGrid'),
+    snapshotList: document.getElementById('snapshotList'),
+    copyBtn: document.getElementById('copyBtn'),
+    saveBtn: document.getElementById('saveBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    reshuffleBtn: document.getElementById('reshuffleBtn')
+  };
+
+  const loadJson = async (path) => {
+    const res = await fetch(path, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`failed to load ${path}`);
+    return res.json();
+  };
+
+  const fmtDate = (value) => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const scoreEntry = (entry, mode) => {
+    const tags = [entry.type, ...(entry.tags || []), entry.horizon].filter(Boolean).join(' ');
+    const text = `${entry.title} ${entry.summary} ${tags}`.toLowerCase();
+    const weights = {
+      build: ['launch', 'ship', 'roadmap', 'impact', 'queue', 'prototype', 'planning'],
+      story: ['note', 'story', 'narrative', 'why', 'archive', 'case', 'signal'],
+      future: ['planned', 'later', 'future', 'prototype', 'roadmap', 'idea', 'next']
+    };
+    return weights[mode].reduce((sum, term) => sum + (text.includes(term) ? 1 : 0), 0);
+  };
+
+  const buildTopicList = (updates, notes, shipyard) => {
+    const topics = new Set(['all']);
+    updates.forEach((u) => {
+      (u.tags || []).forEach((tag) => topics.add(tag));
+      if (u.type) topics.add(u.type);
+    });
+    notes.forEach((n) => (n.tags || []).forEach((tag) => topics.add(tag)));
+    shipyard.forEach((item) => (item.tags || []).forEach((tag) => topics.add(tag)));
+    return [...topics].slice(0, 24);
+  };
+
+  const render = (data) => {
+    const { roadmap, updates, notes } = data.updates;
+    const shipyard = data.shipyard;
+    const topicList = buildTopicList(updates, notes, shipyard);
+    if (state.topic !== 'all' && !topicList.includes(state.topic)) state.topic = 'all';
+    localStorage.setItem(MODE_KEY, state.mode);
+    localStorage.setItem(TOPIC_KEY, state.topic);
+
+    const modeConfig = modes.find((m) => m.id === state.mode) || modes[0];
+    const scoredUpdates = updates
+      .map((entry) => ({ kind: 'update', entry, score: scoreEntry(entry, state.mode) }))
+      .sort((a, b) => b.score - a.score || new Date(b.entry.date) - new Date(a.entry.date));
+    const scoredNotes = notes
+      .map((entry) => ({ kind: 'note', entry, score: scoreEntry(entry, state.mode) }))
+      .sort((a, b) => b.score - a.score || new Date(b.entry.date) - new Date(a.entry.date));
+    const scoredShipyard = shipyard
+      .map((entry) => ({ kind: 'shipyard', entry, score: scoreEntry(entry, state.mode) }))
+      .sort((a, b) => b.score - a.score || (b.entry.impact || 0) - (a.entry.impact || 0));
+
+    const filtered = [...scoredUpdates, ...scoredNotes, ...scoredShipyard].filter(({ entry }) => {
+      if (state.topic === 'all') return true;
+      const haystack = [
+        entry.type,
+        entry.horizon,
+        entry.status,
+        entry.title,
+        entry.summary,
+        ...(entry.tags || [])
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(state.topic.toLowerCase());
+    });
+
+    const lead = filtered[0] || scoredUpdates[0] || scoredNotes[0] || scoredShipyard[0];
+    const secondary = filtered.slice(1, 4);
+
+    const compareCurrent = filtered.slice(0, 5).length;
+    const previousWindow = updates.filter((item) => {
+      const age = (Date.now() - new Date(item.date).getTime()) / 86400000;
+      return age > 7 && age <= 21;
+    }).length + notes.filter((item) => {
+      const age = (Date.now() - new Date(item.date).getTime()) / 86400000;
+      return age > 7 && age <= 21;
+    }).length + shipyard.filter((item) => item.status !== 'shipped').length;
+
+    els.heroStats.innerHTML = [
+      { value: updates.length, label: 'updates in feed' },
+      { value: notes.length, label: 'notes in archive' },
+      { value: shipyard.length, label: 'shipyard ideas' },
+      { value: compareCurrent, label: 'items in current window' }
+    ].map((stat) => `
+      <div class="stat">
+        <strong>${stat.value}</strong>
+        <span>${stat.label}</span>
+      </div>
+    `).join('');
+
+    els.modeRow.innerHTML = modes.map((mode) => `
+      <button class="mode-btn ${mode.id === state.mode ? 'is-active' : ''}" type="button" data-mode="${mode.id}">
+        ${mode.label}
+      </button>
+    `).join('');
+
+    els.topicChips.innerHTML = topicList.map((topic) => `
+      <button class="chip ${topic === state.topic ? 'is-active' : ''}" type="button" data-topic="${topic}">
+        ${topic}
+      </button>
+    `).join('');
+
+    const laneSource = [
+      { id: 'lead', title: 'lead signal', items: [lead].filter(Boolean), hint: 'strongest match in the chosen lens.' },
+      { id: 'support', title: 'supporting signals', items: secondary, hint: 'adjacent threads worth reading next.' },
+      { id: 'pressure', title: 'roadmap pressure', items: roadmap[state.mode === 'future' ? 'later' : state.mode === 'story' ? 'next' : 'now'].slice(0, 4).map((text, index) => ({
+        title: text,
+        summary: modeConfig.blurb,
+        kind: 'roadmap',
+        badge: `pressure ${index + 1}`
+      })), hint: 'what the shared roadmap is pointing at.' }
+    ];
+
+    els.signalGrid.innerHTML = laneSource.map((lane, index) => `
+      <article class="lane ${index === 0 ? 'is-lead' : ''}">
+        <h3>${lane.title}<small>${lane.hint}</small></h3>
+        <div class="entry-list">
+          ${lane.items.map((item) => `
+            <div style="margin-bottom:10px;">
+              <strong>${item.entry?.title || item.title}</strong>
+              <div class="muted">${item.entry?.summary || item.summary}</div>
+              <div class="meta-row" style="margin-top:6px;">
+                ${item.entry?.type ? `<span class="pill">${item.entry.type}</span>` : ''}
+                ${item.entry?.date ? `<span class="pill">${fmtDate(item.entry.date)}</span>` : ''}
+                ${item.entry?.status ? `<span class="pill">${item.entry.status}</span>` : ''}
+                ${item.badge ? `<span class="pill">${item.badge}</span>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </article>
+    `).join('');
+
+    const briefLines = [
+      `roost signal loom / ${modeConfig.label}`,
+      `focus: ${modeConfig.blurb}`,
+      `topic: ${state.topic}`,
+      '',
+      `lead signal: ${lead?.entry?.title || lead?.title || 'none'}`,
+      `why it leads: ${lead?.entry?.summary || lead?.summary || 'no matching signal available'}`,
+      '',
+      'supporting signals:',
+      ...secondary.slice(0, 3).map((item) => `- ${item.entry?.title || item.title}`),
+      '',
+      'roadmap pressure:',
+      ...laneSource[2].items.map((item) => `- ${item.title}`),
+      '',
+      `signal count: ${filtered.length}`,
+      `comparison: ${compareCurrent} current vs ${previousWindow} older pressure items`
+    ];
+    els.briefText.textContent = briefLines.join('\n');
+
+    els.compareList.innerHTML = [
+      `current window: ${compareCurrent} items are active in this lens.`,
+      `previous window: ${previousWindow} items still read as background pressure.`,
+      `lead signal: ${lead?.entry?.title || lead?.title || 'none selected yet'}.`
+    ].map((line) => `<li>${line}</li>`).join('');
+
+    const sourceCards = [
+      { title: 'updates', count: updates.length, detail: roadmap.now.slice(0, 3).join(' • ') },
+      { title: 'notes', count: notes.length, detail: notes.slice(0, 3).map((note) => note.title).join(' • ') },
+      { title: 'shipyard', count: shipyard.length, detail: shipyard.slice(0, 3).map((item) => item.title).join(' • ') }
+    ];
+    els.sourceGrid.innerHTML = sourceCards.map((card) => `
+      <article class="archive-item">
+        <h3>${card.title}</h3>
+        <p><strong>${card.count}</strong> items in the feed</p>
+        <p>${card.detail}</p>
+      </article>
+    `).join('');
+
+    renderSnapshots();
+    els.status.textContent = `mode ${modeConfig.label} selected • ${filtered.length} signals in play • topic ${state.topic}`;
+  };
+
+  const readSnapshots = () => {
+    try { return JSON.parse(localStorage.getItem(SNAP_KEY) || '[]'); }
+    catch { return []; }
+  };
+
+  const writeSnapshots = (items) => {
+    localStorage.setItem(SNAP_KEY, JSON.stringify(items.slice(0, 6)));
+  };
+
+  const renderSnapshots = () => {
+    const snapshots = readSnapshots();
+    if (!snapshots.length) {
+      els.snapshotList.innerHTML = '<div class="archive-item"><p>no saved snapshots yet. capture a brief once the loom feels right.</p></div>';
+      return;
+    }
+    els.snapshotList.innerHTML = snapshots.map((snap, index) => `
+      <article class="archive-item">
+        <strong>${fmtDate(snap.savedAt)}</strong>
+        <p>${snap.mode} / ${snap.topic}</p>
+        <button type="button" data-load-snapshot="${index}">restore</button>
+      </article>
+    `).join('');
+  };
+
+  const refresh = async () => {
+    const [updatesData, notesData, shipyardData] = await Promise.all([
+      loadJson('assets/roost-updates.json'),
+      loadJson('assets/roost-notes.json'),
+      loadJson('assets/roost-shipyard.json')
+    ]);
+    render({ updates: updatesData, notes: notesData.notes, shipyard: shipyardData });
+  };
+
+  const updateBriefClip = async () => {
+    try {
+      await navigator.clipboard.writeText(els.briefText.textContent || '');
+      els.status.textContent = 'brief copied to clipboard ✓';
+    } catch {
+      els.status.textContent = 'clipboard is unavailable, but the brief is still ready.';
+    }
+  };
+
+  const saveSnapshot = () => {
+    const snapshots = readSnapshots();
+    snapshots.unshift({
+      mode: state.mode,
+      topic: state.topic,
+      savedAt: new Date().toISOString(),
+      brief: els.briefText.textContent || ''
+    });
+    writeSnapshots(snapshots);
+    renderSnapshots();
+    els.status.textContent = 'snapshot saved locally ✓';
+  };
+
+  const clearSnapshots = () => {
+    localStorage.removeItem(SNAP_KEY);
+    renderSnapshots();
+    els.status.textContent = 'saved snapshots cleared.';
+  };
+
+  els.modeRow.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-mode]');
+    if (!button) return;
+    state.mode = button.dataset.mode;
+    render(window.__loomData);
+  });
+
+  els.topicChips.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-topic]');
+    if (!button) return;
+    state.topic = button.dataset.topic;
+    render(window.__loomData);
+  });
+
+  els.copyBtn.addEventListener('click', updateBriefClip);
+  els.saveBtn.addEventListener('click', saveSnapshot);
+  els.clearBtn.addEventListener('click', clearSnapshots);
+  els.reshuffleBtn.addEventListener('click', () => {
+    state.mode = modes[(modes.findIndex((mode) => mode.id === state.mode) + 1) % modes.length].id;
+    state.topic = 'all';
+    render(window.__loomData);
+    els.status.textContent = 'loom reshuffled ✓';
+  });
+
+  els.snapshotList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-load-snapshot]');
+    if (!button) return;
+    const snap = readSnapshots()[Number(button.dataset.loadSnapshot)];
+    if (!snap) return;
+    state.mode = snap.mode || state.mode;
+    state.topic = snap.topic || 'all';
+    render(window.__loomData);
+    els.status.textContent = `restored snapshot from ${fmtDate(snap.savedAt)} ✓`;
+  });
+
+  refresh().then((data) => {
+    window.__loomData = data;
+  }).catch((error) => {
+    els.status.textContent = `signal loom unavailable: ${error.message}`;
+    els.briefText.textContent = 'signal feeds could not be loaded.';
+  });
+})();
+</script>
+</body>
+</html>

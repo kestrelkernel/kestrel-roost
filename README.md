@@ -30,6 +30,7 @@ python3 -m http.server 8080
 - `flight-deck.html` — roadmap board + filterable ship log for visible product progress
 - `roost-lens.html` — daily build brief generator that turns updates, notes, and roadmap pressure into a concrete next move
 - `roost-signal-map.html` — roadmap-aware planning board that fuses releases, notes, and pressure lanes into a copyable brief
+- `roost-signal-loom.html` — signal braiding desk that merges updates, notes, and shipyard pressure into a replayable brief with local snapshots
 - `roost-forecast.html` — forecast desk that compresses live roadmap, focus, and note signals into a three-day planning brief
 - `roost-currents.html` — living motion map that ranks recent ships and note trails into a copyable next experiment
 - `roost-prism.html` — signal prism that blends updates, notes, expeditions, and shipyard data into a copyable daily build brief
