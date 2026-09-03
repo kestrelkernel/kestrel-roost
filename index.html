@@ -1259,6 +1259,106 @@
       color:#b9caff;
       font-size:.8rem;
     }
+    .replay-board {
+      border:1px solid #4b67c8;
+      background:
+        radial-gradient(circle at 18% 0%, #9ab4ff20 0%, transparent 30%),
+        linear-gradient(155deg, #0c1738, #081123 58%, #132965);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:12px;
+    }
+    .replay-board::before {
+      content:"";
+      position:absolute;
+      inset:auto -100px -120px auto;
+      width:320px;
+      height:320px;
+      border-radius:999px;
+      background:radial-gradient(circle, #8eaaff22 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .replay-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+      z-index:1;
+    }
+    .replay-head h2 { margin:0; }
+    .replay-note {
+      margin:0;
+      color:#aabaff;
+      font-size:.86rem;
+      max-width:48rem;
+    }
+    .replay-grid {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:12px;
+      z-index:1;
+    }
+    .replay-panel {
+      border:1px solid #35509f;
+      border-radius:14px;
+      background:#08112de6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+    .replay-panel.is-primary {
+      background:linear-gradient(155deg, #132b66, #08112de6 68%);
+      border-color:#7b95e7;
+    }
+    .replay-panel h3 {
+      margin:0;
+      font-size:1rem;
+      color:#f5f8ff;
+    }
+    .replay-copy {
+      margin:0;
+      color:#c0ceff;
+      line-height:1.55;
+      font-size:.92rem;
+    }
+    .replay-list {
+      display:grid;
+      gap:10px;
+    }
+    .replay-item {
+      border:1px solid #33498f;
+      border-radius:12px;
+      background:#0b1638;
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+    .replay-item.is-empty {
+      border-style:dashed;
+      background:#08112da6;
+      color:#aabaff;
+    }
+    .replay-item h4 {
+      margin:0;
+      color:#f3f6ff;
+      font-size:.95rem;
+    }
+    .replay-item p {
+      margin:0;
+      color:#bfd0ff;
+      line-height:1.45;
+      font-size:.9rem;
+    }
+    .replay-meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#b9caff;
+      font-size:.8rem;
+    }
     .seasonal-desk::before {
       content:"";
       position:absolute;
@@ -3589,6 +3689,28 @@
       </div>
     </section>
 
+    <section class="card replay-board" id="replayBoard" aria-live="polite">
+      <div class="replay-head">
+        <h2>daily replay rail</h2>
+        <p class="replay-note">the homepage now auto-saves one daily snapshot of its strongest route, so the next visit can reopen a real decision instead of guessing from scratch.</p>
+      </div>
+      <div class="replay-grid">
+        <article class="replay-panel is-primary">
+          <h3>today’s replay</h3>
+          <p class="replay-copy" id="replayLead">waiting for the homepage to resolve into a daily snapshot.</p>
+          <div class="replay-meta" id="replayMeta"></div>
+          <div class="link-row">
+            <button class="btn" id="replayCapture" type="button">save today</button>
+            <button class="mini-link" id="replayCopy" type="button">copy replay</button>
+          </div>
+        </article>
+        <article class="replay-panel">
+          <h3>saved days</h3>
+          <div class="replay-list" id="replayList"></div>
+        </article>
+      </div>
+    </section>
+
     <section class="card seasonal-desk" id="seasonalDesk" aria-live="polite">
       <div class="seasonal-head">
         <h2>seasonal weather desk</h2>
@@ -4121,6 +4243,11 @@
     const dispatchArchiveList = document.getElementById('dispatchArchiveList');
     const saveDispatchSnapshot = document.getElementById('saveDispatchSnapshot');
     const copyDispatchSnapshot = document.getElementById('copyDispatchSnapshot');
+    const replayLead = document.getElementById('replayLead');
+    const replayMeta = document.getElementById('replayMeta');
+    const replayList = document.getElementById('replayList');
+    const replayCapture = document.getElementById('replayCapture');
+    const replayCopy = document.getElementById('replayCopy');
     const seasonalGrid = document.getElementById('seasonalGrid');
     const seasonalBrief = document.getElementById('seasonalBrief');
     const seasonalModes = document.getElementById('seasonalModes');
@@ -5381,6 +5508,9 @@
     let buildQueueState = [];
     const dispatchArchiveKey = 'roostDispatchArchive';
     let dispatchArchiveState = [];
+    const replayArchiveKey = 'roostReplayArchive';
+    let replayArchiveState = [];
+    let routeMixerLeadTitle = '';
 
     const loadDispatchArchive = () => {
       try {
@@ -5445,6 +5575,91 @@
       dispatchArchiveState = [snapshot, ...dispatchArchiveState.filter((entry) => entry.id !== snapshot.id)].slice(0, 6);
       saveDispatchArchive();
       renderDispatchArchive();
+    };
+
+    const loadReplayArchive = () => {
+      try {
+        const saved = JSON.parse(storage.get(replayArchiveKey) || '[]');
+        replayArchiveState = Array.isArray(saved) ? saved.filter((entry) => entry && typeof entry === 'object') : [];
+      } catch {
+        replayArchiveState = [];
+      }
+    };
+
+    const saveReplayArchive = () => {
+      storage.set(replayArchiveKey, JSON.stringify(replayArchiveState.slice(0, 7)));
+    };
+
+    const makeReplaySnapshot = () => {
+      const leadQueue = buildQueueState[0]?.page?.title || buildQueueState[0]?.goal || '';
+      const leadRadar = launchRadarState?.leadPage?.title || '';
+      const leadWindow = getLaunchWindow();
+      const summary = [
+        `daily replay / ${new Date().toISOString().slice(0, 10)}`,
+        '',
+        `queue lead: ${leadQueue || 'none'}`,
+        `route lead: ${routeMixerLeadTitle || 'none'}`,
+        `radar lead: ${leadRadar || 'none'}`,
+        `window: ${leadWindow.label} (${leadWindow.focus})`,
+        '',
+        `why it matters: the homepage can reopen the day’s strongest mix instead of asking the same questions on every refresh.`
+      ].join('\n');
+
+      return {
+        id: `replay-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        date: new Date().toISOString(),
+        label: leadWindow.label,
+        summary,
+        leadQueue,
+        leadRoute: routeMixerLeadTitle,
+        leadRadar,
+        leadWindow: leadWindow.focus
+      };
+    };
+
+    const renderReplayArchive = () => {
+      if (!replayLead || !replayMeta || !replayList) return;
+      const lead = replayArchiveState[0];
+
+      if (lead) {
+        replayLead.textContent = lead.summary;
+        replayMeta.innerHTML = [
+          `<span class="tag">${lead.label}</span>`,
+          `<span class="tag">${new Date(lead.date).toISOString().slice(0, 10)}</span>`,
+          `<span class="tag">${lead.leadWindow || 'session'}</span>`
+        ].join('');
+      } else {
+        replayLead.textContent = 'waiting for the homepage to resolve into a daily snapshot.';
+        replayMeta.innerHTML = '<span class="tag">empty archive</span><span class="tag">local only</span>';
+      }
+
+      if (!replayArchiveState.length) {
+        replayList.innerHTML = '<div class="replay-item is-empty"><p>No daily snapshots yet. Save today’s mix to start the replay rail.</p></div>';
+        return;
+      }
+
+      replayList.innerHTML = replayArchiveState.slice(0, 5).map((entry) => `
+        <article class="replay-item">
+          <div class="replay-meta">
+            <span class="tag">${entry.label}</span>
+            <span class="tag">${new Date(entry.date).toISOString().slice(0, 10)}</span>
+          </div>
+          <h4>${entry.leadQueue || 'homepage replay'}</h4>
+          <p>${entry.leadRadar || entry.leadRoute || 'saved daily mix'}</p>
+          <div class="link-row">
+            <button class="mini-link" data-replay-restore="${entry.id}" type="button">restore</button>
+            <button class="mini-link" data-replay-copy="${entry.id}" type="button">copy</button>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const captureReplaySnapshot = () => {
+      const snapshot = makeReplaySnapshot();
+      replayArchiveState = [snapshot, ...replayArchiveState.filter((entry) => entry.id !== snapshot.id)].slice(0, 7);
+      saveReplayArchive();
+      renderReplayArchive();
+      return snapshot;
     };
 
     const buildBuildQueue = (payload = {}) => {
@@ -5566,6 +5781,7 @@
       storage.set('roostBuildQueueSeed', String(buildQueueSeed));
       buildQueueState = buildBuildQueue(payload);
       renderBuildQueue();
+      captureReplaySnapshot();
     };
 
     let launchWindowSeed = Number.parseInt(storage.get('roostLaunchWindowSeed') ?? '', 10);
@@ -5635,6 +5851,7 @@
       launchWindowSeed = Math.floor(Math.random() * 9_999_999);
       storage.set('roostLaunchWindowSeed', String(launchWindowSeed));
       renderLaunchWindow();
+      captureReplaySnapshot();
     };
 
     const getLaunchRadarMode = () => launchRadarModesConfig[launchRadarMode] || launchRadarModesConfig.build;
@@ -5757,6 +5974,7 @@
       const mode = getLaunchRadarMode();
       launchRadarState = buildLaunchRadar(mode, payload);
       renderLaunchRadar();
+      captureReplaySnapshot();
     };
 
     const buildRouteMixer = () => {
@@ -5827,6 +6045,7 @@
       }).join('');
 
       const lead = stops[0];
+      routeMixerLeadTitle = lead.title;
       routeMixerSummary.textContent = [
         `route mixer / ${mode.label}`,
         '',
@@ -5852,6 +6071,7 @@
       routeMixerSeed = Math.floor(Math.random() * 9_999_999);
       storage.set('roostRouteMixerSeed', String(routeMixerSeed));
       renderRouteMixer();
+      captureReplaySnapshot();
     };
 
     const atlasModeMap = {
@@ -8349,6 +8569,58 @@
       }
     });
 
+    replayCapture?.addEventListener('click', () => {
+      const snapshot = captureReplaySnapshot();
+      if (!snapshot) {
+        setActionStatus('daily replay has nothing to save yet.', 'warn');
+        return;
+      }
+      setActionStatus('daily replay saved ✓', 'ok');
+    });
+
+    replayCopy?.addEventListener('click', async () => {
+      const text = replayLead?.textContent || '';
+      if (!text.trim()) {
+        setActionStatus('save a replay before copying it.', 'warn');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        setActionStatus('daily replay copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for daily replay.', 'warn');
+      }
+    });
+
+    replayList?.addEventListener('click', async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const restoreId = target.dataset.replayRestore;
+      const copyId = target.dataset.replayCopy;
+      const entry = replayArchiveState.find((item) => item.id === restoreId || item.id === copyId);
+      if (!entry) return;
+
+      if (restoreId) {
+        if (replayLead) replayLead.textContent = entry.summary;
+        if (replayMeta) {
+          replayMeta.innerHTML = [
+            `<span class="tag">${entry.label}</span>`,
+            `<span class="tag">${new Date(entry.date).toISOString().slice(0, 10)}</span>`,
+            `<span class="tag">${entry.leadWindow || 'session'}</span>`
+          ].join('');
+        }
+        setActionStatus('daily replay restored ✓', 'ok');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(entry.summary || '');
+        setActionStatus('replay copied ✓', 'ok');
+      } catch {
+        setActionStatus('clipboard blocked for replay.', 'warn');
+      }
+    });
+
     rerollRouteMixer?.addEventListener('click', () => {
       reshuffleRouteMixer();
       setActionStatus('route mixer reshuffled ✓', 'ok');
@@ -8425,6 +8697,11 @@
     loadMissionBoard();
     renderSeasonalDesk();
     renderDispatchArchive();
+    loadReplayArchive();
+    renderReplayArchive();
+    if (!replayArchiveState.length) {
+      captureReplaySnapshot();
+    }
 
     missionBoardList.addEventListener('change', (event) => {
       const target = event.target;

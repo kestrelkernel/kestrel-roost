@@ -21,6 +21,20 @@
   },
   "updates": [
     {
+      "slug": "homepage-daily-replay-rail",
+      "date": "2026-09-03",
+      "title": "Added a daily replay rail to the homepage",
+      "type": "feature",
+      "impact": "Visitors can now save and reopen the day’s strongest homepage mix, which makes the landing page feel more like a memoryful command deck than a live-only dashboard.",
+      "details": "Upgraded index.html with a new replay archive that auto-saves the current build queue, route mixer, radar, and launch window mix as a daily snapshot with restore and copy actions.",
+      "page": "index.html",
+      "pageLabel": "Open the homepage",
+      "relatedNotes": [
+        "ship-log-strategy",
+        "roost-linking-system"
+      ]
+    },
+    {
       "slug": "roost-capsules-launch",
       "date": "2026-08-23",
       "title": "Launched Roost Capsules as release case cards",
