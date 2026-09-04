@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Hatchery turns today's signals into a concrete three-part build plan, a saved note, and a local archive of recent sparks." />
+  <title>Roost Hatchery · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#06101c;
+      --bg2:#102b3f;
+      --card:#0c182ddd;
+      --panel:#09131fe6;
+      --line:#2f4d66;
+      --fg:#eff6ff;
+      --muted:#a9c0da;
+      --accent:#8ce6c8;
+      --accent2:#95b6ff;
+      --warn:#ffd37c;
+      --shadow:0 18px 50px rgba(0,0,0,.34);
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      color:var(--fg);
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background:
+        radial-gradient(circle at 12% 10%, #2c7d7630 0%, transparent 28%),
+        radial-gradient(circle at 88% 0%, #5b88ff28 0%, transparent 26%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1160px, 94vw);
+      margin:28px auto 40px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:20px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -90px -100px auto;
+      width:280px;
+      height:280px;
+      border-radius:999px;
+      background:radial-gradient(circle, #8ce6c826 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .top {
+      position:relative;
+      z-index:1;
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2.2rem, 5.8vw, 4.3rem); line-height:.95; max-width:11ch; }
+    p { color:var(--muted); line-height:1.55; }
+    .lede { max-width:68ch; margin-top:12px; }
+    .eyebrow {
+      color:var(--accent);
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      font-size:.72rem;
+      margin-bottom:10px;
+    }
+    .nav, .controls, .row, .tags, .archive-head { display:flex; gap:10px; flex-wrap:wrap; }
+    .nav a, .button, .chip, .archive-btn {
+      text-decoration:none;
+      color:#e7f0ff;
+      border:1px solid #446178;
+      border-radius:999px;
+      padding:8px 12px;
+      background:#0f2033;
+      font:inherit;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .button { border-radius:10px; }
+    .nav a:hover, .button:hover, .chip:hover, .archive-btn:hover,
+    .nav a:focus-visible, .button:focus-visible, .chip:focus-visible, .archive-btn:focus-visible {
+      transform:translateY(-1px);
+      border-color:#8fc1ff;
+      background:#13294a;
+      outline:none;
+    }
+    .chip.is-active {
+      background:#173156;
+      border-color:#88c5ff;
+      color:#f5f9ff;
+    }
+    .stat-grid, .panel-grid, .archive-list {
+      display:grid;
+      gap:12px;
+    }
+    .stat-grid { grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); margin-top:18px; position:relative; z-index:1; }
+    .stat {
+      border:1px solid #355068;
+      border-radius:16px;
+      background:#081220d9;
+      padding:14px;
+      display:grid;
+      gap:6px;
+    }
+    .stat strong { font-size:1.7rem; line-height:1; }
+    .stat small { color:#bed3e8; text-transform:uppercase; letter-spacing:.08em; font-size:.72rem; }
+    .stat span { color:var(--muted); font-size:.88rem; line-height:1.45; }
+    .card { padding:16px; }
+    .panel-grid { grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); }
+    .panel, .archive-item {
+      border:1px solid #334d65;
+      border-radius:14px;
+      background:var(--panel);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .panel.is-primary {
+      background:linear-gradient(160deg, #132e4d, #09131fe6 72%);
+    }
+    .panel-copy {
+      color:#ecf4ff;
+      font-size:1rem;
+      line-height:1.6;
+    }
+    .meta {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:#bfd4ee;
+      font-size:.78rem;
+    }
+    .tag {
+      border:1px solid #49677f;
+      border-radius:999px;
+      padding:5px 10px;
+      background:#0f1f30;
+    }
+    .feed {
+      display:grid;
+      gap:10px;
+    }
+    .feed textarea, .note, .summary {
+      width:100%;
+      border:1px solid #365068;
+      border-radius:12px;
+      background:#08131f;
+      color:var(--fg);
+      font:inherit;
+      padding:12px;
+      resize:vertical;
+      min-height:110px;
+    }
+    .feed textarea:focus-visible {
+      outline:2px solid #8fc1ff;
+      outline-offset:2px;
+    }
+    .summary {
+      min-height:130px;
+      white-space:pre-wrap;
+    }
+    .archive-header {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .archive-note { color:var(--muted); font-size:.82rem; }
+    .archive-list { margin-top:12px; }
+    .archive-item h3 { font-size:1rem; }
+    .archive-item p { font-size:.9rem; }
+    .archive-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .tiny { font-size:.82rem; color:#93abc2; }
+    @media (max-width: 720px) {
+      .hero, .card { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="top">
+        <div>
+          <div class="eyebrow">daily build hatchery</div>
+          <h1>roost hatchery</h1>
+          <p class="lede">Turn the live roost into one clear hatch for the day: a build, a polish, and a stretch. Save the note locally, copy the brief, and keep the best ideas in a small archive instead of letting them evaporate.</p>
+        </div>
+        <nav class="nav" aria-label="Roost pages">
+          <a href="index.html">home</a>
+          <a href="roost-workbench.html">workbench</a>
+          <a href="roost-launch-corridor.html">launch corridor</a>
+          <a href="roost-lens.html">roost lens</a>
+        </nav>
+      </div>
+      <div class="stat-grid" id="statGrid">
+        <div class="stat"><small>mode</small><strong id="modeStat">ship</strong><span id="modeHint">a focused build plan for the day.</span></div>
+        <div class="stat"><small>signals</small><strong id="signalStat">--</strong><span id="signalHint">updates, notes, and roadmap pressure.</span></div>
+        <div class="stat"><small>archive</small><strong id="archiveStat">0</strong><span id="archiveHint">saved hatch notes stored locally.</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="archive-header">
+        <div>
+          <h2>today's hatch</h2>
+          <p class="tiny">pick the lane that fits the session, then copy the result or keep it as a local snapshot.</p>
+        </div>
+        <div class="controls" id="modeControls" aria-label="hatch modes">
+          <button class="chip is-active" type="button" data-mode="ship">ship</button>
+          <button class="chip" type="button" data-mode="polish">polish</button>
+          <button class="chip" type="button" data-mode="stretch">stretch</button>
+        </div>
+      </div>
+      <div class="panel-grid" style="margin-top:12px;">
+        <article class="panel is-primary">
+          <h3>primary hatch</h3>
+          <p class="panel-copy" id="primaryCopy">loading hatch…</p>
+          <div class="meta" id="primaryMeta"></div>
+          <div class="row" id="primaryLinks"></div>
+        </article>
+        <article class="panel">
+          <h3>supporting moves</h3>
+          <div class="feed">
+            <textarea id="hatchNote" placeholder="add a quick note for the session..."></textarea>
+            <div class="meta" id="supportMeta"></div>
+          </div>
+        </article>
+        <article class="panel">
+          <h3>copyable brief</h3>
+          <pre class="summary" id="briefOutput">loading brief…</pre>
+          <div class="row">
+            <button class="button" id="reshuffleBtn">reshuffle hatch</button>
+            <button class="button" id="copyBtn">copy brief</button>
+            <button class="button" id="saveBtn">save hatch</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="archive-header">
+        <div>
+          <h2>recent hatches</h2>
+          <p class="tiny">stored in local storage. restoring one will pull its text and note back into the page.</p>
+        </div>
+        <button class="button" id="clearArchiveBtn">clear archive</button>
+      </div>
+      <div class="archive-list" id="archiveList">
+        <div class="archive-item"><p class="tiny">no saved hatches yet.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'roostHatcheryArchive-v1';
+    const NOTE_KEY = 'roostHatcheryNote-v1';
+    const modeControls = document.getElementById('modeControls');
+    const primaryCopy = document.getElementById('primaryCopy');
+    const primaryMeta = document.getElementById('primaryMeta');
+    const primaryLinks = document.getElementById('primaryLinks');
+    const supportMeta = document.getElementById('supportMeta');
+    const briefOutput = document.getElementById('briefOutput');
+    const hatchNote = document.getElementById('hatchNote');
+    const archiveList = document.getElementById('archiveList');
+    const archiveStat = document.getElementById('archiveStat');
+    const modeStat = document.getElementById('modeStat');
+    const modeHint = document.getElementById('modeHint');
+    const signalStat = document.getElementById('signalStat');
+    const signalHint = document.getElementById('signalHint');
+
+    const hatchModes = {
+      ship: {
+        label: 'ship',
+        hint: 'push one visible user-facing improvement.',
+        opener: 'Ship one obvious improvement that makes the roost easier to use.',
+        polish: 'trim copy, spacing, or state so the page feels more deliberate.',
+        stretch: 'add one delightful interaction that still keeps the page simple.'
+      },
+      polish: {
+        label: 'polish',
+        hint: 'tighten a surface already close to done.',
+        opener: 'Polish one existing surface so it feels more finished and more legible.',
+        polish: 'trim the roughest copy or layout edge before adding anything new.',
+        stretch: 'tune a secondary state or empty state for better clarity.'
+      },
+      stretch: {
+        label: 'stretch',
+        hint: 'try a bolder idea while staying shippable.',
+        opener: 'Add one slightly bolder page behavior that still fits the roost.',
+        polish: 'keep the core flow intact while giving the page a stronger personality.',
+        stretch: 'explore one playful interaction, data view, or shareable brief.'
+      }
+    };
+
+    const pages = [
+      { href: 'roost-workbench.html', label: 'roost workbench', role: 'decision deck' },
+      { href: 'roost-launch-corridor.html', label: 'launch corridor', role: 'next-build compass' },
+      { href: 'roost-lens.html', label: 'roost lens', role: 'daily build brief' },
+      { href: 'roost-signal-map.html', label: 'signal map', role: 'planning surface' },
+      { href: 'roost-prism.html', label: 'roost prism', role: 'signal blend' },
+      { href: 'roost-forecast.html', label: 'forecast desk', role: 'near-term route' },
+      { href: 'roost-currents.html', label: 'roost currents', role: 'motion map' },
+      { href: 'roost-afterglow.html', label: 'afterglow', role: 'retrospective' },
+      { href: 'index.html#dispatchBoard', label: 'homepage dispatch', role: 'launch point' }
+    ];
+
+    const loadArchive = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    };
+
+    const saveArchive = (items) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items.slice(0, 7)));
+      archiveStat.textContent = String(items.slice(0, 7).length);
+    };
+
+    const loadNote = () => {
+      try {
+        return localStorage.getItem(NOTE_KEY) || '';
+      } catch {
+        return '';
+      }
+    };
+
+    const saveNote = (value) => {
+      try { localStorage.setItem(NOTE_KEY, value); } catch {}
+    };
+
+    const seedIndex = (mode) => {
+      const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const total = [...stamp + mode].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      return total;
+    };
+
+    const pick = (arr, idx) => arr[idx % arr.length];
+
+    const buildHatch = (mode) => {
+      const config = hatchModes[mode] || hatchModes.ship;
+      const base = seedIndex(mode);
+      const build = pick([
+        'tighten the main flow and ship the visible improvement.',
+        'add a small but unmistakable interaction to the page.',
+        'connect one existing surface to a clearer action.',
+        'replace a vague state with a sharper one.'
+      ], base);
+      const polish = pick([
+        config.polish,
+        'refresh the copy around the new surface so it reads like a finished product.',
+        'shape the empty state so the page stays useful before data arrives.',
+        'smooth the CTA stack so the next click is obvious.'
+      ], base + 1);
+      const stretch = pick([
+        config.stretch,
+        'add a local archive or restore flow so the new idea has memory.',
+        'make the brief copyable so the page can move between sessions.',
+        'try one more visual accent without turning the page into a museum.'
+      ], base + 2);
+      const page = pick(pages, base + 3);
+      const alt = pick(pages.slice().reverse(), base + 5);
+      return { mode, config, build, polish, stretch, page, alt };
+    };
+
+    let currentMode = 'ship';
+    let currentHatch = buildHatch(currentMode);
+    let archive = loadArchive();
+    hatchNote.value = loadNote();
+
+    const render = () => {
+      const { config, build, polish, stretch, page, alt } = currentHatch;
+      modeStat.textContent = config.label;
+      modeHint.textContent = config.hint;
+      signalStat.textContent = '5';
+      signalHint.textContent = 'two pages, two actions, one note.';
+
+      primaryCopy.textContent = `${config.opener} ${build} ${polish} ${stretch}`;
+      primaryMeta.innerHTML = [
+        `<span class="tag">${page.label}</span>`,
+        `<span class="tag">${page.role}</span>`,
+        `<span class="tag">backup: ${alt.label}</span>`
+      ].join('');
+
+      primaryLinks.innerHTML = '';
+      [page, alt, { href: 'index.html', label: 'home' }].forEach((item) => {
+        const link = document.createElement('a');
+        link.className = 'button';
+        link.href = item.href;
+        link.textContent = item.label;
+        primaryLinks.appendChild(link);
+      });
+
+      supportMeta.innerHTML = [
+        `<span class="tag">build</span>`,
+        `<span class="tag">polish</span>`,
+        `<span class="tag">stretch</span>`,
+        `<span class="tag">${new Date().toISOString().slice(0, 10)}</span>`
+      ].join('');
+
+      briefOutput.textContent = [
+        `roost hatchery · ${config.label}`,
+        '',
+        `build: ${build}`,
+        `polish: ${polish}`,
+        `stretch: ${stretch}`,
+        '',
+        `route: ${page.label} -> ${alt.label}`,
+        `note: ${hatchNote.value.trim() || 'no note yet'}`
+      ].join('\n');
+
+      archiveStat.textContent = String(archive.length);
+      archiveList.innerHTML = '';
+      if (!archive.length) {
+        archiveList.innerHTML = '<div class="archive-item"><p class="tiny">no saved hatches yet.</p></div>';
+        return;
+      }
+
+      archive.slice(0, 5).forEach((entry) => {
+        const item = document.createElement('article');
+        item.className = 'archive-item';
+        const title = document.createElement('h3');
+        title.textContent = `${entry.mode} hatch`;
+        const copy = document.createElement('p');
+        copy.textContent = entry.brief;
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const pageTag = document.createElement('span');
+        pageTag.className = 'tag';
+        pageTag.textContent = entry.page;
+        const dateTag = document.createElement('span');
+        dateTag.className = 'tag';
+        dateTag.textContent = entry.date;
+        meta.append(pageTag, dateTag);
+        const actions = document.createElement('div');
+        actions.className = 'archive-actions';
+        const restore = document.createElement('button');
+        restore.className = 'button';
+        restore.type = 'button';
+        restore.textContent = 'restore';
+        restore.addEventListener('click', () => {
+          currentMode = entry.mode;
+          currentHatch = buildHatch(currentMode);
+          hatchNote.value = entry.note || '';
+          saveNote(hatchNote.value);
+          modeControls.querySelectorAll('.chip').forEach((btn) => btn.classList.toggle('is-active', btn.dataset.mode === currentMode));
+          render();
+        });
+        const copy = document.createElement('button');
+        copy.className = 'button';
+        copy.type = 'button';
+        copy.textContent = 'copy';
+        copy.addEventListener('click', async () => {
+          try { await navigator.clipboard.writeText(entry.brief); } catch {}
+        });
+        actions.append(restore, copy);
+        item.append(title, copy, meta, actions);
+        archiveList.appendChild(item);
+      });
+    };
+
+    const updateMode = (mode) => {
+      currentMode = mode;
+      currentHatch = buildHatch(mode);
+      modeControls.querySelectorAll('.chip').forEach((btn) => btn.classList.toggle('is-active', btn.dataset.mode === mode));
+      render();
+    };
+
+    modeControls.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) return;
+      const mode = target.dataset.mode;
+      if (!mode || !hatchModes[mode]) return;
+      updateMode(mode);
+    });
+
+    hatchNote.addEventListener('input', () => {
+      saveNote(hatchNote.value);
+      render();
+    });
+
+    document.getElementById('reshuffleBtn').addEventListener('click', () => {
+      currentHatch = buildHatch(currentMode);
+      render();
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(briefOutput.textContent || '');
+      } catch {}
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      archive = [{
+        mode: currentMode,
+        date: new Date().toISOString().slice(0, 10),
+        page: currentHatch.page.label,
+        note: hatchNote.value.trim(),
+        brief: briefOutput.textContent || ''
+      }, ...archive].slice(0, 7);
+      saveArchive(archive);
+      render();
+    });
+
+    document.getElementById('clearArchiveBtn').addEventListener('click', () => {
+      archive = [];
+      saveArchive(archive);
+      render();
+    });
+
+    archiveStat.textContent = String(archive.length);
+    render();
+  </script>
+</body>
+</html>

@@ -63,6 +63,7 @@ python3 -m http.server 8080
 - `roost-launch-corridor.html` — launch compass that ranks the next build, compares mode scores, and saves local briefing snapshots
 - `roost-route-mixer.html` — interactive route builder that turns updates, roadmap pressure, and note trails into a copyable three-stop visit plan
 - `roost-workbench.html` — ranked daily workbench that scores roadmap, expedition, note, and shipyard signals into one recommended next move
+- `roost-hatchery.html` — daily hatch planner that turns live roost pages into a concrete build/polish/stretch brief with local archive saves
 - `mission-plotter.html` — drag-and-drop planning board with local autosave, snapshot replay scrubbing, and restore controls
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
@@ -74,6 +75,7 @@ python3 -m http.server 8080
 - **Homepage build queue:** added a new `index.html` build queue surface that turns live now signals, roadmap pressure, and recent wins into a ranked today/next/stretch handoff with reshuffle and copy controls so the homepage can point at one concrete ship instead of several vague candidates
 - **Roost Field Guide launch:** added `roost-field-guide.html`, a curated discovery surface that groups the site into page families and generates copyable three-stop tours so the roost has a calmer, more opinionated way to choose the next visit
 - **Roost Capsules launch:** added `roost-capsules.html`, a release explorer that turns the update feed into featured case cards and a searchable archive with linked note context and copyable briefs
+- **Roost Hatchery launch:** added `roost-hatchery.html`, a daily hatch planner that turns the live roost into a concrete build/polish/stretch brief with a local archive and copyable session note
 
 - **Now board share cards:** added a new `now.html` share-card panel with social-safe, markdown, and launch-note copies plus clipboard actions so the live status page can double as a quick publishing surface
 - **Homepage route mixer:** added a new `index.html` route mixer that ranks build/story/play/quiet visits into a copyable three-stop handoff with pinned favorites and reshuffle controls so the homepage can recommend a clearer next tour
