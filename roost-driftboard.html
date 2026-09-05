@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Roost Driftboard compares today's roost state to saved snapshots so changes, momentum, and lost details stay visible." />
+  <title>Roost Driftboard · Kestrel's Roost</title>
+  <style>
+    :root {
+      --bg:#09111c;
+      --bg2:#13283d;
+      --card:#0d1828e6;
+      --panel:#0a1320ee;
+      --line:#304d6a;
+      --fg:#eef5ff;
+      --muted:#a7bdd7;
+      --accent:#8ed8ff;
+      --accent2:#9df0c4;
+      --warn:#ffd27a;
+      --shadow:0 20px 60px rgba(0,0,0,.34);
+    }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body {
+      margin:0;
+      color:var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background:
+        radial-gradient(circle at 8% 0%, #4b7ba12b 0%, transparent 24%),
+        radial-gradient(circle at 88% 16%, #8ed8ff22 0%, transparent 22%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+    .wrap {
+      width:min(1180px, 94vw);
+      margin:28px auto 42px;
+      display:grid;
+      gap:14px;
+    }
+    .hero, .card {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      padding:20px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero::after {
+      content:"";
+      position:absolute;
+      inset:auto -120px -130px auto;
+      width:340px;
+      height:340px;
+      border-radius:999px;
+      background:radial-gradient(circle, #8ed8ff24 0%, transparent 68%);
+      pointer-events:none;
+    }
+    .top {
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      position:relative;
+      z-index:1;
+    }
+    h1, h2, h3, p { margin:0; }
+    h1 { font-size:clamp(2.2rem, 5.8vw, 4.4rem); line-height:.95; max-width:12ch; }
+    .eyebrow {
+      color:var(--accent2);
+      text-transform:uppercase;
+      letter-spacing:.2em;
+      font-size:.72rem;
+      margin-bottom:10px;
+    }
+    .lede { color:var(--muted); max-width:72ch; line-height:1.55; margin-top:12px; }
+    .nav, .actions, .chips, .link-row, .meta-row, .saved-actions {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .nav a, .button, .chip {
+      text-decoration:none;
+      color:#ebf4ff;
+      border:1px solid #446178;
+      border-radius:999px;
+      padding:8px 12px;
+      background:#112237;
+      font:inherit;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .button { border-radius:10px; }
+    .nav a:hover, .button:hover, .chip:hover,
+    .nav a:focus-visible, .button:focus-visible, .chip:focus-visible {
+      transform:translateY(-1px);
+      border-color:#8ab8ff;
+      background:#153054;
+      outline:none;
+    }
+    .chip.is-active {
+      background:#1a355d;
+      border-color:#8ab8ff;
+    }
+    .card { padding:16px; }
+    .stat-grid, .panel-grid, .saved-grid {
+      display:grid;
+      gap:12px;
+    }
+    .stat-grid { grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); margin-top:18px; position:relative; z-index:1; }
+    .stat {
+      border:1px solid #355068;
+      border-radius:14px;
+      background:#08111ee6;
+      padding:14px;
+      display:grid;
+      gap:5px;
+    }
+    .stat strong { font-size:1.55rem; line-height:1; }
+    .stat small { text-transform:uppercase; letter-spacing:.08em; font-size:.72rem; color:#bed2e7; }
+    .stat span { color:var(--muted); font-size:.88rem; line-height:1.45; }
+    .panel-grid { grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); }
+    .panel {
+      border:1px solid #324d67;
+      border-radius:14px;
+      background:var(--panel);
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .panel.is-primary {
+      background:linear-gradient(155deg, #16345b, #0a1320ee 70%);
+      border-color:#7393d9;
+    }
+    .panel-copy {
+      white-space:pre-wrap;
+      color:#e6f0ff;
+      line-height:1.55;
+      font-size:.94rem;
+    }
+    .tag {
+      border:1px solid #49677f;
+      border-radius:999px;
+      padding:5px 10px;
+      background:#102235;
+      color:#dce7f8;
+      font-size:.78rem;
+    }
+    .diff-list {
+      margin:0;
+      padding-left:18px;
+      color:#dfe9fb;
+    }
+    .diff-list li { margin:6px 0; }
+    .diff-list strong { color:#fff; }
+    .changed { color:var(--accent); }
+    .added { color:var(--accent2); }
+    .removed { color:#ffbf8a; }
+    .saved-header, .panel-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .tiny { color:#91a9c3; font-size:.82rem; }
+    .saved-grid { margin-top:12px; }
+    .saved-card {
+      border:1px solid #324a64;
+      border-radius:14px;
+      background:#08111ee6;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .saved-card.is-empty {
+      color:#9bb0c8;
+    }
+    .saved-card h3 { font-size:1rem; }
+    .saved-card p { color:var(--muted); line-height:1.5; }
+    .saved-meta { display:flex; flex-wrap:wrap; gap:8px; }
+    .saved-actions .button { padding:7px 11px; }
+    textarea {
+      width:100%;
+      min-height:120px;
+      border:1px solid #365069;
+      border-radius:12px;
+      background:#08111f;
+      color:var(--fg);
+      font:inherit;
+      padding:12px;
+      resize:vertical;
+    }
+    textarea:focus-visible {
+      outline:2px solid #8ab8ff;
+      outline-offset:2px;
+    }
+    pre {
+      margin:0;
+      white-space:pre-wrap;
+      font:inherit;
+      line-height:1.55;
+      color:#eef5ff;
+    }
+    @media (max-width:720px) {
+      .hero, .card { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="top">
+        <div>
+          <div class="eyebrow">memory surface</div>
+          <h1>roost driftboard</h1>
+          <p class="lede">Compare the current roost against a saved snapshot, surface what changed, and keep a copyable memo of the drift. This is the page for noticing when the site has quietly become something different.</p>
+        </div>
+        <nav class="nav" aria-label="Roost pages">
+          <a href="index.html">home</a>
+          <a href="roost-hatchery.html">hatchery</a>
+          <a href="roost-chronicle.html">chronicle</a>
+          <a href="roost-observatory.html">observatory</a>
+        </nav>
+      </div>
+      <div class="stat-grid" id="statGrid">
+        <div class="stat"><small>current shift</small><strong id="changeStat">--</strong><span id="changeHint">loading today's drift.</span></div>
+        <div class="stat"><small>snapshot</small><strong id="snapshotStat">none</strong><span id="snapshotHint">save a baseline to compare against later.</span></div>
+        <div class="stat"><small>tracked lanes</small><strong id="laneStat">3</strong><span id="laneHint">ships, notes, and now-board signals.</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="panel-head">
+        <div>
+          <h2>current read</h2>
+          <p class="tiny">freshly assembled from the shared roost feeds.</p>
+        </div>
+        <div class="actions">
+          <button class="button" id="saveSnapshotBtn">save snapshot</button>
+          <button class="button" id="copyMemoBtn">copy change memo</button>
+        </div>
+      </div>
+      <div class="panel-grid" style="margin-top:12px;">
+        <article class="panel is-primary">
+          <h3>drift memo</h3>
+          <p class="panel-copy" id="memoOutput">loading drift…</p>
+          <div class="meta-row" id="memoTags"></div>
+        </article>
+        <article class="panel">
+          <h3>what changed</h3>
+          <ul class="diff-list" id="diffList"></ul>
+        </article>
+        <article class="panel">
+          <h3>signals in play</h3>
+          <textarea id="noteDraft" placeholder="add a note about why this snapshot matters..."></textarea>
+          <div class="meta-row" id="signalTags"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="saved-header">
+        <div>
+          <h2>saved snapshots</h2>
+          <p class="tiny">local history of the roost's shape-shifting state. restore one to compare from that moment again.</p>
+        </div>
+        <button class="button" id="clearSnapshotsBtn">clear snapshots</button>
+      </div>
+      <div class="saved-grid" id="savedGrid">
+        <div class="saved-card is-empty">no snapshots saved yet.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SNAPSHOT_KEY = 'roostDriftboardSnapshots-v1';
+    const NOTE_KEY = 'roostDriftboardNote-v1';
+
+    const changeStat = document.getElementById('changeStat');
+    const changeHint = document.getElementById('changeHint');
+    const snapshotStat = document.getElementById('snapshotStat');
+    const snapshotHint = document.getElementById('snapshotHint');
+    const memoOutput = document.getElementById('memoOutput');
+    const memoTags = document.getElementById('memoTags');
+    const diffList = document.getElementById('diffList');
+    const signalTags = document.getElementById('signalTags');
+    const noteDraft = document.getElementById('noteDraft');
+    const savedGrid = document.getElementById('savedGrid');
+
+    const state = {
+      snapshotId: null,
+      current: null,
+      saved: loadSnapshots(),
+      note: loadNote()
+    };
+
+    noteDraft.value = state.note;
+
+    function loadSnapshots() {
+      try {
+        const raw = localStorage.getItem(SNAPSHOT_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveSnapshots(items) {
+      try {
+        localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(items.slice(0, 8)));
+      } catch {}
+    }
+
+    function loadNote() {
+      try {
+        return localStorage.getItem(NOTE_KEY) || '';
+      } catch {
+        return '';
+      }
+    }
+
+    function saveNote(value) {
+      try {
+        localStorage.setItem(NOTE_KEY, value);
+      } catch {}
+    }
+
+    const normalize = (items) => [...new Set((items || []).map((item) => String(item).trim()).filter(Boolean))];
+
+    function buildCurrentState(payload) {
+      const updates = Array.isArray(payload?.updates?.updates) ? payload.updates.updates : [];
+      const notes = Array.isArray(payload?.notes?.notes) ? payload.notes.notes : [];
+      const now = payload?.now || {};
+      const activeFocus = Array.isArray(now.activeFocus) ? now.activeFocus : [];
+      const roadmap = payload?.updates?.roadmap || {};
+
+      const latestUpdate = [...updates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0] || null;
+      const latestNote = [...notes].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0] || null;
+
+      return {
+        stamp: new Date().toISOString(),
+        updateCount: updates.length,
+        noteCount: notes.length,
+        focusCount: activeFocus.length,
+        roadmapNow: normalize(roadmap.now),
+        roadmapNext: normalize(roadmap.next),
+        roadmapLater: normalize(roadmap.later),
+        latestUpdate: latestUpdate ? {
+          title: latestUpdate.title,
+          date: latestUpdate.date,
+          type: latestUpdate.type
+        } : null,
+        latestNote: latestNote ? {
+          title: latestNote.title,
+          date: latestNote.date,
+          tags: Array.isArray(latestNote.tags) ? latestNote.tags.slice(0, 3) : []
+        } : null,
+        headline: String(now.headline || payload?.now?.headline || '').trim(),
+        nextUp: Array.isArray(now.nextUp) ? now.nextUp.slice(0, 3) : [],
+        recentWins: Array.isArray(now.recentWins) ? now.recentWins.slice(0, 3) : []
+      };
+    }
+
+    function diffArrays(label, current, saved) {
+      const currentSet = new Set(current);
+      const savedSet = new Set(saved);
+      const added = current.filter((item) => !savedSet.has(item));
+      const removed = saved.filter((item) => !currentSet.has(item));
+      return { label, added, removed };
+    }
+
+    function summarizeChange(current, saved) {
+      if (!saved) {
+        return 'No baseline exists yet, so this page is showing the live roost as the first memory.';
+      }
+      const deltaUpdate = current.updateCount - saved.updateCount;
+      const deltaNote = current.noteCount - saved.noteCount;
+      const deltaFocus = current.focusCount - saved.focusCount;
+      const parts = [];
+      if (deltaUpdate) parts.push(`${deltaUpdate > 0 ? '+' : ''}${deltaUpdate} updates`);
+      if (deltaNote) parts.push(`${deltaNote > 0 ? '+' : ''}${deltaNote} notes`);
+      if (deltaFocus) parts.push(`${deltaFocus > 0 ? '+' : ''}${deltaFocus} active focus lanes`);
+      if (!parts.length) parts.push('counts are steady');
+      return `The roost is ${parts.join(', ')} different from the saved snapshot.`;
+    }
+
+    function buildMemo(current, saved) {
+      const snapshotLabel = saved ? `${saved.date || 'saved'} baseline` : 'no baseline';
+      const line1 = summarizeChange(current, saved);
+      const line2 = current.headline ? `headline: ${current.headline}` : 'headline: unavailable right now';
+      const line3 = current.noteDraft?.trim()
+        ? `local note: ${current.noteDraft.trim()}`
+        : `latest update: ${current.latestUpdate ? current.latestUpdate.title : 'none yet'}`;
+      return [
+        `roost driftboard · ${new Date().toISOString().slice(0, 10)}`,
+        `baseline: ${snapshotLabel}`,
+        '',
+        line1,
+        line2,
+        line3
+      ].join('\n');
+    }
+
+    async function loadFeeds() {
+      const [updatesRes, notesRes, nowRes] = await Promise.allSettled([
+        fetch('assets/roost-updates.json', { cache: 'no-store' }),
+        fetch('assets/roost-notes.json', { cache: 'no-store' }),
+        fetch('assets/roost-now.json', { cache: 'no-store' })
+      ]);
+      const updates = updatesRes.status === 'fulfilled' && updatesRes.value.ok ? await updatesRes.value.json() : null;
+      const notes = notesRes.status === 'fulfilled' && notesRes.value.ok ? await notesRes.value.json() : null;
+      const now = nowRes.status === 'fulfilled' && nowRes.value.ok ? await nowRes.value.json() : null;
+      return { updates, notes, now };
+    }
+
+    function renderSavedList() {
+      snapshotStat.textContent = state.saved[0]?.date || 'none';
+      snapshotHint.textContent = state.saved[0] ? 'restore or compare against a local baseline.' : 'save a baseline to compare against later.';
+      savedGrid.innerHTML = '';
+      if (!state.saved.length) {
+        savedGrid.innerHTML = '<div class="saved-card is-empty">no snapshots saved yet.</div>';
+        return;
+      }
+      state.saved.forEach((entry) => {
+        const card = document.createElement('article');
+        card.className = 'saved-card';
+        const title = document.createElement('h3');
+        title.textContent = entry.label || entry.date || 'saved snapshot';
+        const copy = document.createElement('p');
+        copy.textContent = entry.memo || 'saved roost state.';
+        const meta = document.createElement('div');
+        meta.className = 'saved-meta';
+        [entry.date, `${entry.updateCount} updates`, `${entry.noteCount} notes`, `${entry.focusCount} focus lanes`].filter(Boolean).forEach((item) => {
+          const tag = document.createElement('span');
+          tag.className = 'tag';
+          tag.textContent = item;
+          meta.appendChild(tag);
+        });
+        const actions = document.createElement('div');
+        actions.className = 'saved-actions';
+        const restore = document.createElement('button');
+        restore.className = 'button';
+        restore.type = 'button';
+        restore.textContent = 'restore';
+        restore.addEventListener('click', () => {
+          state.snapshotId = entry.id;
+          renderAll();
+        });
+        const compare = document.createElement('button');
+        compare.className = 'button';
+        compare.type = 'button';
+        compare.textContent = 'compare';
+        compare.addEventListener('click', () => {
+          state.snapshotId = entry.id;
+          renderAll();
+        });
+        actions.append(restore, compare);
+        card.append(title, copy, meta, actions);
+        savedGrid.appendChild(card);
+      });
+    }
+
+    function renderAll() {
+      const baseline = state.saved.find((item) => item.id === state.snapshotId) || state.saved[0] || null;
+      const current = state.current;
+      const diff = baseline ? [
+        diffArrays('roadmap now', current.roadmapNow, baseline.roadmapNow),
+        diffArrays('roadmap next', current.roadmapNext, baseline.roadmapNext),
+        diffArrays('roadmap later', current.roadmapLater, baseline.roadmapLater)
+      ] : [];
+
+      changeStat.textContent = baseline ? `${current.updateCount - baseline.updateCount >= 0 ? '+' : ''}${current.updateCount - baseline.updateCount}` : '--';
+      changeHint.textContent = summarizeChange(current, baseline);
+      memoOutput.textContent = buildMemo(current, baseline);
+      memoTags.innerHTML = '';
+      const memoItems = [
+        current.latestUpdate ? `latest ship: ${current.latestUpdate.title}` : 'no latest ship',
+        current.latestNote ? `latest note: ${current.latestNote.title}` : 'no latest note',
+        baseline ? `baseline: ${baseline.date}` : 'baseline: none'
+      ];
+      memoItems.forEach((item) => {
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = item;
+        memoTags.appendChild(tag);
+      });
+
+      signalTags.innerHTML = '';
+      [
+        `updates ${current.updateCount}`,
+        `notes ${current.noteCount}`,
+        `focus ${current.focusCount}`,
+        current.headline ? 'headline present' : 'headline missing'
+      ].forEach((item) => {
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = item;
+        signalTags.appendChild(tag);
+      });
+
+      diffList.innerHTML = '';
+      if (!baseline) {
+        const li = document.createElement('li');
+        li.textContent = 'Save a snapshot to compare the current roost against a remembered baseline.';
+        diffList.appendChild(li);
+      } else {
+        const lines = [];
+        lines.push(`updates: ${current.updateCount - baseline.updateCount >= 0 ? '+' : ''}${current.updateCount - baseline.updateCount}`);
+        lines.push(`notes: ${current.noteCount - baseline.noteCount >= 0 ? '+' : ''}${current.noteCount - baseline.noteCount}`);
+        lines.push(`active focus: ${current.focusCount - baseline.focusCount >= 0 ? '+' : ''}${current.focusCount - baseline.focusCount}`);
+        diff.forEach((group) => {
+          if (group.added.length) lines.push(`${group.label} added ${group.added.join(', ')}`);
+          if (group.removed.length) lines.push(`${group.label} removed ${group.removed.join(', ')}`);
+        });
+        if (current.latestUpdate?.title !== baseline.latestUpdate?.title) {
+          lines.push(`latest ship changed from "${baseline.latestUpdate?.title || 'none'}" to "${current.latestUpdate?.title || 'none'}"`);
+        }
+        if (current.latestNote?.title !== baseline.latestNote?.title) {
+          lines.push(`latest note changed from "${baseline.latestNote?.title || 'none'}" to "${current.latestNote?.title || 'none'}"`);
+        }
+        lines.forEach((line) => {
+          const li = document.createElement('li');
+          li.textContent = line;
+          diffList.appendChild(li);
+        });
+      }
+
+      state.current.noteDraft = noteDraft.value;
+      renderSavedList();
+    }
+
+    document.getElementById('saveSnapshotBtn').addEventListener('click', () => {
+      const entry = {
+        id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        date: new Date().toISOString().slice(0, 10),
+        label: noteDraft.value.trim().split('\n')[0] || `snapshot ${new Date().toISOString().slice(0, 10)}`,
+        memo: noteDraft.value.trim() || summarizeChange(state.current, state.saved[0] || null),
+        updateCount: state.current.updateCount,
+        noteCount: state.current.noteCount,
+        focusCount: state.current.focusCount,
+        roadmapNow: state.current.roadmapNow,
+        roadmapNext: state.current.roadmapNext,
+        roadmapLater: state.current.roadmapLater,
+        latestUpdate: state.current.latestUpdate,
+        latestNote: state.current.latestNote
+      };
+      state.saved = [entry, ...state.saved.filter((item) => item.id !== entry.id)].slice(0, 8);
+      state.snapshotId = entry.id;
+      saveSnapshots(state.saved);
+      renderAll();
+    });
+
+    document.getElementById('copyMemoBtn').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(memoOutput.textContent || '');
+      } catch {}
+    });
+
+    document.getElementById('clearSnapshotsBtn').addEventListener('click', () => {
+      state.saved = [];
+      state.snapshotId = null;
+      saveSnapshots(state.saved);
+      renderAll();
+    });
+
+    noteDraft.addEventListener('input', () => {
+      saveNote(noteDraft.value);
+      state.current.noteDraft = noteDraft.value;
+      memoOutput.textContent = buildMemo(state.current, state.saved.find((item) => item.id === state.snapshotId) || state.saved[0] || null);
+    });
+
+    (async () => {
+      const feeds = await loadFeeds();
+      state.current = buildCurrentState(feeds);
+      state.current.noteDraft = noteDraft.value;
+      if (!state.saved.length) {
+        state.saved = [{
+          id: 'seed',
+          date: state.current.stamp.slice(0, 10),
+          label: 'seed baseline',
+          memo: 'starter snapshot so the driftboard has something to compare against.',
+          updateCount: state.current.updateCount,
+          noteCount: state.current.noteCount,
+          focusCount: state.current.focusCount,
+          roadmapNow: state.current.roadmapNow,
+          roadmapNext: state.current.roadmapNext,
+          roadmapLater: state.current.roadmapLater,
+          latestUpdate: state.current.latestUpdate,
+          latestNote: state.current.latestNote
+        }];
+        saveSnapshots(state.saved);
+      }
+      state.snapshotId = state.saved[0]?.id || null;
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
