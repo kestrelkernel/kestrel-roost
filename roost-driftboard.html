@@ -77,7 +77,7 @@
       margin-bottom:10px;
     }
     .lede { color:var(--muted); max-width:72ch; line-height:1.55; margin-top:12px; }
-    .nav, .actions, .chips, .link-row, .meta-row, .saved-actions {
+    .nav, .actions, .chips, .link-row, .meta-row, .saved-actions, .compare-controls {
       display:flex;
       gap:10px;
       flex-wrap:wrap;
@@ -149,6 +149,15 @@
       color:#dce7f8;
       font-size:.78rem;
     }
+    .compare-controls {
+      margin-top:12px;
+    }
+    .compare-controls .chip {
+      border-style:dashed;
+    }
+    .compare-controls .chip.is-active {
+      border-style:solid;
+    }
     .diff-list {
       margin:0;
       padding-left:18px;
@@ -159,6 +168,53 @@
     .changed { color:var(--accent); }
     .added { color:var(--accent2); }
     .removed { color:#ffbf8a; }
+    .drift-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+      gap:10px;
+    }
+    .drift-stat {
+      border:1px solid #36536f;
+      border-radius:12px;
+      background:#08111ee6;
+      padding:12px;
+      display:grid;
+      gap:4px;
+    }
+    .drift-stat strong {
+      font-size:1.35rem;
+      line-height:1;
+      color:#f4f8ff;
+    }
+    .drift-stat small {
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-size:.7rem;
+      color:#bed2e7;
+    }
+    .drift-stat span {
+      color:var(--muted);
+      font-size:.84rem;
+      line-height:1.4;
+    }
+    .summary-list {
+      display:grid;
+      gap:8px;
+      margin:0;
+      padding:0;
+      list-style:none;
+    }
+    .summary-list li {
+      border:1px solid #324a64;
+      border-radius:10px;
+      background:#091521;
+      padding:10px 11px;
+      color:#dfe9fb;
+      line-height:1.45;
+    }
+    .summary-list li strong {
+      color:#fff;
+    }
     .saved-header, .panel-head {
       display:flex;
       justify-content:space-between;
@@ -249,6 +305,11 @@
           <h3>drift memo</h3>
           <p class="panel-copy" id="memoOutput">loading drift…</p>
           <div class="meta-row" id="memoTags"></div>
+          <div class="compare-controls" id="compareControls" aria-label="compare mode">
+            <button class="chip is-active" type="button" data-compare-mode="latest">latest save</button>
+            <button class="chip" type="button" data-compare-mode="selected">selected save</button>
+            <button class="chip" type="button" data-compare-mode="previous">previous save</button>
+          </div>
         </article>
         <article class="panel">
           <h3>what changed</h3>
@@ -260,6 +321,17 @@
           <div class="meta-row" id="signalTags"></div>
         </article>
       </div>
+    </section>
+
+    <section class="card">
+      <div class="panel-head">
+        <div>
+          <h2>drift map</h2>
+          <p class="tiny">the page now breaks drift into a few readable signals, so you can see whether the roost is evolving or merely accumulating noise.</p>
+        </div>
+      </div>
+      <div class="drift-grid" id="driftGrid"></div>
+      <ul class="summary-list" id="summaryList" style="margin-top:12px;"></ul>
     </section>
 
     <section class="card">
@@ -290,9 +362,13 @@
     const signalTags = document.getElementById('signalTags');
     const noteDraft = document.getElementById('noteDraft');
     const savedGrid = document.getElementById('savedGrid');
+    const compareControls = document.getElementById('compareControls');
+    const driftGrid = document.getElementById('driftGrid');
+    const summaryList = document.getElementById('summaryList');
 
     const state = {
       snapshotId: null,
+      compareMode: 'latest',
       current: null,
       saved: loadSnapshots(),
       note: loadNote()
@@ -365,6 +441,23 @@
       };
     }
 
+    function compareLabel(mode) {
+      if (mode === 'selected') return 'selected snapshot';
+      if (mode === 'previous') return 'previous snapshot';
+      return 'latest snapshot';
+    }
+
+    function pickBaseline() {
+      if (!state.saved.length) return null;
+      if (state.compareMode === 'selected') {
+        return state.saved.find((item) => item.id === state.snapshotId) || state.saved[0] || null;
+      }
+      if (state.compareMode === 'previous') {
+        return state.saved[1] || state.saved[0] || null;
+      }
+      return state.saved[0] || null;
+    }
+
     function diffArrays(label, current, saved) {
       const currentSet = new Set(current);
       const savedSet = new Set(saved);
@@ -386,6 +479,19 @@
       if (deltaFocus) parts.push(`${deltaFocus > 0 ? '+' : ''}${deltaFocus} active focus lanes`);
       if (!parts.length) parts.push('counts are steady');
       return `The roost is ${parts.join(', ')} different from the saved snapshot.`;
+    }
+
+    function driftScore(current, saved) {
+      if (!saved) return current.updateCount + current.noteCount + current.focusCount;
+      const updateDelta = Math.abs(current.updateCount - saved.updateCount);
+      const noteDelta = Math.abs(current.noteCount - saved.noteCount);
+      const focusDelta = Math.abs(current.focusCount - saved.focusCount);
+      const roadmapDelta = Math.abs(current.roadmapNow.length - saved.roadmapNow.length)
+        + Math.abs(current.roadmapNext.length - saved.roadmapNext.length)
+        + Math.abs(current.roadmapLater.length - saved.roadmapLater.length);
+      const titleDelta = current.latestUpdate?.title !== saved.latestUpdate?.title ? 2 : 0;
+      const noteTitleDelta = current.latestNote?.title !== saved.latestNote?.title ? 2 : 0;
+      return updateDelta + noteDelta + focusDelta + roadmapDelta + titleDelta + noteTitleDelta;
     }
 
     function buildMemo(current, saved) {
@@ -465,7 +571,7 @@
     }
 
     function renderAll() {
-      const baseline = state.saved.find((item) => item.id === state.snapshotId) || state.saved[0] || null;
+      const baseline = pickBaseline();
       const current = state.current;
       const diff = baseline ? [
         diffArrays('roadmap now', current.roadmapNow, baseline.roadmapNow),
@@ -530,6 +636,57 @@
       }
 
       state.current.noteDraft = noteDraft.value;
+      const baselineLabel = baseline ? `${baseline.label || baseline.date || 'saved snapshot'} · ${compareLabel(state.compareMode)}` : 'no baseline yet';
+      const currentVsBaseline = baseline ? driftScore(current, baseline) : current.updateCount + current.noteCount + current.focusCount;
+      driftGrid.innerHTML = [
+        {
+          label: 'compare mode',
+          value: compareLabel(state.compareMode),
+          hint: baselineLabel
+        },
+        {
+          label: 'drift score',
+          value: baseline ? String(currentVsBaseline) : 'open',
+          hint: baseline ? 'higher means more visible change.' : 'save a baseline to score drift.'
+        },
+        {
+          label: 'baseline age',
+          value: baseline?.date || 'none',
+          hint: baseline ? `${baseline.updateCount} updates / ${baseline.noteCount} notes` : 'no snapshot selected yet.'
+        },
+        {
+          label: 'archive depth',
+          value: String(state.saved.length),
+          hint: 'local snapshots ready to compare.'
+        }
+      ].map((item) => `
+        <article class="drift-stat">
+          <small>${item.label}</small>
+          <strong>${item.value}</strong>
+          <span>${item.hint}</span>
+        </article>
+      `).join('');
+
+      const summaryLines = [];
+      summaryLines.push({
+        label: 'baseline',
+        text: baseline ? `${baseline.label || baseline.date || 'saved snapshot'} is the compare anchor.` : 'the live roost is the anchor until you save one.'
+      });
+      summaryLines.push({
+        label: 'latest ship',
+        text: current.latestUpdate ? `${current.latestUpdate.title} (${current.latestUpdate.date})` : 'no latest ship available.'
+      });
+      summaryLines.push({
+        label: 'latest note',
+        text: current.latestNote ? `${current.latestNote.title} (${current.latestNote.date})` : 'no latest note available.'
+      });
+      summaryLines.push({
+        label: 'roadmap drift',
+        text: baseline ? `${current.roadmapNow.length - baseline.roadmapNow.length >= 0 ? '+' : ''}${current.roadmapNow.length - baseline.roadmapNow.length} now, ${current.roadmapNext.length - baseline.roadmapNext.length >= 0 ? '+' : ''}${current.roadmapNext.length - baseline.roadmapNext.length} next, ${current.roadmapLater.length - baseline.roadmapLater.length >= 0 ? '+' : ''}${current.roadmapLater.length - baseline.roadmapLater.length} later.` : 'roadmap changes will appear after the first snapshot.'
+      });
+      summaryList.innerHTML = summaryLines.map((item) => `
+        <li><strong>${item.label}:</strong> ${item.text}</li>
+      `).join('');
       renderSavedList();
     }
 
@@ -546,7 +703,8 @@
         roadmapNext: state.current.roadmapNext,
         roadmapLater: state.current.roadmapLater,
         latestUpdate: state.current.latestUpdate,
-        latestNote: state.current.latestNote
+        latestNote: state.current.latestNote,
+        compareMode: state.compareMode
       };
       state.saved = [entry, ...state.saved.filter((item) => item.id !== entry.id)].slice(0, 8);
       state.snapshotId = entry.id;
@@ -564,6 +722,16 @@
       state.saved = [];
       state.snapshotId = null;
       saveSnapshots(state.saved);
+      renderAll();
+    });
+
+    compareControls?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-compare-mode]');
+      if (!button) return;
+      state.compareMode = button.dataset.compareMode;
+      compareControls.querySelectorAll('.chip').forEach((chip) => {
+        chip.classList.toggle('is-active', chip.dataset.compareMode === state.compareMode);
+      });
       renderAll();
     });
 
@@ -590,7 +758,8 @@
           roadmapNext: state.current.roadmapNext,
           roadmapLater: state.current.roadmapLater,
           latestUpdate: state.current.latestUpdate,
-          latestNote: state.current.latestNote
+          latestNote: state.current.latestNote,
+          compareMode: 'latest'
         }];
         saveSnapshots(state.saved);
       }
