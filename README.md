@@ -69,6 +69,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Homepage weatherfront memory:** upgraded the `index.html` weather desk into a weatherfront view that picks a best lane, shows a three-part session plan, and keeps a small carry-forward archive so the homepage can remember the last strong forecast instead of treating each visit as stateless
 - **Roost Driftboard compare modes:** upgraded `roost-driftboard.html` with selectable compare anchors, a drift score panel, and a clearer summary map so the roost can tell the difference between a live snapshot, a selected memory, and the previous save
 - **Homepage roost atlas:** added a new `index.html` atlas section that groups the site into build/story/play families, highlights the strongest pages in each lane, and exposes a copyable brief so the homepage can route by purpose instead of acting like a flat index
 - **Thread loom archive:** upgraded `index.html` with locally saved thread snapshots, restore actions, and a visible archive rail so the homepage can preserve a good story lane instead of only showing the live braid

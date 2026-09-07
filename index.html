@@ -1522,6 +1522,11 @@
       font-size:1rem;
       color:#f5f8ff;
     }
+    .weather-panel h4 {
+      margin:0;
+      font-size:.92rem;
+      color:#dce6ff;
+    }
     .weather-copy {
       margin:0;
       color:#c0ceff;
@@ -1541,6 +1546,27 @@
       color:#c5d2ff;
     }
     .weather-list li { margin:6px 0; }
+    .weather-archive {
+      display:grid;
+      gap:8px;
+    }
+    .weather-archive-item {
+      border:1px solid #35509f;
+      border-radius:12px;
+      background:#081231d9;
+      padding:10px 12px;
+      display:grid;
+      gap:4px;
+    }
+    .weather-archive-item strong {
+      font-size:.88rem;
+      color:#f7f9ff;
+    }
+    .weather-archive-item span {
+      font-size:.8rem;
+      color:#aebfff;
+      line-height:1.45;
+    }
     .weather-summary {
       border:1px solid #3950a0;
       border-radius:12px;
@@ -3739,7 +3765,7 @@
 
     <section class="card weather-desk" id="weatherDesk" aria-live="polite">
       <div class="weather-head">
-        <h2>roost weather forecast</h2>
+        <h2>roost weatherfront</h2>
         <p class="weather-note">a more opinionated day read that combines the weather feed, UTC hour, and recent momentum into a practical build window.</p>
       </div>
       <div class="weather-grid">
@@ -3752,6 +3778,8 @@
         <article class="weather-panel">
           <h3>session windows</h3>
           <ul class="weather-list" id="weatherWindowList"></ul>
+          <h4>carry-forward</h4>
+          <div class="weather-archive" id="weatherArchive"></div>
         </article>
       </div>
       <div class="weather-summary">
@@ -3760,7 +3788,7 @@
           <button class="btn" id="weatherCopy">copy weather brief</button>
           <a class="btn" href="roost-weather.html">open weather deck</a>
         </div>
-        <pre id="weatherBrief">loading weather forecast…</pre>
+        <pre id="weatherBrief">loading weatherfront…</pre>
       </div>
     </section>
 
@@ -3881,6 +3909,7 @@
     const weatherLeadMeta = document.getElementById('weatherLeadMeta');
     const weatherLeadTags = document.getElementById('weatherLeadTags');
     const weatherWindowList = document.getElementById('weatherWindowList');
+    const weatherArchive = document.getElementById('weatherArchive');
     const weatherBrief = document.getElementById('weatherBrief');
     const weatherShuffle = document.getElementById('weatherShuffle');
     const weatherCopy = document.getElementById('weatherCopy');
@@ -6233,9 +6262,11 @@
     let seasonalMode = storage.get('roostSeasonalMode') || 'build';
     let seasonalWheel = [];
     let weatherRegions = [];
+    let weatherArchiveState = [];
     let weatherForecastState = {
       regionId: null
     };
+    loadWeatherArchive();
 
     const currentSeasonFromWheel = () => {
       if (!seasonalWheel.length) return null;
@@ -6353,8 +6384,39 @@
       });
     };
 
+    const saveWeatherArchive = () => {
+      try {
+        storage.set('roostWeatherArchive', JSON.stringify(weatherArchiveState.slice(0, 4)));
+      } catch {}
+    };
+
+    const loadWeatherArchive = () => {
+      try {
+        const saved = JSON.parse(storage.get('roostWeatherArchive') || '[]');
+        weatherArchiveState = Array.isArray(saved) ? saved.slice(0, 4) : [];
+      } catch {
+        weatherArchiveState = [];
+      }
+    };
+
+    const renderWeatherArchive = () => {
+      if (!weatherArchive) return;
+      if (!weatherArchiveState.length) {
+        weatherArchive.innerHTML = '<div class="empty-card">no saved weatherfront notes yet.</div>';
+        return;
+      }
+
+      weatherArchive.innerHTML = weatherArchiveState.map((entry, index) => `
+        <article class="weather-archive-item">
+          <strong>${index === 0 ? 'last best lane' : `saved lane ${index + 1}`}</strong>
+          <span>${entry.region} · ${entry.mood} · ${entry.hour} UTC</span>
+          <span>${entry.cue}</span>
+        </article>
+      `).join('');
+    };
+
     const renderWeatherDesk = () => {
-      if (!weatherLeadTitle || !weatherLeadCopy || !weatherLeadMeta || !weatherLeadTags || !weatherWindowList || !weatherBrief) return;
+      if (!weatherLeadTitle || !weatherLeadCopy || !weatherLeadMeta || !weatherLeadTags || !weatherWindowList || !weatherBrief || !weatherArchive) return;
       const region = pickWeatherForecast();
       if (!region) {
         weatherLeadTitle.textContent = 'weather forecast unavailable';
@@ -6362,7 +6424,8 @@
         weatherLeadMeta.innerHTML = '';
         weatherLeadTags.innerHTML = '';
         weatherWindowList.innerHTML = '<li>no forecast windows available.</li>';
-        weatherBrief.textContent = 'weather forecast unavailable right now.';
+        weatherArchive.innerHTML = '<div class="empty-card">no saved weatherfront notes yet.</div>';
+        weatherBrief.textContent = 'weatherfront unavailable right now.';
         return;
       }
 
@@ -6370,6 +6433,14 @@
       const hour = getWeatherHour();
       const windows = buildWeatherWindows(region);
       const leadAction = hour === 'evening' ? 'close the loop and keep the work light' : region.mood === 'focus' ? 'treat this as a deep-work window' : 'use this for steady, low-friction shipping';
+      const archiveEntry = {
+        region: region.name,
+        mood: region.mood,
+        hour,
+        cue: region.advice
+      };
+      weatherArchiveState = [archiveEntry, ...weatherArchiveState.filter((entry) => entry.region !== archiveEntry.region || entry.hour !== archiveEntry.hour)].slice(0, 4);
+      saveWeatherArchive();
 
       weatherLeadTitle.textContent = `${region.name} is the best lane`;
       weatherLeadCopy.textContent = `${region.summary}. ${region.advice} Right now, the roost should ${leadAction}.`;
@@ -6386,8 +6457,9 @@
         region.visibilityKm >= 18 ? 'clear horizon' : 'keep it compact'
       ].map((tag) => `<span class="tag">${tag}</span>`).join('');
       weatherWindowList.innerHTML = windows.map((item) => `<li>${item}</li>`).join('');
+      renderWeatherArchive();
       weatherBrief.textContent = [
-        'roost weather forecast / today',
+        'roost weatherfront / today',
         '',
         `best region: ${region.name} (${region.mood})`,
         `hour: ${hour} UTC`,
@@ -6396,7 +6468,9 @@
         `session shape: ${hour === 'evening' ? 'short wrap-up or planning pass' : region.mood === 'focus' ? 'deep build sprint' : 'steady maintenance + shipping polish'}`,
         `next move: ${windows[0] || 'check the weather deck for a fuller read.'}`,
         '',
-        'why it matters: the homepage can now translate the weather feed into a practical work window instead of only showing the raw forecast data.'
+        `carry-forward: ${weatherArchiveState[0] ? `${weatherArchiveState[0].region} · ${weatherArchiveState[0].cue}` : 'none yet'}`,
+        '',
+        'why it matters: the homepage can now translate the weather feed into a practical work window instead of only showing the raw forecast data, and it remembers the best lane for the next visit.'
       ].join('\n');
     };
 
