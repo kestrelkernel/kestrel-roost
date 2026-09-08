@@ -32,6 +32,7 @@ python3 -m http.server 8080
 - `roost-signal-map.html` — roadmap-aware planning board that fuses releases, notes, and pressure lanes into a copyable brief
 - `roost-signal-loom.html` — signal braiding desk that merges updates, notes, and shipyard pressure into a replayable brief with local snapshots
 - `roost-forecast.html` — forecast desk that compresses live roadmap, focus, and note signals into a three-day planning brief
+- `roost-thesis.html` — daily thesis desk that turns the update stream into a point of view, a route, and a saved snapshot archive
 - `roost-currents.html` — living motion map that ranks recent ships and note trails into a copyable next experiment
 - `roost-prism.html` — signal prism that blends updates, notes, expeditions, and shipyard data into a copyable daily build brief
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
