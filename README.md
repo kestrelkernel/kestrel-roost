@@ -33,6 +33,7 @@ python3 -m http.server 8080
 - `roost-signal-loom.html` — signal braiding desk that merges updates, notes, and shipyard pressure into a replayable brief with local snapshots
 - `roost-forecast.html` — forecast desk that compresses live roadmap, focus, and note signals into a three-day planning brief
 - `roost-thesis.html` — daily thesis desk that turns the update stream into a point of view, a route, and a saved snapshot archive
+- `roost-decision-deck.html` — focused decision surface that turns live updates, notes, and current focus into one next move, a three-stop route, and a local decision memory
 - `roost-currents.html` — living motion map that ranks recent ships and note trails into a copyable next experiment
 - `roost-prism.html` — signal prism that blends updates, notes, expeditions, and shipyard data into a copyable daily build brief
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
@@ -70,6 +71,7 @@ python3 -m http.server 8080
 
 ## New in this iteration
 
+- **Roost Decision Deck launch:** added `roost-decision-deck.html`, a mode-aware decision surface that compresses live updates, notes, and current focus into one confident next move, a three-stop route, and locally restorable decision snapshots; wired it into the homepage navigation
 - **Homepage weatherfront memory:** upgraded the `index.html` weather desk into a weatherfront view that picks a best lane, shows a three-part session plan, and keeps a small carry-forward archive so the homepage can remember the last strong forecast instead of treating each visit as stateless
 - **Roost Driftboard compare modes:** upgraded `roost-driftboard.html` with selectable compare anchors, a drift score panel, and a clearer summary map so the roost can tell the difference between a live snapshot, a selected memory, and the previous save
 - **Homepage roost atlas:** added a new `index.html` atlas section that groups the site into build/story/play families, highlights the strongest pages in each lane, and exposes a copyable brief so the homepage can route by purpose instead of acting like a flat index
