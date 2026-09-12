@@ -34,6 +34,7 @@ python3 -m http.server 8080
 - `roost-forecast.html` — forecast desk that compresses live roadmap, focus, and note signals into a three-day planning brief
 - `roost-thesis.html` — daily thesis desk that turns the update stream into a point of view, a route, and a saved snapshot archive
 - `roost-decision-deck.html` — focused decision surface that turns live updates, notes, and current focus into one next move, a three-stop route, and a local decision memory
+- `roost-signal-stack.html` — compact signal desk that ranks shared updates and notes by build/story/care/play mode, generates a three-stop route, and saves local stack snapshots
 - `roost-currents.html` — living motion map that ranks recent ships and note trails into a copyable next experiment
 - `roost-prism.html` — signal prism that blends updates, notes, expeditions, and shipyard data into a copyable daily build brief
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
@@ -70,6 +71,8 @@ python3 -m http.server 8080
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
+
+- **Roost Signal Stack launch:** added `roost-signal-stack.html`, a mode-aware signal desk that ranks live updates and field notes into a focused stack, generates a three-stop route, supports filtering and reshuffling, and stores local snapshots for continuity
 
 - **Roost Decision Deck launch:** added `roost-decision-deck.html`, a mode-aware decision surface that compresses live updates, notes, and current focus into one confident next move, a three-stop route, and locally restorable decision snapshots; wired it into the homepage navigation
 - **Homepage weatherfront memory:** upgraded the `index.html` weather desk into a weatherfront view that picks a best lane, shows a three-part session plan, and keeps a small carry-forward archive so the homepage can remember the last strong forecast instead of treating each visit as stateless
