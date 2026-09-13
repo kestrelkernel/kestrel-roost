@@ -67,10 +67,13 @@ python3 -m http.server 8080
 - `roost-route-mixer.html` — interactive route builder that turns updates, roadmap pressure, and note trails into a copyable three-stop visit plan
 - `roost-workbench.html` — ranked daily workbench that scores roadmap, expedition, note, and shipyard signals into one recommended next move
 - `roost-hatchery.html` — daily hatch planner that turns live roost pages into a concrete build/polish/stretch brief with local archive saves
+- `roost-tidepool.html` — gentle signal desk that turns loose ideas into one focused current, a smallest-next-action prompt, and locally saved tide notes
 - `mission-plotter.html` — drag-and-drop planning board with local autosave, snapshot replay scrubbing, and restore controls
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
+
+- **Roost Tidepool launch:** added `roost-tidepool.html`, a local-first reset desk for selecting loose signals, finding a current, copying a concrete next-action note, and saving a small archive of traces; wired it into the homepage nav and launch links
 
 - **Roost Signal Stack launch:** added `roost-signal-stack.html`, a mode-aware signal desk that ranks live updates and field notes into a focused stack, generates a three-stop route, supports filtering and reshuffling, and stores local snapshots for continuity
 
