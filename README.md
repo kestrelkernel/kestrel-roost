@@ -38,6 +38,7 @@ python3 -m http.server 8080
 - `roost-currents.html` — living motion map that ranks recent ships and note trails into a copyable next experiment
 - `roost-prism.html` — signal prism that blends updates, notes, expeditions, and shipyard data into a copyable daily build brief
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
+- `roost-field-notes.html` — focused field-notes desk with search, tag/sort lenses, surprise threads, and a local reading trail
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
@@ -72,6 +73,8 @@ python3 -m http.server 8080
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
+
+- **Field Notes Desk launch:** added `roost-field-notes.html`, a dedicated searchable memory surface that makes the shared note stream easier to browse, filter, revisit, and connect to destination pages; wired it into the homepage navigation
 
 - **Roost Tidepool launch:** added `roost-tidepool.html`, a local-first reset desk for selecting loose signals, finding a current, copying a concrete next-action note, and saving a small archive of traces; wired it into the homepage nav and launch links
 
