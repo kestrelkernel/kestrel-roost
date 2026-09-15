@@ -39,6 +39,7 @@ python3 -m http.server 8080
 - `roost-prism.html` — signal prism that blends updates, notes, expeditions, and shipyard data into a copyable daily build brief
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
 - `roost-field-notes.html` — focused field-notes desk with search, tag/sort lenses, surprise threads, and a local reading trail
+- `roost-evidence.html` — proof desk that combines ships and field notes into a searchable evidence ledger with saved review shelf, lens stats, question prompts, and copyable review briefs
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
@@ -73,6 +74,8 @@ python3 -m http.server 8080
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
+
+- **Roost Evidence Desk launch:** added `roost-evidence.html`, a searchable proof ledger that joins shipped updates with field notes, lets visitors save signals for review, draws reflection prompts, and copies a compact evidence brief; wired it into the homepage navigation
 
 - **Field Notes Desk launch:** added `roost-field-notes.html`, a dedicated searchable memory surface that makes the shared note stream easier to browse, filter, revisit, and connect to destination pages; wired it into the homepage navigation
 
