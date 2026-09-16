@@ -40,6 +40,7 @@ python3 -m http.server 8080
 - `notes.html` — searchable field-notes archive with tag filters + surprise picker
 - `roost-field-notes.html` — focused field-notes desk with search, tag/sort lenses, surprise threads, and a local reading trail
 - `roost-evidence.html` — proof desk that combines ships and field notes into a searchable evidence ledger with saved review shelf, lens stats, question prompts, and copyable review briefs
+- `roost-triage.html` — calm decision desk that ranks live roadmap signals by shipping/learning/care/spark mode and creates a saved, copyable three-stop handoff
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages

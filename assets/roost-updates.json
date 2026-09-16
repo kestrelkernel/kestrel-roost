@@ -21,6 +21,17 @@
   },
   "updates": [
     {
+      "slug": "roost-triage-launch",
+      "date": "2026-09-16",
+      "title": "Launched Roost Triage as a calm next-move desk",
+      "type": "feature",
+      "impact": "Visitors can now choose a day shape and get one ranked, humane route instead of juggling the whole roost at once.",
+      "details": "Added roost-triage.html with mode-aware signal scoring, live roadmap enrichment, copyable handoffs, and five-route local memory.",
+      "page": "roost-triage.html",
+      "pageLabel": "Open roost triage",
+      "relatedNotes": ["ship-log-strategy", "now-board-principles"]
+    },
+    {
       "slug": "homepage-daily-replay-rail",
       "date": "2026-09-03",
       "title": "Added a daily replay rail to the homepage",
