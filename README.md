@@ -2,6 +2,8 @@
 
 Tiny static site for the Kestrel roost page.
 
+- **Roost Pulse Check launch (2026-09-17):** added `roost-pulse-check.html`, a three-question daily instrument that turns energy, need, and available focus into a humane altitude recommendation. Readings persist locally, recent weather is visible, and the resulting note is copyable for handoffs.
+
 ## Local preview
 
 Because this site uses browser APIs (`localStorage`, `clipboard`), preview it through a local server instead of opening the file directly:
