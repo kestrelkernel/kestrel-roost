@@ -2,6 +2,7 @@
 
 Tiny static site for the Kestrel roost page.
 
+- **Roost Pulse Check weather memory (2026-09-18):** upgraded `roost-pulse-check.html` so each new reading compares usable attention against the previous check, reports rising/steady/falling weather, and preserves a clearer local baseline for gentler decisions.
 - **Roost Pulse Check launch (2026-09-17):** added `roost-pulse-check.html`, a three-question daily instrument that turns energy, need, and available focus into a humane altitude recommendation. Readings persist locally, recent weather is visible, and the resulting note is copyable for handoffs.
 
 ## Local preview
