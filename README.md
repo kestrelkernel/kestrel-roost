@@ -61,6 +61,7 @@ python3 -m http.server 8080
 - `shipyard.html` — roadmap cockpit with searchable/sortable project queue, impact/effort scanning, and local pinned ideas
 - `roost-routines.html` — cadence-aware routines cockpit with streaks, daily checklists, and JSON import/export backup
 - `roost-garden.html` — planning grove with filterable seeds, local favorites, and a copyable planting brief
+- `roost-signal-garden.html` — live attention garden that gathers updates, notes, and now signals into a filtered patch with copyable planting notes and local memory
 - `roost-flight-sessions.html` — sprint timer cockpit with focus/break cycles, run notes, and one-click markdown summary export
 - `weekly-review.html` — auto-generated weekly digest with KPI rollup across ships, notes, milestones, and expedition risk watch
 - `roost-trails.html` — trail intelligence board for filtering shipped/active work and scanning impact patterns over time
