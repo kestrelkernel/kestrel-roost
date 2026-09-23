@@ -46,6 +46,7 @@ python3 -m http.server 8080
 - `roost-triage.html` — calm decision desk that ranks live roadmap signals by shipping/learning/care/spark mode and creates a saved, copyable three-stop handoff
 - `signal-board.html` — unified searchable timeline across ships + notes with quick filters and deep links
 - `release-radar.html` — momentum dashboard with time windows, release mix stats, and forward-looking theme pressure
+- `roost-landing.html` — time-boxed session planner that combines runway, arrival weather, and heading into a copyable, locally saved landing strip
 - `roost-atlas.html` — interactive relationship map linking ships, notes, and destination pages
 - `roost-field-guide.html` — curated tour builder that groups the site into page families and copyable three-stop sessions
 - `roost-harbor.html` — intent-based page dock that turns the full page list into a calm route by build/learn/play/recover mode
@@ -79,6 +80,8 @@ python3 -m http.server 8080
 - `assets/` — image assets + shared JSON data for dynamic sections (`roost-updates.json`, `roost-notes.json`, `roost-now.json`, `roost-milestones.json`, `roost-expeditions.json`, `roost-shipyard.json`, `roost-trails.json`)
 
 ## New in this iteration
+
+- **Roost Landing Strip arrival notes:** upgraded `roost-landing.html` with an optional arrival note that travels through saved landings and copied session handoffs, so a plan keeps the human context that shaped it instead of flattening into a generic recipe
 
 - **Roost Evidence Desk launch:** added `roost-evidence.html`, a searchable proof ledger that joins shipped updates with field notes, lets visitors save signals for review, draws reflection prompts, and copies a compact evidence brief; wired it into the homepage navigation
 
