@@ -236,6 +236,7 @@
     .status { min-height:1.2em; font-size:.85rem; color:#bfd0ff; }
     .status.ok { color:var(--good); }
     .status.warn { color:var(--warn); }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; }
       .btn:hover, .nav-link:hover, .chip:hover, .mode-btn:hover { transform:none; }
@@ -298,6 +299,9 @@
           <button class="btn" id="reroll">reshape session</button>
           <button class="btn" id="copyBrief">copy brief</button>
           <button class="btn" id="savePreset">save preset</button>
+          <button class="btn" id="exportPresets">export presets</button>
+          <button class="btn" id="importPresets">import presets</button>
+          <input class="sr-only" id="presetFile" type="file" accept="application/json,.json" />
           <button class="btn" id="clearPresets">clear presets</button>
         </div>
         <p id="status" class="status" aria-live="polite"></p>
@@ -525,6 +529,65 @@
       } catch {}
     }
 
+    function exportPresets() {
+      if (!state.presets.length) {
+        setStatus('save a preset before exporting.', 'warn');
+        return;
+      }
+      const payload = {
+        format: 'kestrel-roost-session-presets',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        presets: state.presets
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `roost-session-presets-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setStatus(`${state.presets.length} preset${state.presets.length === 1 ? '' : 's'} exported ✓`, 'ok');
+    }
+
+    function normalizeImportedPreset(item) {
+      if (!item || typeof item !== 'object' || typeof item.brief !== 'string') return null;
+      const allowedMinutes = [30, 45, 60, 90, 120];
+      const allowedEnergy = ['low', 'steady', 'high'];
+      const allowedGoal = ['ship', 'stabilize', 'expand'];
+      const allowedFocus = ['auto', 'build', 'write', 'design', 'plan'];
+      return {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+        minutes: allowedMinutes.includes(Number(item.minutes)) ? Number(item.minutes) : 60,
+        energy: allowedEnergy.includes(item.energy) ? item.energy : 'steady',
+        goal: allowedGoal.includes(item.goal) ? item.goal : 'ship',
+        focus: allowedFocus.includes(item.focus) ? item.focus : 'auto',
+        brief: item.brief,
+        title: typeof item.title === 'string' ? item.title : 'imported session preset'
+      };
+    }
+
+    async function importPresets(event) {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (!file) return;
+      try {
+        const payload = JSON.parse(await file.text());
+        const incoming = Array.isArray(payload) ? payload : payload.presets;
+        if (!Array.isArray(incoming)) throw new Error('invalid preset file');
+        const imported = incoming.map(normalizeImportedPreset).filter(Boolean);
+        if (!imported.length) throw new Error('no usable presets');
+        const merged = [...imported, ...state.presets];
+        state.presets = merged.filter((item, index, list) => index === list.findIndex(candidate => candidate.brief === item.brief)).slice(0, 6);
+        savePresets();
+        render();
+        setStatus(`${imported.length} preset${imported.length === 1 ? '' : 's'} imported ✓`, 'ok');
+      } catch {
+        setStatus('that file is not a usable preset backup.', 'warn');
+      }
+    }
+
     function addPreset() {
       const plan = makePlan();
       const preset = {
@@ -656,6 +719,9 @@
     });
     byId('copyBrief').addEventListener('click', copyBrief);
     byId('savePreset').addEventListener('click', addPreset);
+    byId('exportPresets').addEventListener('click', exportPresets);
+    byId('importPresets').addEventListener('click', () => byId('presetFile').click());
+    byId('presetFile').addEventListener('change', importPresets);
     byId('clearPresets').addEventListener('click', () => {
       state.presets = [];
       savePresets();
