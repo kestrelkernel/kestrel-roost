@@ -8911,5 +8911,56 @@
       setActionStatus('quest history cleared (repeat-avoid cache reset too).', 'ok');
     });
   </script>
+
+  <style>
+    .roost-launcher { position:fixed; right:18px; bottom:18px; z-index:20; border:1px solid #6f8dff; border-radius:999px; padding:10px 14px; color:#eef2ff; background:#142668e8; box-shadow:0 10px 30px #0008; cursor:pointer; font:inherit; }
+    .roost-launcher:hover, .roost-launcher:focus-visible { background:#1c3480; outline:2px solid #9ab4ff; outline-offset:3px; }
+    .roost-palette { position:fixed; inset:0; z-index:30; display:grid; place-items:start center; padding:12vh 18px 18px; background:#050916b8; backdrop-filter:blur(6px); }
+    .roost-palette[hidden] { display:none; }
+    .palette-panel { width:min(620px, 100%); overflow:hidden; border:1px solid #5872d1; border-radius:16px; background:#0d1635; box-shadow:0 24px 80px #000b; }
+    .palette-search { width:100%; border:0; border-bottom:1px solid #33498e; padding:18px; color:#f1f4ff; background:#0a122d; font:inherit; font-size:1rem; outline:none; }
+    .palette-list { max-height:min(55vh, 440px); overflow:auto; padding:8px; }
+    .palette-item { display:block; width:100%; border:1px solid transparent; border-radius:10px; padding:11px 12px; color:#dce5ff; background:transparent; text-align:left; cursor:pointer; font:inherit; }
+    .palette-item:hover, .palette-item:focus-visible { border-color:#4b65bd; background:#14245a; outline:none; }
+    .palette-item small { display:block; margin-top:3px; color:#93a8ec; }
+    .palette-empty { padding:18px; color:#9fb0ff; }
+    @media (prefers-reduced-motion: no-preference) { .palette-panel { animation:palette-in .14s ease-out; } @keyframes palette-in { from { transform:translateY(-8px); opacity:0; } } }
+  </style>
+  <button class="roost-launcher" id="roostLauncher" type="button" aria-haspopup="dialog" aria-controls="roostPalette">⌘K navigate</button>
+  <div class="roost-palette" id="roostPalette" role="dialog" aria-modal="true" aria-label="Roost navigation" hidden>
+    <div class="palette-panel">
+      <input class="palette-search" id="paletteSearch" type="search" placeholder="Search the roost…" autocomplete="off" />
+      <div class="palette-list" id="paletteList"></div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const launcher = document.querySelector('#roostLauncher');
+      const palette = document.querySelector('#roostPalette');
+      const search = document.querySelector('#paletteSearch');
+      const list = document.querySelector('#paletteList');
+      const links = [...document.querySelectorAll('a[href]')]
+        .map((link) => ({ label: link.textContent.trim().replace(/\s+/g, ' '), href: link.href, hint: link.closest('section, header, nav')?.querySelector('h1,h2')?.textContent.trim() || 'Roost' }))
+        .filter((item, index, all) => item.label && all.findIndex((other) => other.href === item.href) === index)
+        .slice(0, 80);
+      let previousFocus;
+      const render = () => {
+        const query = search.value.trim().toLowerCase();
+        const matches = links.filter((item) => `${item.label} ${item.hint}`.toLowerCase().includes(query));
+        list.innerHTML = matches.length ? matches.map((item, index) => `<button class="palette-item" type="button" data-index="${links.indexOf(item)}">${item.label}<small>${item.hint}</small></button>`).join('') : '<div class="palette-empty">No routes found. Try a different signal.</div>';
+        list.querySelector('.palette-item')?.focus();
+      };
+      const close = () => { palette.hidden = true; if (previousFocus) previousFocus.focus(); };
+      const open = () => { previousFocus = document.activeElement; palette.hidden = false; search.value = ''; render(); search.focus(); };
+      launcher.addEventListener('click', open);
+      palette.addEventListener('click', (event) => { if (event.target === palette) close(); });
+      search.addEventListener('input', () => { const active = document.activeElement === search; render(); if (active) search.focus(); });
+      list.addEventListener('click', (event) => { const button = event.target.closest('[data-index]'); if (button) window.location.href = links[button.dataset.index].href; });
+      document.addEventListener('keydown', (event) => {
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); palette.hidden ? open() : close(); }
+        if (event.key === 'Escape' && !palette.hidden) close();
+      });
+    })();
+  </script>
 </body>
 </html>
